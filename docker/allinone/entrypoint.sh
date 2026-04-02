@@ -285,6 +285,68 @@ mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
 EORT
 echo "[SIP] Realtime tables OK"
 
+# ── Laravel .env (generer si absent) ──
+if [ ! -f ".env" ]; then
+    echo "[SIP] Generating Laravel .env..."
+    cat > .env <<ENVEOF
+APP_NAME="SIP Manager"
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=http://localhost
+
+APP_LOCALE=fr
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=fr_FR
+APP_MAINTENANCE_DRIVER=file
+BCRYPT_ROUNDS=12
+
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=warning
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sip_manager
+DB_USERNAME=root
+DB_PASSWORD=${DB_PASS}
+
+DB_AST_CONNECTION=asterisk
+DB_AST_HOST=127.0.0.1
+DB_AST_PORT=3306
+DB_AST_DATABASE=asterisk_rt
+DB_AST_USERNAME=root
+DB_AST_PASSWORD=${DB_PASS}
+
+ASTERISK_AMI_HOST=127.0.0.1
+ASTERISK_AMI_PORT=5038
+ASTERISK_AMI_USER=${AMI_USER}
+ASTERISK_AMI_SECRET=${AMI_PASS}
+
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=redis
+CACHE_STORE=redis
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=log
+
+SIP_DEFAULT_CONTEXT=from-internal
+SIP_DEFAULT_TRANSPORT=transport-udp
+SIP_DEFAULT_CODECS=alaw,ulaw,g722
+ENVEOF
+    php artisan key:generate --force
+    echo "[SIP] Laravel .env created with APP_KEY"
+fi
+
 # ── Composer install si necessaire ──
 if [ ! -d "vendor" ]; then
     echo "[SIP] Installing Composer dependencies..."
