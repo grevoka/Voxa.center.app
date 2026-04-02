@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIP Control Center</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00e5a0;
+            --accent-dim: #00e5a020;
+            --accent-mid: #00e5a050;
+            --surface: #0d1117;
+            --surface-2: #161b22;
+            --surface-3: #1c2333;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --danger: #f85149;
+            --warning: #d29922;
+            --info: #58a6ff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            background: var(--surface-2);
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: transform .3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-brand h5 {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.1rem;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-brand h5 span { color: var(--accent); }
+
+        .sidebar-brand small {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .nav-section {
+            padding: 1rem 0.75rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-section-title {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 0 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s ease;
+            margin-bottom: 2px;
+            border: 1px solid transparent;
+        }
+
+        .nav-item-custom:hover {
+            background: var(--surface-3);
+            color: var(--text-primary);
+        }
+
+        .nav-item-custom.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-color: var(--accent-mid);
+        }
+
+        .nav-item-custom .bi { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--accent-dim);
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            padding: 2px 7px;
+            border-radius: 99px;
+            font-weight: 600;
+        }
+
+        /* ── Main ── */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-2);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .top-bar h4 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.15rem;
+        }
+
+        .page-content { padding: 2rem; }
+
+        /* ── Stat Cards ── */
+        .stat-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all .3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .stat-card:hover { border-color: var(--accent-mid); transform: translateY(-2px); }
+        .stat-card:hover::before { opacity: 1; }
+
+        .stat-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        .stat-card .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-card .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .stat-change.up { color: var(--accent); }
+        .stat-change.down { color: var(--danger); }
+
+        /* ── Tables ── */
+        .data-table {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .data-table .table {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .data-table .table thead th {
+            background: var(--surface-3);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 0.85rem 1rem;
+            white-space: nowrap;
+        }
+
+        .data-table .table tbody td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .data-table .table tbody tr:last-child td { border-bottom: none; }
+
+        .data-table .table tbody tr {
+            transition: background .15s;
+        }
+
+        .data-table .table tbody tr:hover { background: var(--surface-3); }
+
+        .ext-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* ── Status badges ── */
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-dot.online { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+        .status-dot.offline { background: var(--text-secondary); }
+        .status-dot.busy { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+        .status-dot.error { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+        /* ── Custom buttons ── */
+        .btn-accent {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            padding: 0.5rem 1.25rem;
+            transition: all .2s;
+        }
+
+        .btn-accent:hover {
+            background: #00ffb3;
+            color: #000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--accent-mid);
+        }
+
+        .btn-outline-custom {
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            background: transparent;
+            transition: all .2s;
+        }
+
+        .btn-outline-custom:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .btn-icon {
+            width: 34px; height: 34px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: all .2s;
+        }
+
+        .btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .btn-icon.danger:hover { border-color: var(--danger); color: var(--danger); background: #f8514920; }
+
+        /* ── Modals ── */
+        .modal-content {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-header .modal-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .modal-body { padding: 1.5rem; }
+
+        .modal-footer {
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+        }
+
+        .form-control, .form-select {
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 0.6rem 0.85rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: var(--surface-3);
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        /* ── Search ── */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box .bi {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .search-box input {
+            padding-left: 2.2rem;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.82rem;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        /* ── Section panel ── */
+        .section-panel {
+            display: none;
+        }
+
+        .section-panel.active {
+            display: block;
+            animation: fadeUp .35s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .codec-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ── Trunk type badge ── */
+        .trunk-type {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        .trunk-type.sip {
+            background: #58a6ff20;
+            color: #58a6ff;
+        }
+
+        .trunk-type.iax {
+            background: #d2992220;
+            color: #d29922;
+        }
+
+        .trunk-type.pri {
+            background: #bc8cff20;
+            color: #bc8cff;
+        }
+
+        /* ── Toast ── */
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; }
+
+        .toast-custom {
+            background: var(--surface-3);
+            border: 1px solid var(--accent-mid);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,.4);
+        }
+
+        /* ── Responsive ── */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 991px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-toggle { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <h5><span>//</span> SIP<span>.</span>ctrl</h5>
+        <small>Telecom Management</small>
+    </div>
+    <div class="nav-section">
+        <div class="nav-section-title">Général</div>
+        <a class="nav-item-custom active" data-section="dashboard" onclick="showSection('dashboard')">
+            <i class="bi bi-grid-1x2-fill"></i> Tableau de bord
+        </a>
+
+        <div class="nav-section-title mt-3">Gestion SIP</div>
+        <a class="nav-item-custom" data-section="lines" onclick="showSection('lines')">
+            <i class="bi bi-telephone-fill"></i> Lignes téléphoniques
+            <span class="nav-badge" id="linesCount">0</span>
+        </a>
+        <a class="nav-item-custom" data-section="trunks" onclick="showSection('trunks')">
+            <i class="bi bi-diagram-3-fill"></i> Trunks SIP
+            <span class="nav-badge" id="trunksCount">0</span>
+        </a>
+
+        <div class="nav-section-title mt-3">Configuration</div>
+        <a class="nav-item-custom" data-section="codecs" onclick="showSection('codecs')">
+            <i class="bi bi-soundwave"></i> Codecs
+        </a>
+        <a class="nav-item-custom" data-section="settings" onclick="showSection('settings')">
+            <i class="bi bi-gear-fill"></i> Paramètres
+        </a>
+    </div>
+    <div style="padding: 1rem; border-top: 1px solid var(--border);">
+        <div class="d-flex align-items-center gap-2">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-person-fill" style="color:var(--accent);"></i>
+            </div>
+            <div>
+                <div style="font-size:0.8rem;font-weight:600;">Admin</div>
+                <div style="font-size:0.65rem;color:var(--text-secondary);">admin@sip.local</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Main -->
+<div class="main-content">
+    <div class="top-bar">
+        <div class="d-flex align-items-center gap-3">
+            <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                <i class="bi bi-list"></i>
+            </button>
+            <h4 id="pageTitle">Tableau de bord</h4>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="search-box d-none d-md-block">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control" placeholder="Rechercher..." style="width:220px;" id="globalSearch" onkeyup="handleSearch()">
+            </div>
+            <button class="btn-icon" title="Notifications">
+                <i class="bi bi-bell"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="page-content">
+
+        <!-- ═══ DASHBOARD ═══ -->
+        <div class="section-panel active" id="section-dashboard">
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="stat-icon"><i class="bi bi-telephone-fill"></i></div>
+                            <span class="stat-change up"><i class="bi bi-arrow-up-short"></i>12%</span>
+                        </div>
+                        <div class="stat-value" id="dashLines">0</div>
+                        <div class="stat-label">Lignes actives</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="stat-icon" style="background:#58a6ff20;color:#58a6ff;"><i class="bi bi-diagram-3-fill"></i></div>
+                            <span class="stat-change up"><i class="bi bi-arrow-up-short"></i>3</span>
+                        </div>
+                        <div class="stat-value" id="dashTrunks">0</div>
+                        <div class="stat-label">Trunks configurés</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="stat-icon" style="background:#d2992220;color:#d29922;"><i class="bi bi-clock-history"></i></div>
+                        </div>
+                        <div class="stat-value" id="dashCalls">0</div>
+                        <div class="stat-label">Appels en cours</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="stat-icon" style="background:#f8514920;color:#f85149;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        </div>
+                        <div class="stat-value" id="dashErrors">0</div>
+                        <div class="stat-label">Erreurs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent activity -->
+            <div class="data-table">
+                <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid var(--border);">
+                    <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;">Activité récente</h6>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Heure</th>
+                            <th>Événement</th>
+                            <th>Détails</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityLog">
+                        <tr><td colspan="4" class="text-center py-4" style="color:var(--text-secondary);">Aucune activité récente</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══ LINES ═══ -->
+        <div class="section-panel" id="section-lines">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-1" style="font-weight:700;">Lignes téléphoniques</h5>
+                    <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gérer les extensions et comptes SIP</p>
+                </div>
+                <button class="btn btn-accent" onclick="openLineModal()">
+                    <i class="bi bi-plus-lg me-1"></i> Nouvelle ligne
+                </button>
+            </div>
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Extension</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Protocole</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="linesTable">
+                        <tr><td colspan="6" class="text-center py-4" style="color:var(--text-secondary);"><i class="bi bi-telephone-x me-2"></i>Aucune ligne configurée</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══ TRUNKS ═══ -->
+        <div class="section-panel" id="section-trunks">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-1" style="font-weight:700;">Trunks SIP</h5>
+                    <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gérer les connexions vers les opérateurs</p>
+                </div>
+                <button class="btn btn-accent" onclick="openTrunkModal()">
+                    <i class="bi bi-plus-lg me-1"></i> Nouveau trunk
+                </button>
+            </div>
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Type</th>
+                            <th>Hôte</th>
+                            <th>Port</th>
+                            <th>Codecs</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trunksTable">
+                        <tr><td colspan="7" class="text-center py-4" style="color:var(--text-secondary);"><i class="bi bi-diagram-3 me-2"></i>Aucun trunk configuré</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══ CODECS ═══ -->
+        <div class="section-panel" id="section-codecs">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-1" style="font-weight:700;">Codecs audio</h5>
+                    <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Codecs disponibles pour les appels SIP</p>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-4" id="codecsList"></div>
+            </div>
+        </div>
+
+        <!-- ═══ SETTINGS ═══ -->
+        <div class="section-panel" id="section-settings">
+            <div class="section-header">
+                <div>
+                    <h5 class="mb-1" style="font-weight:700;">Paramètres SIP</h5>
+                    <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Configuration globale du serveur SIP</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="stat-card">
+                        <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">Serveur SIP</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Adresse du serveur</label>
+                            <input type="text" class="form-control" id="sipServer" value="sip.local" placeholder="sip.example.com">
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label">Port SIP</label>
+                                <input type="number" class="form-control" id="sipPort" value="5060">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Port TLS</label>
+                                <input type="number" class="form-control" id="sipTlsPort" value="5061">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label">Transport</label>
+                            <select class="form-select" id="sipTransport">
+                                <option value="UDP">UDP</option>
+                                <option value="TCP">TCP</option>
+                                <option value="TLS" selected>TLS</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-accent mt-3" onclick="saveSettings()">
+                            <i class="bi bi-check-lg me-1"></i> Sauvegarder
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="stat-card">
+                        <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">Sécurité</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Tentatives max d'authentification</label>
+                            <input type="number" class="form-control" value="3">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Durée ban (secondes)</label>
+                            <input type="number" class="form-control" value="300">
+                        </div>
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" id="srtp" checked>
+                            <label class="form-check-label" for="srtp" style="font-size:0.85rem;">Activer SRTP (chiffrement média)</label>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="tlsRequired" checked>
+                            <label class="form-check-label" for="tlsRequired" style="font-size:0.85rem;">Exiger TLS pour la signalisation</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══ MODAL: New Line ═══ -->
+<div class="modal fade" id="lineModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-telephone-plus-fill me-2" style="color:var(--accent);"></i><span id="lineModalTitle">Nouvelle ligne</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="lineEditIndex" value="-1">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">Extension</label>
+                        <input type="text" class="form-control" id="lineExt" placeholder="1001">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Protocole</label>
+                        <select class="form-select" id="lineProto">
+                            <option value="SIP/UDP">SIP/UDP</option>
+                            <option value="SIP/TCP">SIP/TCP</option>
+                            <option value="SIP/TLS">SIP/TLS</option>
+                            <option value="WebRTC">WebRTC</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Nom complet</label>
+                        <input type="text" class="form-control" id="lineName" placeholder="Jean Dupont">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="lineEmail" placeholder="jean@example.com">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Mot de passe SIP</label>
+                        <input type="password" class="form-control" id="linePass" placeholder="••••••••">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">CallerID</label>
+                        <input type="text" class="form-control" id="lineCallerId" placeholder="+33 1 23 45 67 89">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-accent" onclick="saveLine()">
+                    <i class="bi bi-check-lg me-1"></i> Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: New Trunk ═══ -->
+<div class="modal fade" id="trunkModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-diagram-3-fill me-2" style="color:var(--accent);"></i><span id="trunkModalTitle">Nouveau trunk</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="trunkEditIndex" value="-1">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nom du trunk</label>
+                        <input type="text" class="form-control" id="trunkName" placeholder="OVH-Main">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="trunkType">
+                            <option value="SIP">SIP</option>
+                            <option value="IAX">IAX2</option>
+                            <option value="PRI">PRI</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Transport</label>
+                        <select class="form-select" id="trunkTransport">
+                            <option value="UDP">UDP</option>
+                            <option value="TCP">TCP</option>
+                            <option value="TLS">TLS</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hôte / IP</label>
+                        <input type="text" class="form-control" id="trunkHost" placeholder="sip.provider.com">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Port</label>
+                        <input type="number" class="form-control" id="trunkPort" value="5060">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Canaux max</label>
+                        <input type="number" class="form-control" id="trunkChannels" value="30">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Utilisateur / Auth</label>
+                        <input type="text" class="form-control" id="trunkUser" placeholder="username">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password" class="form-control" id="trunkPass" placeholder="••••••••">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Codecs (ordre de préférence)</label>
+                        <div class="d-flex flex-wrap gap-2" id="trunkCodecsSelect"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Caller ID sortant</label>
+                        <input type="text" class="form-control" id="trunkCallerId" placeholder="+33 1 00 00 00 00">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contexte</label>
+                        <input type="text" class="form-control" id="trunkContext" value="from-trunk">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-accent" onclick="saveTrunk()">
+                    <i class="bi bi-check-lg me-1"></i> Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ═══ DATA STORE ═══
+    let sipLines = [];
+    let sipTrunks = [];
+    let activityLog = [];
+
+    const CODECS = [
+        { name: 'G.711 µ-law', id: 'ulaw', bitrate: '64 kbps', quality: 'Excellent' },
+        { name: 'G.711 A-law', id: 'alaw', bitrate: '64 kbps', quality: 'Excellent' },
+        { name: 'G.722', id: 'g722', bitrate: '64 kbps', quality: 'HD Voice' },
+        { name: 'G.729', id: 'g729', bitrate: '8 kbps', quality: 'Bonne' },
+        { name: 'Opus', id: 'opus', bitrate: '6-510 kbps', quality: 'Supérieure' },
+        { name: 'GSM', id: 'gsm', bitrate: '13 kbps', quality: 'Moyenne' },
+        { name: 'iLBC', id: 'ilbc', bitrate: '13.3 kbps', quality: 'Bonne' },
+        { name: 'Speex', id: 'speex', bitrate: '2-44 kbps', quality: 'Variable' },
+    ];
+
+    // ═══ NAVIGATION ═══
+    function showSection(name) {
+        document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('section-' + name).classList.add('active');
+
+        document.querySelectorAll('.nav-item-custom').forEach(n => n.classList.remove('active'));
+        document.querySelector(`[data-section="${name}"]`).classList.add('active');
+
+        const titles = { dashboard: 'Tableau de bord', lines: 'Lignes téléphoniques', trunks: 'Trunks SIP', codecs: 'Codecs audio', settings: 'Paramètres' };
+        document.getElementById('pageTitle').textContent = titles[name] || name;
+
+        // Close sidebar on mobile
+        document.getElementById('sidebar').classList.remove('show');
+    }
+
+    // ═══ LINES MANAGEMENT ═══
+    function openLineModal(index = -1) {
+        document.getElementById('lineEditIndex').value = index;
+        if (index >= 0) {
+            const l = sipLines[index];
+            document.getElementById('lineExt').value = l.ext;
+            document.getElementById('lineName').value = l.name;
+            document.getElementById('lineEmail').value = l.email;
+            document.getElementById('lineProto').value = l.protocol;
+            document.getElementById('linePass').value = l.password;
+            document.getElementById('lineCallerId').value = l.callerId;
+            document.getElementById('lineModalTitle').textContent = 'Modifier la ligne ' + l.ext;
+        } else {
+            document.getElementById('lineExt').value = '';
+            document.getElementById('lineName').value = '';
+            document.getElementById('lineEmail').value = '';
+            document.getElementById('lineProto').value = 'SIP/UDP';
+            document.getElementById('linePass').value = '';
+            document.getElementById('lineCallerId').value = '';
+            document.getElementById('lineModalTitle').textContent = 'Nouvelle ligne';
+        }
+        new bootstrap.Modal(document.getElementById('lineModal')).show();
+    }
+
+    function saveLine() {
+        const ext = document.getElementById('lineExt').value.trim();
+        const name = document.getElementById('lineName').value.trim();
+        if (!ext || !name) { showToast('Veuillez remplir au moins l\'extension et le nom.', 'warning'); return; }
+
+        const line = {
+            ext,
+            name,
+            email: document.getElementById('lineEmail').value.trim(),
+            protocol: document.getElementById('lineProto').value,
+            password: document.getElementById('linePass').value,
+            callerId: document.getElementById('lineCallerId').value.trim(),
+            status: 'online',
+            created: new Date().toISOString()
+        };
+
+        const idx = parseInt(document.getElementById('lineEditIndex').value);
+        if (idx >= 0) {
+            sipLines[idx] = { ...sipLines[idx], ...line };
+            addActivity('Ligne modifiée', `Extension ${ext} mise à jour`);
+        } else {
+            sipLines.push(line);
+            addActivity('Nouvelle ligne', `Extension ${ext} — ${name}`);
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('lineModal')).hide();
+        renderLines();
+        updateDashboard();
+        showToast(`Ligne ${ext} enregistrée avec succès.`);
+    }
+
+    function deleteLine(index) {
+        if (!confirm(`Supprimer la ligne ${sipLines[index].ext} ?`)) return;
+        const ext = sipLines[index].ext;
+        sipLines.splice(index, 1);
+        addActivity('Ligne supprimée', `Extension ${ext}`);
+        renderLines();
+        updateDashboard();
+        showToast(`Ligne ${ext} supprimée.`, 'danger');
+    }
+
+    function toggleLineStatus(index) {
+        sipLines[index].status = sipLines[index].status === 'online' ? 'offline' : 'online';
+        renderLines();
+        updateDashboard();
+    }
+
+    function renderLines() {
+        const tbody = document.getElementById('linesTable');
+        document.getElementById('linesCount').textContent = sipLines.length;
+
+        if (!sipLines.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4" style="color:var(--text-secondary);"><i class="bi bi-telephone-x me-2"></i>Aucune ligne configurée</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = sipLines.map((l, i) => `
+            <tr>
+                <td><span class="ext-number">${l.ext}</span></td>
+                <td style="font-weight:500;">${l.name}</td>
+                <td style="color:var(--text-secondary);font-size:0.82rem;">${l.email || '—'}</td>
+                <td><span class="codec-tag">${l.protocol}</span></td>
+                <td>
+                    <span class="status-dot ${l.status}" style="cursor:pointer;" onclick="toggleLineStatus(${i})"></span>
+                    ${l.status === 'online' ? 'En ligne' : 'Hors ligne'}
+                </td>
+                <td>
+                    <button class="btn-icon me-1" onclick="openLineModal(${i})" title="Modifier"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-icon danger" onclick="deleteLine(${i})" title="Supprimer"><i class="bi bi-trash3"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // ═══ TRUNKS MANAGEMENT ═══
+    function openTrunkModal(index = -1) {
+        document.getElementById('trunkEditIndex').value = index;
+        renderTrunkCodecSelector(index >= 0 ? sipTrunks[index].codecs : ['alaw', 'ulaw', 'g722']);
+
+        if (index >= 0) {
+            const t = sipTrunks[index];
+            document.getElementById('trunkName').value = t.name;
+            document.getElementById('trunkType').value = t.type;
+            document.getElementById('trunkTransport').value = t.transport;
+            document.getElementById('trunkHost').value = t.host;
+            document.getElementById('trunkPort').value = t.port;
+            document.getElementById('trunkChannels').value = t.channels;
+            document.getElementById('trunkUser').value = t.user;
+            document.getElementById('trunkPass').value = t.password;
+            document.getElementById('trunkCallerId').value = t.callerId;
+            document.getElementById('trunkContext').value = t.context;
+            document.getElementById('trunkModalTitle').textContent = 'Modifier trunk — ' + t.name;
+        } else {
+            document.getElementById('trunkName').value = '';
+            document.getElementById('trunkType').value = 'SIP';
+            document.getElementById('trunkTransport').value = 'UDP';
+            document.getElementById('trunkHost').value = '';
+            document.getElementById('trunkPort').value = '5060';
+            document.getElementById('trunkChannels').value = '30';
+            document.getElementById('trunkUser').value = '';
+            document.getElementById('trunkPass').value = '';
+            document.getElementById('trunkCallerId').value = '';
+            document.getElementById('trunkContext').value = 'from-trunk';
+            document.getElementById('trunkModalTitle').textContent = 'Nouveau trunk';
+        }
+        new bootstrap.Modal(document.getElementById('trunkModal')).show();
+    }
+
+    function renderTrunkCodecSelector(selected = []) {
+        document.getElementById('trunkCodecsSelect').innerHTML = CODECS.map(c => `
+            <label class="codec-tag" style="cursor:pointer; ${selected.includes(c.id) ? 'background:var(--accent-dim);border-color:var(--accent);color:var(--accent);' : ''}">
+                <input type="checkbox" value="${c.id}" ${selected.includes(c.id) ? 'checked' : ''}
+                    onchange="this.parentElement.style.background=this.checked?'var(--accent-dim)':'var(--surface-3)';this.parentElement.style.borderColor=this.checked?'var(--accent)':'var(--border)';this.parentElement.style.color=this.checked?'var(--accent)':'var(--text-secondary)';"
+                    style="display:none;">
+                ${c.name}
+            </label>
+        `).join('');
+    }
+
+    function saveTrunk() {
+        const name = document.getElementById('trunkName').value.trim();
+        const host = document.getElementById('trunkHost').value.trim();
+        if (!name || !host) { showToast('Veuillez remplir au moins le nom et l\'hôte.', 'warning'); return; }
+
+        const selectedCodecs = [...document.querySelectorAll('#trunkCodecsSelect input:checked')].map(cb => cb.value);
+
+        const trunk = {
+            name,
+            type: document.getElementById('trunkType').value,
+            transport: document.getElementById('trunkTransport').value,
+            host,
+            port: document.getElementById('trunkPort').value,
+            channels: document.getElementById('trunkChannels').value,
+            user: document.getElementById('trunkUser').value.trim(),
+            password: document.getElementById('trunkPass').value,
+            codecs: selectedCodecs,
+            callerId: document.getElementById('trunkCallerId').value.trim(),
+            context: document.getElementById('trunkContext').value.trim(),
+            status: 'online',
+            created: new Date().toISOString()
+        };
+
+        const idx = parseInt(document.getElementById('trunkEditIndex').value);
+        if (idx >= 0) {
+            sipTrunks[idx] = { ...sipTrunks[idx], ...trunk };
+            addActivity('Trunk modifié', `${name} (${host})`);
+        } else {
+            sipTrunks.push(trunk);
+            addActivity('Nouveau trunk', `${name} → ${host}:${trunk.port}`);
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('trunkModal')).hide();
+        renderTrunks();
+        updateDashboard();
+        showToast(`Trunk "${name}" enregistré avec succès.`);
+    }
+
+    function deleteTrunk(index) {
+        if (!confirm(`Supprimer le trunk "${sipTrunks[index].name}" ?`)) return;
+        const name = sipTrunks[index].name;
+        sipTrunks.splice(index, 1);
+        addActivity('Trunk supprimé', name);
+        renderTrunks();
+        updateDashboard();
+        showToast(`Trunk "${name}" supprimé.`, 'danger');
+    }
+
+    function toggleTrunkStatus(index) {
+        sipTrunks[index].status = sipTrunks[index].status === 'online' ? 'offline' : 'online';
+        renderTrunks();
+        updateDashboard();
+    }
+
+    function renderTrunks() {
+        const tbody = document.getElementById('trunksTable');
+        document.getElementById('trunksCount').textContent = sipTrunks.length;
+
+        if (!sipTrunks.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4" style="color:var(--text-secondary);"><i class="bi bi-diagram-3 me-2"></i>Aucun trunk configuré</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = sipTrunks.map((t, i) => `
+            <tr>
+                <td style="font-weight:600;">${t.name}</td>
+                <td><span class="trunk-type ${t.type.toLowerCase()}">${t.type}</span></td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;">${t.host}</td>
+                <td><span class="codec-tag">${t.port}</span></td>
+                <td>${t.codecs.map(c => `<span class="codec-tag me-1">${c}</span>`).join('')}</td>
+                <td>
+                    <span class="status-dot ${t.status}" style="cursor:pointer;" onclick="toggleTrunkStatus(${i})"></span>
+                    ${t.status === 'online' ? 'Connecté' : 'Déconnecté'}
+                </td>
+                <td>
+                    <button class="btn-icon me-1" onclick="openTrunkModal(${i})" title="Modifier"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-icon danger" onclick="deleteTrunk(${i})" title="Supprimer"><i class="bi bi-trash3"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // ═══ CODECS PAGE ═══
+    function renderCodecsPage() {
+        const container = document.getElementById('codecsList');
+        container.parentElement.innerHTML = CODECS.map(c => `
+            <div class="col-md-6 col-lg-4">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 style="font-weight:700;font-size:0.92rem;margin:0;">${c.name}</h6>
+                        <span class="codec-tag">${c.id}</span>
+                    </div>
+                    <div style="font-size:0.82rem;color:var(--text-secondary);">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Débit</span>
+                            <span style="color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:0.78rem;">${c.bitrate}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Qualité</span>
+                            <span style="color:var(--accent);font-weight:600;">${c.quality}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ═══ DASHBOARD ═══
+    function updateDashboard() {
+        document.getElementById('dashLines').textContent = sipLines.filter(l => l.status === 'online').length;
+        document.getElementById('dashTrunks').textContent = sipTrunks.length;
+        document.getElementById('dashCalls').textContent = Math.floor(Math.random() * sipLines.length);
+        document.getElementById('dashErrors').textContent = sipTrunks.filter(t => t.status === 'offline').length;
+    }
+
+    // ═══ ACTIVITY LOG ═══
+    function addActivity(event, details) {
+        const now = new Date();
+        const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        activityLog.unshift({ time, event, details, status: 'OK' });
+        if (activityLog.length > 20) activityLog.pop();
+        renderActivity();
+    }
+
+    function renderActivity() {
+        const tbody = document.getElementById('activityLog');
+        if (!activityLog.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4" style="color:var(--text-secondary);">Aucune activité récente</td></tr>';
+            return;
+        }
+        tbody.innerHTML = activityLog.map(a => `
+            <tr>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text-secondary);">${a.time}</td>
+                <td style="font-weight:600;">${a.event}</td>
+                <td style="color:var(--text-secondary);font-size:0.82rem;">${a.details}</td>
+                <td><span class="codec-tag" style="border-color:var(--accent);color:var(--accent);">${a.status}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    // ═══ SEARCH ═══
+    function handleSearch() {
+        const q = document.getElementById('globalSearch').value.toLowerCase().trim();
+        if (!q) return;
+        // Search across lines
+        const matchedLine = sipLines.find(l => l.ext.includes(q) || l.name.toLowerCase().includes(q));
+        if (matchedLine) { showSection('lines'); return; }
+        const matchedTrunk = sipTrunks.find(t => t.name.toLowerCase().includes(q) || t.host.toLowerCase().includes(q));
+        if (matchedTrunk) { showSection('trunks'); return; }
+    }
+
+    // ═══ SETTINGS ═══
+    function saveSettings() {
+        addActivity('Paramètres sauvegardés', `Serveur: ${document.getElementById('sipServer').value}:${document.getElementById('sipPort').value}`);
+        showToast('Paramètres sauvegardés avec succès.');
+    }
+
+    // ═══ TOAST ═══
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const id = 'toast-' + Date.now();
+        const iconMap = { success: 'check-circle-fill', danger: 'x-circle-fill', warning: 'exclamation-triangle-fill' };
+        const colorMap = { success: 'var(--accent)', danger: 'var(--danger)', warning: 'var(--warning)' };
+
+        const html = `
+            <div class="toast toast-custom show" id="${id}" role="alert">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi bi-${iconMap[type]}" style="color:${colorMap[type]};font-size:1.1rem;"></i>
+                    ${message}
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+        setTimeout(() => { document.getElementById(id)?.remove(); }, 3500);
+    }
+
+    // ═══ INIT ═══
+    renderCodecsPage();
+    updateDashboard();
+
+    // Demo data
+    function loadDemoData() {
+        sipLines = [
+            { ext: '1001', name: 'Marie Laurent', email: 'marie@acme.fr', protocol: 'SIP/TLS', password: '', callerId: '+33 1 42 00 01 01', status: 'online', created: new Date().toISOString() },
+            { ext: '1002', name: 'Thomas Bernard', email: 'thomas@acme.fr', protocol: 'SIP/UDP', password: '', callerId: '+33 1 42 00 01 02', status: 'online', created: new Date().toISOString() },
+            { ext: '1003', name: 'Sophie Martin', email: 'sophie@acme.fr', protocol: 'WebRTC', password: '', callerId: '+33 1 42 00 01 03', status: 'offline', created: new Date().toISOString() },
+            { ext: '1010', name: 'Accueil', email: '', protocol: 'SIP/TLS', password: '', callerId: '+33 1 42 00 00 00', status: 'online', created: new Date().toISOString() },
+        ];
+        sipTrunks = [
+            { name: 'OVH-Primary', type: 'SIP', transport: 'TLS', host: 'sip.ovh.net', port: '5061', channels: '30', user: 'acme_trunk', password: '', codecs: ['alaw', 'ulaw', 'g722'], callerId: '+33 1 42 00 00 00', context: 'from-trunk', status: 'online', created: new Date().toISOString() },
+            { name: 'Free-Backup', type: 'SIP', transport: 'UDP', host: 'sip.free.fr', port: '5060', channels: '10', user: 'acme_bkp', password: '', codecs: ['alaw', 'g729'], callerId: '+33 1 42 00 01 00', context: 'from-trunk', status: 'online', created: new Date().toISOString() },
+        ];
+        activityLog = [
+            { time: '14:32:10', event: 'Appel entrant', details: '+33 6 12 34 56 78 → Ext. 1001', status: 'OK' },
+            { time: '14:28:45', event: 'Trunk registré', details: 'OVH-Primary — sip.ovh.net', status: 'OK' },
+            { time: '14:15:00', event: 'Ligne créée', details: 'Extension 1010 — Accueil', status: 'OK' },
+        ];
+        renderLines();
+        renderTrunks();
+        renderActivity();
+        updateDashboard();
+    }
+
+    loadDemoData();
+</script>
+</body>
+</html>

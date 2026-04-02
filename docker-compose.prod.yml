@@ -1,0 +1,16 @@
+services:
+  nginx:
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+
+  php:
+    environment:
+      APP_DEBUG: "false"
+      APP_ENV: production
+      LOG_LEVEL: warning
+
+  mariadb:
+    ports: []
+
+  redis:
+    ports: []
