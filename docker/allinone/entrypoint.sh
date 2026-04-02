@@ -347,6 +347,10 @@ ENVEOF
     echo "[SIP] Laravel .env created with APP_KEY"
 fi
 
+# ── Toujours vider le cache config (important apres generation .env) ──
+php artisan config:clear 2>/dev/null || true
+php artisan cache:clear 2>/dev/null || true
+
 # ── Composer install si necessaire ──
 if [ ! -d "vendor" ]; then
     echo "[SIP] Installing Composer dependencies..."
