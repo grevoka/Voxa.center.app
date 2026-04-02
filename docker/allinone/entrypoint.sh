@@ -295,6 +295,15 @@ fi
 echo "[SIP] Running migrations..."
 php artisan migrate --force
 
+# ── Import seed dump si present (premier deploiement) ──
+SEED_MARKER="/var/lib/mysql/.seed_imported"
+if [ ! -f "$SEED_MARKER" ] && [ -f "db-dump.sql" ]; then
+    echo "[SIP] Importing database seed dump..."
+    mysql -u root -p"${DB_PASS}" < db-dump.sql
+    touch "$SEED_MARKER"
+    echo "[SIP] Seed dump imported"
+fi
+
 # ── Permissions ──
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
