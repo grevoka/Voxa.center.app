@@ -15,7 +15,7 @@ services:
       - SYS_PTRACE
       - NET_ADMIN
     ports:
-      - "80:80"
+      - "8080:80"
       - "3307:3306"
       - "5060:5060/udp"
       - "5060:5060/tcp"
