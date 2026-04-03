@@ -17,8 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         mariadb-server mariadb-client \
         # Redis
         redis-server \
-        # Node (pour assets)
-        npm \
+        # Node 20 (pour Vite)
+        ca-certificates gnupg \
         # ODBC + capabilities + sudo
         odbc-mariadb unixodbc unixodbc-dev libcap2 sudo \
         # Build deps pour Asterisk
@@ -33,6 +33,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql mbstring xml curl zip gd intl bcmath opcache pcntl \
     && pecl install redis && docker-php-ext-enable redis \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ── Phase 2 : Compiler Asterisk 20 from source ──

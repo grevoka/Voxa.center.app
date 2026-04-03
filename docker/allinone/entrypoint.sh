@@ -382,6 +382,13 @@ if [ ! -d "vendor" ]; then
     composer install --optimize-autoloader --no-interaction
 fi
 
+# ── Build assets Vite si necessaire ──
+if [ ! -d "public/build" ]; then
+    echo "[SIP] Building frontend assets..."
+    npm install --no-fund --no-audit 2>&1 | tail -3
+    npm run build
+fi
+
 # ── Migrations ──
 echo "[SIP] Running migrations..."
 php artisan migrate --force
