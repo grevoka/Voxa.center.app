@@ -347,7 +347,32 @@ ENVEOF
     echo "[SIP] Laravel .env created with APP_KEY"
 fi
 
-# ── Toujours vider le cache config (important apres generation .env) ──
+# ── Garantir que les variables critiques existent dans .env ──
+if ! grep -q "^DB_AST_DATABASE=" .env 2>/dev/null; then
+    echo "[SIP] Adding missing DB_AST config to .env..."
+    cat >> .env <<ASTEOF
+
+DB_AST_CONNECTION=asterisk
+DB_AST_HOST=127.0.0.1
+DB_AST_PORT=3306
+DB_AST_DATABASE=asterisk_rt
+DB_AST_USERNAME=root
+DB_AST_PASSWORD=${DB_PASS}
+ASTEOF
+fi
+
+if ! grep -q "^ASTERISK_AMI_HOST=" .env 2>/dev/null; then
+    echo "[SIP] Adding missing AMI config to .env..."
+    cat >> .env <<AMIEOF
+
+ASTERISK_AMI_HOST=127.0.0.1
+ASTERISK_AMI_PORT=5038
+ASTERISK_AMI_USER=${AMI_USER}
+ASTERISK_AMI_SECRET=${AMI_PASS}
+AMIEOF
+fi
+
+# ── Toujours vider le cache config ──
 php artisan config:clear 2>/dev/null || true
 php artisan cache:clear 2>/dev/null || true
 
