@@ -56,11 +56,14 @@
         top: 0; left: 0;
         transform-origin: 0 0;
     }
-    .canvas-svg {
+    .edge-line {
         position: absolute;
-        top: 0; left: 0;
+        width: 2px;
+        background: #22c55e;
+        opacity: 0.8;
         pointer-events: none;
-        z-index: 10;
+        transform-origin: top center;
+        border-radius: 1px;
     }
 
     /* ── Zoom bar ── */
@@ -404,7 +407,7 @@
             </div>
             <div class="canvas-wrap" id="canvasWrap">
                 <div class="canvas-inner" id="canvasInner"></div>
-                <canvas class="canvas-svg" id="edgeCanvas"></canvas>
+                {{-- edges are drawn as divs inside canvasInner --}}
                 <div class="zoom-bar">
                     <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
                     <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
@@ -475,7 +478,7 @@ const startId = '__start__';
 let camX = 0, camY = 0, zoom = 1;
 const canvasWrap  = document.getElementById('canvasWrap');
 const canvasInner = document.getElementById('canvasInner');
-const edgeCanvas  = document.getElementById('edgeCanvas');
+// Edges are drawn as HTML divs inside canvasInner
 
 // ════════════════════════════════════════
 // INIT from existing callflow
@@ -604,48 +607,36 @@ function nodeDetail(n){
 // ════════════════════════════════════════
 // SVG EDGES (bezier)
 // ════════════════════════════════════════
-function toScreen(p){ return { x: p.x * zoom + camX, y: p.y * zoom + camY }; }
-
 function drawEdges(){
-    const wrap = edgeCanvas.parentElement;
-    const dpr = window.devicePixelRatio || 1;
-    const w = wrap.clientWidth;
-    const h = wrap.clientHeight;
-    edgeCanvas.width  = w * dpr;
-    edgeCanvas.height = h * dpr;
-    edgeCanvas.style.width  = w + 'px';
-    edgeCanvas.style.height = h + 'px';
-    const ctx = edgeCanvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.85;
-    ctx.lineCap = 'round';
+    // Remove old edge lines
+    canvasInner.querySelectorAll('.edge-line').forEach(el => el.remove());
 
     const firstLinked = getStartNext();
     if (firstLinked !== null) {
-        drawBezier(ctx, toScreen(startPortPos()), toScreen(nodePortPos(firstLinked,'in')));
+        drawLine(startPortPos(), nodePortPos(firstLinked,'in'));
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
-            if (target) drawBezier(ctx, toScreen(nodePortPos(n.id,'out')), toScreen(nodePortPos(target.id,'in')));
+            if (target) drawLine(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
         }
     });
-
-    if (wiring) {
-        drawBezier(ctx, toScreen(wiring.from), toScreen({x: wiring.mx, y: wiring.my}));
-    }
 }
 
-function drawBezier(ctx, a, b){
-    const dy = Math.abs(b.y - a.y);
-    const cp = Math.max(40, dy * 0.5);
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.bezierCurveTo(a.x, a.y + cp, b.x, b.y - cp, b.x, b.y);
-    ctx.stroke();
+function drawLine(a, b){
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 1) return;
+    const angle = Math.atan2(dy, dx) - Math.PI / 2; // rotate so 0° = pointing down
+    const div = document.createElement('div');
+    div.className = 'edge-line';
+    div.style.left = a.x + 'px';
+    div.style.top  = a.y + 'px';
+    div.style.height = len + 'px';
+    div.style.transform = `rotate(${angle}rad)`;
+    canvasInner.appendChild(div);
 }
 
 function startPortPos(){
@@ -804,7 +795,6 @@ canvasWrap.addEventListener('wheel', e => {
 function applyTransform(){
     const t = `translate(${camX}px,${camY}px) scale(${zoom})`;
     canvasInner.style.transform = t;
-    drawEdges();
 }
 
 function zoomIn(){  zoom = Math.min(2, zoom + 0.15); applyTransform(); }
