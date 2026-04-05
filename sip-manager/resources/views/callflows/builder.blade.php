@@ -407,7 +407,7 @@
             </div>
             <div class="canvas-wrap" id="canvasWrap">
                 <div class="canvas-inner" id="canvasInner"></div>
-                <svg class="canvas-svg" id="svgLayer"></svg>
+                <canvas class="canvas-svg" id="edgeCanvas"></canvas>
                 <div class="zoom-bar">
                     <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
                     <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
@@ -478,7 +478,7 @@ const startId = '__start__';
 let camX = 0, camY = 0, zoom = 1;
 const canvasWrap  = document.getElementById('canvasWrap');
 const canvasInner = document.getElementById('canvasInner');
-const svgLayer    = document.getElementById('svgLayer');
+const edgeCanvas  = document.getElementById('edgeCanvas');
 
 // ════════════════════════════════════════
 // INIT from existing callflow
@@ -608,37 +608,45 @@ function nodeDetail(n){
 // SVG EDGES (bezier)
 // ════════════════════════════════════════
 function drawEdges(){
-    let paths = '';
-    const firstLinked = getStartNext();
+    const wrap = edgeCanvas.parentElement;
+    edgeCanvas.width  = wrap.clientWidth;
+    edgeCanvas.height = wrap.clientHeight;
+    const ctx = edgeCanvas.getContext('2d');
+    ctx.clearRect(0, 0, edgeCanvas.width, edgeCanvas.height);
+    ctx.save();
+    ctx.translate(camX, camY);
+    ctx.scale(zoom, zoom);
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2 / zoom;
+    ctx.globalAlpha = 0.75;
+    ctx.lineCap = 'round';
 
+    const firstLinked = getStartNext();
     if (firstLinked !== null) {
-        paths += bezier(startPortPos(startId,'out'), nodePortPos(firstLinked,'in'), '#22c55e');
+        drawBezier(ctx, startPortPos(), nodePortPos(firstLinked,'in'));
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
-            if (target) {
-                paths += bezier(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'), '#22c55e');
-            }
+            if (target) drawBezier(ctx, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
         }
     });
 
-    // temp edge while wiring
     if (wiring) {
-        paths += bezier(wiring.from, {x: wiring.mx, y: wiring.my}, '#22c55e');
+        drawBezier(ctx, wiring.from, {x: wiring.mx, y: wiring.my});
     }
 
-    // Wrap in <g> with same transform as canvasInner (no CSS transform on SVG)
-    svgLayer.innerHTML = `<g transform="translate(${camX},${camY}) scale(${zoom})">${paths}</g>`;
+    ctx.restore();
 }
 
-function bezier(a, b, color){
+function drawBezier(ctx, a, b){
     const dy = Math.abs(b.y - a.y);
     const cp = Math.max(40, dy * 0.5);
-    return `<path d="M${a.x},${a.y} C${a.x},${a.y+cp} ${b.x},${b.y-cp} ${b.x},${b.y}"
-        stroke="${color}" stroke-width="2" fill="none" stroke-linecap="round"
-        stroke-dasharray="${color === '#22c55e' ? 'none' : '6,4'}" opacity="0.7"/>`;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.bezierCurveTo(a.x, a.y + cp, b.x, b.y - cp, b.x, b.y);
+    ctx.stroke();
 }
 
 function startPortPos(){
