@@ -49,7 +49,7 @@ class CallFlowController extends Controller
         // Write to Asterisk extensions.conf + reload
         $this->dialplan->writeExtensions();
 
-        return redirect()->route('callflows.index')
+        return redirect()->route('callflows.edit', $flow)
             ->with('success', "Scenario \"{$flow->name}\" cree et dialplan applique.");
     }
 
@@ -82,7 +82,7 @@ class CallFlowController extends Controller
         // Rewrite Asterisk dialplan
         $this->dialplan->writeExtensions();
 
-        return redirect()->route('callflows.index')
+        return redirect()->route('callflows.edit', $callflow)
             ->with('success', "Scenario \"{$callflow->name}\" mis a jour et dialplan applique.");
     }
 
