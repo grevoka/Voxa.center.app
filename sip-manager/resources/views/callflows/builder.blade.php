@@ -165,14 +165,25 @@
     .wiz-step .wiz-subtitle {
         font-size: .72rem; color: var(--text-secondary); margin-bottom: 1rem;
     }
-    .wiz-ext-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4rem; }
-    .wiz-ext-tag {
-        display: inline-flex; align-items: center; gap: .3rem;
-        padding: 2px 8px; border-radius: 4px; font-size: .75rem;
-        background: var(--accent); color: #000; font-weight: 600;
+    .wiz-check-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: .35rem;
     }
-    .wiz-ext-tag .remove { cursor: pointer; opacity: .7; }
-    .wiz-ext-tag .remove:hover { opacity: 1; }
+    .wiz-check-item {
+        padding: .45rem .65rem; border-radius: 6px;
+        border: 1px solid var(--border); background: var(--surface-2);
+        transition: border-color .15s, background .15s;
+    }
+    .wiz-check-item:has(input:checked) {
+        border-color: var(--accent); background: rgba(0,229,160,.08);
+    }
+    .wiz-check-item .form-check-label {
+        cursor: pointer; font-size: .8rem; display: flex; align-items: center; gap: .4rem;
+    }
+    .wiz-ext-num {
+        font-family: 'JetBrains Mono', monospace; font-weight: 700;
+        font-size: .8rem; color: var(--accent);
+    }
+    .wiz-ext-name { font-size: .72rem; color: var(--text-secondary); }
     .wiz-steps-indicator {
         display: flex; gap: .5rem; align-items: center;
         font-size: .7rem; color: var(--text-secondary);
@@ -797,14 +808,17 @@ function wizBuildDynFields() {
     if (hasRing) {
         html += `<div class="cfg-section">
             <label>Postes a faire sonner</label>
-            <div style="display:flex; gap:.4rem;">
-                <select class="form-select form-select-sm" id="wizExtSelect" style="flex:1;">
-                    <option value="">— Ajouter un poste —</option>
-                    ${LINES.map(l => `<option value="${l.extension}">${l.extension} — ${l.display_name || l.extension}</option>`).join('')}
-                </select>
-                <button type="button" class="btn-outline-custom" style="padding:4px 10px;" onclick="wizAddExt()"><i class="bi bi-plus"></i></button>
+            <div class="wiz-check-grid">
+                ${LINES.map(l => `
+                    <div class="form-check form-switch wiz-check-item">
+                        <input class="form-check-input wiz-ext-check" type="checkbox" id="wizExt_${l.extension}" value="${l.extension}">
+                        <label class="form-check-label" for="wizExt_${l.extension}">
+                            <span class="wiz-ext-num">${l.extension}</span>
+                            <span class="wiz-ext-name">${l.display_name || ''}</span>
+                        </label>
+                    </div>
+                `).join('')}
             </div>
-            <div class="wiz-ext-list" id="wizExtList"></div>
         </div>`;
     }
 
@@ -831,27 +845,8 @@ function wizBuildDynFields() {
     dyn.innerHTML = html;
 }
 
-const wizExtensions = [];
-function wizAddExt() {
-    const sel = document.getElementById('wizExtSelect');
-    if (!sel) return;
-    const val = sel.value;
-    if (!val || wizExtensions.includes(val)) return;
-    wizExtensions.push(val);
-    wizRenderExts();
-    sel.value = '';
-}
-function wizRemoveExt(ext) {
-    const idx = wizExtensions.indexOf(ext);
-    if (idx > -1) wizExtensions.splice(idx, 1);
-    wizRenderExts();
-}
-function wizRenderExts() {
-    const el = document.getElementById('wizExtList');
-    if (!el) return;
-    el.innerHTML = wizExtensions.map(e =>
-        `<span class="wiz-ext-tag">${e} <span class="remove" onclick="wizRemoveExt('${e}')">&times;</span></span>`
-    ).join('');
+function wizGetCheckedExts() {
+    return [...document.querySelectorAll('.wiz-ext-check:checked')].map(el => el.value);
 }
 
 function wizApply() {
@@ -879,8 +874,9 @@ function wizApply() {
             const queueEl = document.getElementById('wizQueue');
             const mailboxEl = document.getElementById('wizMailbox');
             finalSteps.forEach(s => {
-                if (s.type === 'ring' && wizExtensions.length > 0) {
-                    s.extensions = [...wizExtensions];
+                if (s.type === 'ring') {
+                    const exts = wizGetCheckedExts();
+                    if (exts.length > 0) s.extensions = exts;
                 }
                 if (s.type === 'queue' && queueEl && queueEl.value) {
                     s.queue_name = queueEl.value;
