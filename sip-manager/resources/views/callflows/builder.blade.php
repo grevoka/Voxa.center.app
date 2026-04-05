@@ -59,9 +59,11 @@
     .canvas-svg {
         position: absolute;
         top: 0; left: 0;
+        width: 8000px;
+        height: 8000px;
         pointer-events: none;
         overflow: visible;
-        transform-origin: 0 0;
+        z-index: 10;
     }
 
     /* ── Zoom bar ── */
@@ -86,7 +88,7 @@
         cursor: pointer;
         transition: all .15s;
     }
-    .zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .zoom-btn:hover { border-color: #22c55e; color: #22c55e; }
 
     /* ── Nodes ── */
     .node {
@@ -103,7 +105,7 @@
     .node:hover { box-shadow: 0 4px 20px rgba(0,0,0,.4); }
     .node.dragging { cursor: grabbing; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
     .node.selected {
-        border-color: var(--accent);
+        border-color: #22c55e;
         box-shadow: 0 0 0 3px var(--accent-dim), 0 4px 20px rgba(0,0,0,.3);
     }
 
@@ -154,7 +156,7 @@
         position: absolute;
         width: 12px; height: 12px;
         border-radius: 50%;
-        background: var(--accent);
+        background: #22c55e;
         border: 2px solid var(--surface-2);
         cursor: crosshair;
         z-index: 6;
@@ -177,8 +179,8 @@
     /* ── Start node (special) ── */
     .node-start {
         width: 180px;
-        background: var(--accent);
-        border-color: var(--accent);
+        background: #22c55e;
+        border-color: #22c55e;
         border-radius: 99px;
         text-align: center;
         cursor: default;
@@ -194,7 +196,7 @@
     }
     .node-start .port-out {
         background: #000;
-        border-color: var(--accent);
+        border-color: #22c55e;
     }
 
     /* ── Node colors ── */
@@ -233,7 +235,7 @@
         font-weight: 500;
         color: var(--text-secondary);
     }
-    .pal-item:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .pal-item:hover { border-color: #22c55e; color: #22c55e; background: var(--accent-dim); }
     .pal-icon {
         width: 26px; height: 26px;
         border-radius: 6px;
@@ -276,7 +278,7 @@
     .member-item .ext-badge {
         font-family: 'JetBrains Mono', monospace;
         font-weight: 600;
-        color: var(--accent);
+        color: #22c55e;
         font-size: 0.72rem;
     }
 
@@ -404,8 +406,9 @@
                 <span style="margin-left:auto; font-size:0.68rem; color:var(--text-secondary);" id="nodeCount">0 blocs</span>
             </div>
             <div class="canvas-wrap" id="canvasWrap">
-                <div class="canvas-inner" id="canvasInner"></div>
-                <svg class="canvas-svg" id="svgLayer"></svg>
+                <div class="canvas-inner" id="canvasInner">
+                    <svg class="canvas-svg" id="svgLayer"></svg>
+                </div>
                 <div class="zoom-bar">
                     <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
                     <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
@@ -429,7 +432,7 @@
                     <i class="bi bi-chevron-down ms-auto" id="dpChev" style="font-size:.65rem;"></i>
                 </div>
                 <div id="dpWrap" style="display:none;">
-                    <pre id="dpCode" style="padding:.75rem; margin:0; font-family:'JetBrains Mono',monospace; font-size:.65rem; color:var(--accent); overflow:auto; max-height:220px; background:var(--surface);"></pre>
+                    <pre id="dpCode" style="padding:.75rem; margin:0; font-family:'JetBrains Mono',monospace; font-size:.65rem; color:#22c55e; overflow:auto; max-height:220px; background:var(--surface);"></pre>
                 </div>
             </div>
         </div>
@@ -513,8 +516,9 @@ document.getElementById('cfgTrunk').addEventListener('change', function(){
 // RENDER
 // ════════════════════════════════════════
 function render(){
-    // Nodes
+    // Nodes — preserve the SVG element
     canvasInner.innerHTML = '';
+    canvasInner.appendChild(svgLayer);
     // Start node
     const startEl = mkStart();
     canvasInner.appendChild(startEl);
@@ -524,8 +528,8 @@ function render(){
     });
 
     document.getElementById('nodeCount').textContent = nodes.length + ' bloc' + (nodes.length!==1?'s':'');
-    // Defer edge drawing so DOM elements have their final layout
-    requestAnimationFrame(() => { drawEdges(); applyTransform(); });
+    drawEdges();
+    applyTransform();
 }
 
 function mkStart(){
@@ -612,26 +616,24 @@ function drawEdges(){
     const firstLinked = getStartNext();
 
     if (firstLinked !== null) {
-        svg += bezier(startPortPos(startId,'out'), nodePortPos(firstLinked,'in'), 'var(--accent)');
+        svg += bezier(startPortPos(startId,'out'), nodePortPos(firstLinked,'in'), '#22c55e');
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
             if (target) {
-                svg += bezier(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'), 'var(--accent)');
+                svg += bezier(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'), '#22c55e');
             }
         }
     });
 
     // temp edge while wiring
     if (wiring) {
-        svg += bezier(wiring.from, {x: wiring.mx, y: wiring.my}, 'var(--accent)');
+        svg += bezier(wiring.from, {x: wiring.mx, y: wiring.my}, '#22c55e');
     }
 
     svgLayer.innerHTML = svg;
-    svgLayer.style.width = '8000px';
-    svgLayer.style.height = '8000px';
 }
 
 function bezier(a, b, color){
@@ -639,7 +641,7 @@ function bezier(a, b, color){
     const cp = Math.max(40, dy * 0.5);
     return `<path d="M${a.x},${a.y} C${a.x},${a.y+cp} ${b.x},${b.y-cp} ${b.x},${b.y}"
         stroke="${color}" stroke-width="2" fill="none" stroke-linecap="round"
-        stroke-dasharray="${color === 'var(--accent)' ? 'none' : '6,4'}" opacity="0.7"/>`;
+        stroke-dasharray="${color === '#22c55e' ? 'none' : '6,4'}" opacity="0.7"/>`;
 }
 
 function startPortPos(){
@@ -794,8 +796,6 @@ canvasWrap.addEventListener('wheel', e => {
 function applyTransform(){
     const t = `translate(${camX}px,${camY}px) scale(${zoom})`;
     canvasInner.style.transform = t;
-    svgLayer.style.transform = t;
-    requestAnimationFrame(() => drawEdges());
 }
 
 function zoomIn(){  zoom = Math.min(2, zoom + 0.15); applyTransform(); }
