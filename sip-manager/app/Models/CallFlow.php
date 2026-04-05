@@ -79,6 +79,9 @@ class CallFlow extends Model
                     if (!empty($extensions)) {
                         $dialTargets = implode('&', array_map(fn($e) => "PJSIP/{$e}", $extensions));
                         $lines[] = " same => n,Dial({$dialTargets},{$timeout},tTm(default))";
+                        // If answered, hangup cleanly; otherwise continue scenario
+                        $lines[] = " same => n,GotoIf(\$[\"\${DIALSTATUS}\" = \"ANSWER\"]?hangup)";
+                        $lines[] = " same => n,NoOp(Dial failed: \${DIALSTATUS} — continuing scenario)";
                     }
                     break;
 
@@ -114,12 +117,9 @@ class CallFlow extends Model
             }
         }
 
-        // Ensure hangup at the end
-        $stepsArray = $this->steps;
-        $lastStep = end($stepsArray);
-        if (!$lastStep || ($lastStep['type'] ?? '') !== 'hangup') {
-            $lines[] = " same => n,Hangup()";
-        }
+        // Ensure hangup label at the end (target for GotoIf after successful Dial)
+        $lines[] = " same => n(hangup),Hangup()";
+
 
         // Also add catch-all patterns
         $lines[] = "";
