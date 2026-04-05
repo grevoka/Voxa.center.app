@@ -61,6 +61,7 @@
         top: 0; left: 0;
         pointer-events: none;
         overflow: visible;
+        transform-origin: 0 0;
     }
 
     /* ── Zoom bar ── */
@@ -794,6 +795,7 @@ function applyTransform(){
     const t = `translate(${camX}px,${camY}px) scale(${zoom})`;
     canvasInner.style.transform = t;
     svgLayer.style.transform = t;
+    requestAnimationFrame(() => drawEdges());
 }
 
 function zoomIn(){  zoom = Math.min(2, zoom + 0.15); applyTransform(); }
