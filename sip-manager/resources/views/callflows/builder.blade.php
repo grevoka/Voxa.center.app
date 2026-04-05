@@ -404,8 +404,8 @@
                 <span style="margin-left:auto; font-size:0.68rem; color:var(--text-secondary);" id="nodeCount">0 blocs</span>
             </div>
             <div class="canvas-wrap" id="canvasWrap">
-                <svg class="canvas-svg" id="svgLayer"></svg>
                 <div class="canvas-inner" id="canvasInner"></div>
+                <svg class="canvas-svg" id="svgLayer"></svg>
                 <div class="zoom-bar">
                     <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
                     <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
