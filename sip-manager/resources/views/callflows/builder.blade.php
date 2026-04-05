@@ -59,11 +59,8 @@
     .canvas-svg {
         position: absolute;
         top: 0; left: 0;
-        width: 100%;
-        height: 100%;
         pointer-events: none;
         z-index: 10;
-        transform-origin: 0 0;
     }
 
     /* ── Zoom bar ── */
@@ -607,36 +604,38 @@ function nodeDetail(n){
 // ════════════════════════════════════════
 // SVG EDGES (bezier)
 // ════════════════════════════════════════
+function toScreen(p){ return { x: p.x * zoom + camX, y: p.y * zoom + camY }; }
+
 function drawEdges(){
-    // Fixed large canvas — CSS transform handles zoom/pan (same as canvasInner)
-    const size = 4000;
-    if (edgeCanvas.width !== size) {
-        edgeCanvas.width = size;
-        edgeCanvas.height = size;
-        edgeCanvas.style.width = size + 'px';
-        edgeCanvas.style.height = size + 'px';
-    }
+    const wrap = edgeCanvas.parentElement;
+    const dpr = window.devicePixelRatio || 1;
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    edgeCanvas.width  = w * dpr;
+    edgeCanvas.height = h * dpr;
+    edgeCanvas.style.width  = w + 'px';
+    edgeCanvas.style.height = h + 'px';
     const ctx = edgeCanvas.getContext('2d');
-    ctx.clearRect(0, 0, size, size);
+    ctx.scale(dpr, dpr);
     ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2;
     ctx.globalAlpha = 0.85;
     ctx.lineCap = 'round';
 
     const firstLinked = getStartNext();
     if (firstLinked !== null) {
-        drawBezier(ctx, startPortPos(), nodePortPos(firstLinked,'in'));
+        drawBezier(ctx, toScreen(startPortPos()), toScreen(nodePortPos(firstLinked,'in')));
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
-            if (target) drawBezier(ctx, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
+            if (target) drawBezier(ctx, toScreen(nodePortPos(n.id,'out')), toScreen(nodePortPos(target.id,'in')));
         }
     });
 
     if (wiring) {
-        drawBezier(ctx, wiring.from, {x: wiring.mx, y: wiring.my});
+        drawBezier(ctx, toScreen(wiring.from), toScreen({x: wiring.mx, y: wiring.my}));
     }
 }
 
@@ -805,7 +804,6 @@ canvasWrap.addEventListener('wheel', e => {
 function applyTransform(){
     const t = `translate(${camX}px,${camY}px) scale(${zoom})`;
     canvasInner.style.transform = t;
-    edgeCanvas.style.transform = t;
     drawEdges();
 }
 
