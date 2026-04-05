@@ -26,11 +26,22 @@ class SyncCdr extends Command
             return self::SUCCESS;
         }
 
+        // Group by uniqueid — keep the last record (final state) per call
+        $grouped = $rows->groupBy('uniqueid')->map(function ($group) {
+            return $group->last();
+        });
+
         $inserted = 0;
 
-        foreach ($rows as $row) {
-            // Skip if already imported (by uniqueid)
-            if (CallLog::where('uniqueid', $row->uniqueid)->exists()) {
+        foreach ($grouped as $uniqueid => $row) {
+            // Update max cdr_id tracking even if we skip
+            $maxId = $rows->where('uniqueid', $uniqueid)->max('id');
+
+            // Skip if already imported
+            if (CallLog::where('uniqueid', $uniqueid)->exists()) {
+                // Update cdr_id to latest so we don't re-process
+                CallLog::where('uniqueid', $uniqueid)
+                    ->update(['extra->cdr_id' => $maxId]);
                 continue;
             }
 
@@ -49,9 +60,20 @@ class SyncCdr extends Command
             }
 
             // Extract caller name from CLID: "Name" <number>
+            // Only store as name if it's not just a phone number
             $srcName = null;
             if (preg_match('/^"([^"]+)"/', $row->clid, $m)) {
-                $srcName = $m[1];
+                $name = trim($m[1]);
+                // Don't store if it's just a number (local or international format)
+                if ($name !== '' && !preg_match('/^\+?\d+$/', $name)) {
+                    $srcName = $name;
+                }
+            }
+
+            // Use src from CDR, but if empty try to extract from CLID
+            $src = $row->src;
+            if (empty($src) && preg_match('/<([^>]+)>/', $row->clid, $m)) {
+                $src = $m[1];
             }
 
             $startedAt = $row->calldate;
@@ -64,7 +86,7 @@ class SyncCdr extends Command
 
             CallLog::create([
                 'uniqueid'    => $row->uniqueid,
-                'src'         => $row->src,
+                'src'         => $src,
                 'dst'         => $row->dst,
                 'src_name'    => $srcName,
                 'context'     => $row->dcontext,
@@ -72,13 +94,13 @@ class SyncCdr extends Command
                 'dst_channel' => $row->dstchannel,
                 'direction'   => $direction,
                 'trunk_name'  => $trunkName,
-                'disposition'  => $row->disposition,
+                'disposition' => $row->disposition,
                 'duration'    => $row->duration,
                 'billsec'     => $row->billsec,
                 'started_at'  => $startedAt,
                 'answered_at' => $answeredAt,
                 'ended_at'    => $endedAt,
-                'extra'       => ['cdr_id' => $row->id],
+                'extra'       => ['cdr_id' => $maxId],
             ]);
 
             $inserted++;
