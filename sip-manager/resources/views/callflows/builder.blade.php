@@ -870,15 +870,15 @@ function wizApply() {
         document.getElementById('cfgCtx').value = trunkOpt.dataset.context;
     }
 
-    // Load template steps with wizard values
+    // Build final steps from template with wizard values
+    let finalSteps = [];
     if (wizSelectedTplId !== null) {
         const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
         if (tpl && tpl.steps) {
-            const steps = JSON.parse(JSON.stringify(tpl.steps));
-            // Apply wizard values to steps
+            finalSteps = JSON.parse(JSON.stringify(tpl.steps));
             const queueEl = document.getElementById('wizQueue');
             const mailboxEl = document.getElementById('wizMailbox');
-            steps.forEach(s => {
+            finalSteps.forEach(s => {
                 if (s.type === 'ring' && wizExtensions.length > 0) {
                     s.extensions = [...wizExtensions];
                 }
@@ -889,11 +889,19 @@ function wizApply() {
                     s.mailbox = mailboxEl.value;
                 }
             });
-            loadSteps(steps);
         }
     }
 
-    closeTplModal();
+    // Submit the form directly
+    document.getElementById('stepsInput').value = JSON.stringify(finalSteps);
+    document.getElementById('hidName').value = name;
+    document.getElementById('hidDesc').value = document.getElementById('wizDesc').value || '';
+    document.getElementById('hidTrunk').value = trunk;
+    const trunkCtx = trunkOpt && trunkOpt.dataset.context ? trunkOpt.dataset.context : 'from-trunk';
+    document.getElementById('hidCtx').value = trunkCtx;
+    document.getElementById('hidPrio').value = '1';
+    document.getElementById('hidEnabled').value = '1';
+    document.getElementById('flowForm').submit();
 }
 
 // Show wizard on page load (only for create)
