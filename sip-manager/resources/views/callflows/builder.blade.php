@@ -166,23 +166,33 @@
         font-size: .72rem; color: var(--text-secondary); margin-bottom: 1rem;
     }
     .wiz-check-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: .35rem;
+        display: grid; grid-template-columns: 1fr 1fr; gap: .4rem;
     }
     .wiz-check-item {
-        padding: .45rem .65rem; border-radius: 6px;
+        padding: .5rem .75rem; border-radius: 8px;
         border: 1px solid var(--border); background: var(--surface-2);
         transition: border-color .15s, background .15s;
+        cursor: pointer; user-select: none;
+        display: flex; align-items: center; gap: .6rem;
     }
-    .wiz-check-item:has(input:checked) {
-        border-color: var(--accent); background: rgba(0,229,160,.08);
+    .wiz-check-item:hover { border-color: var(--text-secondary); }
+    .wiz-check-item.checked {
+        border-color: var(--accent); background: rgba(0,229,160,.1);
     }
-    .wiz-check-item .form-check-label {
-        cursor: pointer; font-size: .8rem; display: flex; align-items: center; gap: .4rem;
+    .wiz-check-item .wiz-check-box {
+        width: 18px; height: 18px; border-radius: 4px;
+        border: 2px solid var(--border); flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: all .15s; font-size: .7rem; color: #000;
+    }
+    .wiz-check-item.checked .wiz-check-box {
+        background: var(--accent); border-color: var(--accent);
     }
     .wiz-ext-num {
         font-family: 'JetBrains Mono', monospace; font-weight: 700;
-        font-size: .8rem; color: var(--accent);
+        font-size: .82rem; color: var(--text-primary);
     }
+    .wiz-check-item.checked .wiz-ext-num { color: var(--accent); }
     .wiz-ext-name { font-size: .72rem; color: var(--text-secondary); }
     .wiz-steps-indicator {
         display: flex; gap: .5rem; align-items: center;
@@ -457,6 +467,7 @@
         <input type="hidden" name="inbound_context" id="hidCtx">
         <input type="hidden" name="priority" id="hidPrio">
         <input type="hidden" name="enabled" id="hidEnabled">
+        <input type="hidden" name="queue_members" id="hidQueueMembers">
     </form>
 
     <div class="builder-wrap">
@@ -805,32 +816,21 @@ function wizBuildDynFields() {
     let html = '<hr style="border-color:var(--border); margin:.75rem 0;">';
     html += '<div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.6rem;">Parametres du template</div>';
 
-    if (hasRing) {
+    if (hasQueue || hasRing) {
         html += `<div class="cfg-section">
-            <label>Postes a faire sonner</label>
-            <div class="wiz-check-grid">
+            <label>Membres de la file d'attente</label>
+            <div class="wiz-check-grid" id="wizExtGrid">
                 ${LINES.map(l => `
-                    <div class="form-check form-switch wiz-check-item">
-                        <input class="form-check-input wiz-ext-check" type="checkbox" id="wizExt_${l.extension}" value="${l.extension}">
-                        <label class="form-check-label" for="wizExt_${l.extension}">
-                            <span class="wiz-ext-num">${l.extension}</span>
-                            <span class="wiz-ext-name">${l.display_name || ''}</span>
-                        </label>
+                    <div class="wiz-check-item" data-ext="${l.extension}" onclick="wizToggleExt(this)">
+                        <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        <span class="wiz-ext-num">${l.extension}</span>
+                        <span class="wiz-ext-name">${l.display_name || ''}</span>
                     </div>
                 `).join('')}
             </div>
         </div>`;
     }
 
-    if (hasQueue) {
-        html += `<div class="cfg-section">
-            <label>File d'attente</label>
-            <select class="form-select form-select-sm" id="wizQueue">
-                <option value="">— Choisir —</option>
-                ${QUEUES.map(q => `<option value="${q.name}">${q.name}</option>`).join('')}
-            </select>
-        </div>`;
-    }
 
     if (hasVoicemail) {
         html += `<div class="cfg-section">
@@ -845,8 +845,11 @@ function wizBuildDynFields() {
     dyn.innerHTML = html;
 }
 
+function wizToggleExt(el) {
+    el.classList.toggle('checked');
+}
 function wizGetCheckedExts() {
-    return [...document.querySelectorAll('.wiz-ext-check:checked')].map(el => el.value);
+    return [...document.querySelectorAll('.wiz-check-item.checked')].map(el => el.dataset.ext);
 }
 
 function wizApply() {
@@ -865,22 +868,17 @@ function wizApply() {
         document.getElementById('cfgCtx').value = trunkOpt.dataset.context;
     }
 
+    // Collect checked extensions for queue creation
+    const checkedExts = wizGetCheckedExts();
+
     // Build final steps from template with wizard values
     let finalSteps = [];
     if (wizSelectedTplId !== null) {
         const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
         if (tpl && tpl.steps) {
             finalSteps = JSON.parse(JSON.stringify(tpl.steps));
-            const queueEl = document.getElementById('wizQueue');
             const mailboxEl = document.getElementById('wizMailbox');
             finalSteps.forEach(s => {
-                if (s.type === 'ring') {
-                    const exts = wizGetCheckedExts();
-                    if (exts.length > 0) s.extensions = exts;
-                }
-                if (s.type === 'queue' && queueEl && queueEl.value) {
-                    s.queue_name = queueEl.value;
-                }
                 if (s.type === 'voicemail' && mailboxEl && mailboxEl.value) {
                     s.mailbox = mailboxEl.value;
                 }
@@ -897,6 +895,7 @@ function wizApply() {
     document.getElementById('hidCtx').value = trunkCtx;
     document.getElementById('hidPrio').value = '1';
     document.getElementById('hidEnabled').value = '1';
+    document.getElementById('hidQueueMembers').value = checkedExts.join(',');
     document.getElementById('flowForm').submit();
 }
 

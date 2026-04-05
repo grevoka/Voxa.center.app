@@ -12,12 +12,12 @@ class CallFlowTemplateSeeder extends Seeder
         $templates = [
             [
                 'name'        => 'Accueil standard',
-                'description' => 'Decroche, sonne les postes, puis messagerie si pas de reponse',
+                'description' => 'Decroche, met en file d\'attente, puis messagerie si pas de reponse',
                 'icon'        => 'bi-building',
                 'steps'       => [
                     ['type' => 'answer', 'wait' => 1],
                     ['type' => 'playback', 'sound' => 'custom/welcome'],
-                    ['type' => 'ring', 'extensions' => [], 'timeout' => 25],
+                    ['type' => 'queue', 'queue_name' => '', 'timeout' => 60],
                     ['type' => 'voicemail', 'mailbox' => '1000', 'vm_type' => 'u'],
                     ['type' => 'hangup'],
                 ],
@@ -40,19 +40,19 @@ class CallFlowTemplateSeeder extends Seeder
                 'steps'       => [
                     ['type' => 'answer', 'wait' => 1],
                     ['type' => 'playback', 'sound' => 'custom/welcome'],
-                    ['type' => 'queue', 'queue_name' => 'support', 'timeout' => 120],
+                    ['type' => 'queue', 'queue_name' => '', 'timeout' => 120],
                     ['type' => 'voicemail', 'mailbox' => '1000', 'vm_type' => 'u'],
                     ['type' => 'hangup'],
                 ],
             ],
             [
-                'name'        => 'Sonnerie cascade',
-                'description' => 'Sonne un premier poste, puis un second si pas de reponse',
+                'name'        => 'File cascade',
+                'description' => 'Distribue via une file, si pas de reponse redirige vers une seconde',
                 'icon'        => 'bi-arrow-down-circle',
                 'steps'       => [
                     ['type' => 'answer', 'wait' => 1],
-                    ['type' => 'ring', 'extensions' => [], 'timeout' => 15],
-                    ['type' => 'ring', 'extensions' => [], 'timeout' => 20],
+                    ['type' => 'queue', 'queue_name' => '', 'timeout' => 30],
+                    ['type' => 'queue', 'queue_name' => '', 'timeout' => 60],
                     ['type' => 'voicemail', 'mailbox' => '1000', 'vm_type' => 'u'],
                     ['type' => 'hangup'],
                 ],

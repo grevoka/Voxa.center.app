@@ -49,11 +49,46 @@ class CallFlowController extends Controller
             'steps'           => 'required|json',
             'enabled'         => 'boolean',
             'priority'        => 'nullable|integer|min:1|max:100',
+            'queue_members'   => 'nullable|string',
         ]);
 
         $data['steps'] = json_decode($data['steps'], true);
         $data['created_by'] = auth()->id();
         $data['enabled'] = $request->boolean('enabled', true);
+
+        // Auto-create queue if wizard sent members
+        if ($request->filled('queue_members')) {
+            $members = array_filter(explode(',', $request->input('queue_members')));
+            if (!empty($members)) {
+                $queueName = 'q-' . preg_replace('/[^a-z0-9-]/', '', strtolower($data['name']));
+                $queue = CallQueue::updateOrCreate(
+                    ['name' => $queueName],
+                    [
+                        'display_name' => 'File ' . $data['name'],
+                        'strategy'     => 'ringall',
+                        'timeout'      => 25,
+                        'retry'        => 5,
+                        'max_wait_time' => 300,
+                        'music_on_hold' => 'default',
+                        'members'      => collect($members)->map(fn($ext) => ['extension' => $ext, 'penalty' => 0])->all(),
+                        'enabled'      => true,
+                        'created_by'   => auth()->id(),
+                    ],
+                );
+
+                // Replace queue_name in steps with the auto-created queue
+                foreach ($data['steps'] as &$step) {
+                    if (($step['type'] ?? '') === 'queue') {
+                        $step['queue_name'] = $queueName;
+                    }
+                }
+                unset($step);
+
+                // Write queues.conf
+                $this->dialplan->writeQueues();
+            }
+        }
+        unset($data['queue_members']);
 
         $flow = CallFlow::create($data);
 
