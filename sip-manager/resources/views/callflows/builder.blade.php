@@ -523,9 +523,9 @@ function render(){
         canvasInner.appendChild(mkNode(n));
     });
 
-    drawEdges();
     document.getElementById('nodeCount').textContent = nodes.length + ' bloc' + (nodes.length!==1?'s':'');
-    applyTransform();
+    // Defer edge drawing so DOM elements have their final layout
+    requestAnimationFrame(() => { drawEdges(); applyTransform(); });
 }
 
 function mkStart(){
