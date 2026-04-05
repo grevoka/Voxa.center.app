@@ -42,6 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
          ->name('callflows.dialplan');
     Route::post('callflows/preview', [CallFlowController::class, 'preview'])
          ->name('callflows.preview');
+    Route::post('callflows/save-template', [CallFlowController::class, 'saveTemplate'])
+         ->name('callflows.save-template');
+    Route::delete('callflows/templates/{template}', [CallFlowController::class, 'deleteTemplate'])
+         ->name('callflows.delete-template');
 
     // Files d'attente
     Route::resource('queues', CallQueueController::class)->except(['show']);

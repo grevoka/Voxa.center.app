@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CallFlow;
+use App\Models\CallFlowTemplate;
 use App\Models\CallQueue;
 use App\Models\Trunk;
 use App\Models\SipLine;
@@ -19,13 +20,23 @@ class CallFlowController extends Controller
         return view('callflows.index', compact('flows'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $trunks = Trunk::orderBy('name')->get();
         $queues = CallQueue::where('enabled', true)->orderBy('name')->get();
         $lines = SipLine::orderBy('extension')->get();
+        $templates = CallFlowTemplate::orderByDesc('is_system')->orderBy('name')->get();
 
-        return view('callflows.builder', compact('trunks', 'queues', 'lines'));
+        // If a template was chosen, pre-fill
+        $templateSteps = null;
+        if ($request->filled('template')) {
+            $tpl = CallFlowTemplate::find($request->input('template'));
+            if ($tpl) {
+                $templateSteps = $tpl->steps;
+            }
+        }
+
+        return view('callflows.builder', compact('trunks', 'queues', 'lines', 'templates', 'templateSteps'));
     }
 
     public function store(Request $request)
@@ -112,6 +123,35 @@ class CallFlowController extends Controller
     {
         $dialplan = $callflow->toDialplan();
         return view('callflows.dialplan', compact('callflow', 'dialplan'));
+    }
+
+    public function saveTemplate(Request $request)
+    {
+        $data = $request->validate([
+            'name'        => 'required|string|max:100',
+            'description' => 'nullable|string|max:500',
+            'steps'       => 'required|json',
+        ]);
+
+        CallFlowTemplate::create([
+            'name'        => $data['name'],
+            'description' => $data['description'] ?? null,
+            'icon'        => 'bi-bookmark',
+            'steps'       => json_decode($data['steps'], true),
+            'is_system'   => false,
+            'created_by'  => auth()->id(),
+        ]);
+
+        return back()->with('success', "Template \"{$data['name']}\" sauvegarde.");
+    }
+
+    public function deleteTemplate(CallFlowTemplate $template)
+    {
+        if ($template->is_system) {
+            return back()->with('error', 'Impossible de supprimer un template systeme.');
+        }
+        $template->delete();
+        return back()->with('success', 'Template supprime.');
     }
 
     public function preview(Request $request)

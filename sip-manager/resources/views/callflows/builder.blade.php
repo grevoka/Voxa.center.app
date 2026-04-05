@@ -100,6 +100,51 @@
     }
     .btn-fs:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* ── Template chooser ── */
+    .tpl-overlay {
+        position: fixed; inset: 0; z-index: 9998;
+        background: rgba(0,0,0,.6); display: none;
+        align-items: center; justify-content: center;
+    }
+    .tpl-overlay.active { display: flex; }
+    .tpl-modal {
+        background: var(--surface-1, #0f1923);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        width: 640px; max-width: 95vw; max-height: 80vh;
+        display: flex; flex-direction: column;
+    }
+    .tpl-modal-head {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: .75rem;
+        font-weight: 700; font-size: .9rem;
+    }
+    .tpl-modal-body {
+        flex: 1; overflow-y: auto; padding: 1rem 1.25rem;
+        display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+    }
+    .tpl-card {
+        border: 1px solid var(--border); border-radius: 8px;
+        padding: .85rem 1rem; cursor: pointer;
+        transition: border-color .15s, background .15s;
+    }
+    .tpl-card:hover { border-color: var(--accent); background: var(--surface-3); }
+    .tpl-card .tpl-icon { font-size: 1.2rem; margin-bottom: .4rem; color: var(--accent); }
+    .tpl-card h6 { margin: 0 0 .25rem; font-size: .82rem; font-weight: 700; }
+    .tpl-card p { margin: 0; font-size: .72rem; color: var(--text-secondary); }
+    .tpl-card .tpl-badge {
+        display: inline-block; font-size: .6rem; padding: 1px 6px;
+        border-radius: 4px; background: var(--accent); color: #000;
+        margin-left: .4rem; vertical-align: middle;
+    }
+    .tpl-card .tpl-steps { font-size: .65rem; color: var(--text-secondary); margin-top: .4rem; }
+    .tpl-footer {
+        padding: .75rem 1.25rem;
+        border-top: 1px solid var(--border);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+
     .edge-line {
         position: absolute;
         width: 2px;
@@ -342,6 +387,9 @@
             <a href="{{ route('callflows.index') }}" class="btn-outline-custom">
                 <i class="bi bi-arrow-left me-1"></i> Retour
             </a>
+            <button type="button" class="btn-outline-custom" id="btnSaveTpl" title="Sauvegarder comme template">
+                <i class="bi bi-bookmark-plus me-1"></i> Template
+            </button>
             <button type="button" class="btn btn-accent" id="btnSave">
                 <i class="bi bi-check-lg me-1"></i> {{ isset($callflow) ? 'Enregistrer' : 'Creer' }}
             </button>
@@ -497,6 +545,48 @@
         </div>
         <div class="fs-body" id="fsBody"></div>
     </div>
+
+    {{-- Template chooser overlay (only on create) --}}
+    @unless(isset($callflow))
+    <div class="tpl-overlay" id="tplOverlay">
+        <div class="tpl-modal">
+            <div class="tpl-modal-head">
+                <i class="bi bi-bookmarks"></i> Choisir un template
+                <button class="btn-fs" style="margin-left:auto;" onclick="closeTplModal()"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="tpl-modal-body" id="tplGrid">
+                {{-- Vide = from scratch --}}
+                <div class="tpl-card" onclick="useTpl(null)">
+                    <div class="tpl-icon"><i class="bi bi-file-earmark-plus"></i></div>
+                    <h6>Scenario vide</h6>
+                    <p>Commencer de zero</p>
+                </div>
+                @foreach($templates as $tpl)
+                <div class="tpl-card" onclick="useTpl({{ $tpl->id }})">
+                    <div class="tpl-icon"><i class="bi {{ $tpl->icon }}"></i></div>
+                    <h6>{{ $tpl->name }}
+                        @if($tpl->is_system)<span class="tpl-badge">Systeme</span>@endif
+                    </h6>
+                    <p>{{ $tpl->description ?: 'Aucune description' }}</p>
+                    <div class="tpl-steps">{{ count($tpl->steps) }} etape{{ count($tpl->steps) > 1 ? 's' : '' }}</div>
+                </div>
+                @endforeach
+            </div>
+            <div class="tpl-footer">
+                <span style="font-size:.72rem; color:var(--text-secondary);">Vous pourrez modifier le scenario apres selection</span>
+                <button class="btn-outline-custom" onclick="closeTplModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+    @endunless
+
+    {{-- Save as template form --}}
+    <form id="saveTplForm" method="POST" action="{{ route('callflows.save-template') }}" style="display:none;">
+        @csrf
+        <input type="hidden" name="steps" id="tplStepsInput">
+        <input type="hidden" name="name" id="tplNameInput">
+        <input type="hidden" name="description" id="tplDescInput">
+    </form>
 @endsection
 
 @push('scripts')
@@ -542,13 +632,16 @@ const canvasInner = document.getElementById('canvasInner');
 // Edges are drawn as HTML divs inside canvasInner
 
 // ════════════════════════════════════════
-// INIT from existing callflow
+// TEMPLATES
 // ════════════════════════════════════════
-(function initFromExisting(){
-    const existing = @json(isset($callflow) ? ($callflow->steps ?? []) : []);
-    if (!existing.length) return;
+const TEMPLATES = @json($templates ?? []);
+
+function loadSteps(steps) {
+    nodes = [];
+    nextId = 1;
+    selectedId = null;
     const startX = 400, startY = 60, gapY = 140;
-    existing.forEach((s, i) => {
+    steps.forEach((s, i) => {
         const n = {
             id: nextId++,
             type: s.type,
@@ -560,8 +653,32 @@ const canvasInner = document.getElementById('canvasInner');
         delete n.data.type;
         nodes.push(n);
     });
-    // auto-link
     for (let i = 0; i < nodes.length - 1; i++) nodes[i].next = nodes[i+1].id;
+    render();
+}
+
+@unless(isset($callflow))
+function openTplModal() { document.getElementById('tplOverlay').classList.add('active'); }
+function closeTplModal() { document.getElementById('tplOverlay').classList.remove('active'); }
+function useTpl(id) {
+    closeTplModal();
+    if (!id) return; // scenario vide
+    const tpl = TEMPLATES.find(t => t.id === id);
+    if (tpl && tpl.steps) loadSteps(tpl.steps);
+}
+// Show template chooser on page load (only for create)
+document.addEventListener('DOMContentLoaded', () => {
+    if (TEMPLATES.length > 0) openTplModal();
+});
+@endunless
+
+// ════════════════════════════════════════
+// INIT from existing callflow or template
+// ════════════════════════════════════════
+(function initFromExisting(){
+    const existing = @json(isset($callflow) ? ($callflow->steps ?? []) : (isset($templateSteps) && $templateSteps ? $templateSteps : []));
+    if (!existing.length) return;
+    loadSteps(existing);
 })();
 
 // ════════════════════════════════════════
@@ -1141,6 +1258,21 @@ document.getElementById('btnSave').addEventListener('click', () => {
     document.getElementById('hidPrio').value    = document.getElementById('cfgPrio').value;
     document.getElementById('hidEnabled').value = document.getElementById('cfgEnabled').checked ? '1' : '0';
     document.getElementById('flowForm').submit();
+});
+
+// ════════════════════════════════════════
+// SAVE AS TEMPLATE
+// ════════════════════════════════════════
+document.getElementById('btnSaveTpl').addEventListener('click', () => {
+    const steps = buildSteps();
+    if (!steps.length) { alert('Ajoutez au moins un bloc avant de sauvegarder un template.'); return; }
+    const name = prompt('Nom du template :');
+    if (!name) return;
+    const desc = prompt('Description (optionnel) :') || '';
+    document.getElementById('tplStepsInput').value = JSON.stringify(steps);
+    document.getElementById('tplNameInput').value = name;
+    document.getElementById('tplDescInput').value = desc;
+    document.getElementById('saveTplForm').submit();
 });
 
 // ════════════════════════════════════════
