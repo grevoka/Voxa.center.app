@@ -904,15 +904,6 @@ document.addEventListener('DOMContentLoaded', () => openTplModal());
 @endunless
 
 // ════════════════════════════════════════
-// INIT from existing callflow or template
-// ════════════════════════════════════════
-(function initFromExisting(){
-    const existing = @json(isset($callflow) ? ($callflow->steps ?? []) : (isset($templateSteps) && $templateSteps ? $templateSteps : []));
-    if (!existing.length) return;
-    loadSteps(existing);
-})();
-
-// ════════════════════════════════════════
 // AUTO-FILL context
 // ════════════════════════════════════════
 document.getElementById('cfgTrunk').addEventListener('change', function(){
@@ -1509,6 +1500,11 @@ document.getElementById('btnSaveTpl').addEventListener('click', () => {
 // ════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════
+(function initFromExisting(){
+    const existing = @json(isset($callflow) ? ($callflow->steps ?? []) : (isset($templateSteps) && $templateSteps ? $templateSteps : []));
+    if (!existing.length) return;
+    loadSteps(existing);
+})();
 render();
 </script>
 @endpush
