@@ -62,8 +62,8 @@
         width: 100%;
         height: 100%;
         pointer-events: none;
-        overflow: visible;
         z-index: 10;
+        transform-origin: 0 0;
     }
 
     /* ── Zoom bar ── */
@@ -608,44 +608,36 @@ function nodeDetail(n){
 // SVG EDGES (bezier)
 // ════════════════════════════════════════
 function drawEdges(){
-    const wrap = edgeCanvas.parentElement;
-    const w = wrap.clientWidth  * 2;
-    const h = wrap.clientHeight * 2;
-    edgeCanvas.width  = w;
-    edgeCanvas.height = h;
-    edgeCanvas.style.width  = wrap.clientWidth  + 'px';
-    edgeCanvas.style.height = wrap.clientHeight + 'px';
+    // Fixed large canvas — CSS transform handles zoom/pan (same as canvasInner)
+    const size = 4000;
+    if (edgeCanvas.width !== size) {
+        edgeCanvas.width = size;
+        edgeCanvas.height = size;
+        edgeCanvas.style.width = size + 'px';
+        edgeCanvas.style.height = size + 'px';
+    }
     const ctx = edgeCanvas.getContext('2d');
-    ctx.scale(2, 2); // retina
-    ctx.clearRect(0, 0, w, h);
-    ctx.save();
-    ctx.translate(camX, camY);
-    ctx.scale(zoom, zoom);
+    ctx.clearRect(0, 0, size, size);
     ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2.5 / zoom;
+    ctx.lineWidth = 2.5;
     ctx.globalAlpha = 0.85;
     ctx.lineCap = 'round';
 
-    let edgeCount = 0;
     const firstLinked = getStartNext();
     if (firstLinked !== null) {
         drawBezier(ctx, startPortPos(), nodePortPos(firstLinked,'in'));
-        edgeCount++;
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
-            if (target) { drawBezier(ctx, nodePortPos(n.id,'out'), nodePortPos(target.id,'in')); edgeCount++; }
+            if (target) drawBezier(ctx, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
         }
     });
 
     if (wiring) {
         drawBezier(ctx, wiring.from, {x: wiring.mx, y: wiring.my});
     }
-
-    ctx.restore();
-    console.log(`[drawEdges] zoom=${zoom.toFixed(2)} cam=${camX},${camY} canvas=${w}x${h} edges=${edgeCount}`);
 }
 
 function drawBezier(ctx, a, b){
@@ -809,6 +801,7 @@ canvasWrap.addEventListener('wheel', e => {
 function applyTransform(){
     const t = `translate(${camX}px,${camY}px) scale(${zoom})`;
     canvasInner.style.transform = t;
+    edgeCanvas.style.transform = t;
     drawEdges();
 }
 
