@@ -56,6 +56,50 @@
         top: 0; left: 0;
         transform-origin: 0 0;
     }
+    /* ── Fullscreen modal ── */
+    .canvas-fullscreen {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 9999;
+        background: var(--surface-1, #0f1923);
+        display: none;
+        flex-direction: column;
+    }
+    .canvas-fullscreen.active { display: flex; }
+    .canvas-fullscreen .fs-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+        background: var(--surface-3);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+    .canvas-fullscreen .fs-header h3 { margin: 0; font-size: 0.95rem; }
+    .canvas-fullscreen .fs-body {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+        background:
+            radial-gradient(circle, var(--border) 1px, transparent 1px);
+        background-size: 24px 24px;
+        cursor: grab;
+    }
+    .canvas-fullscreen .fs-body.grabbing { cursor: grabbing; }
+    .btn-fs {
+        background: var(--surface-3);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-fs:hover { border-color: var(--accent); color: var(--accent); }
+
     .edge-line {
         position: absolute;
         width: 2px;
@@ -404,6 +448,7 @@
             <div class="panel-head">
                 <i class="bi bi-bounding-box"></i> Cartographie
                 <span style="margin-left:auto; font-size:0.68rem; color:var(--text-secondary);" id="nodeCount">0 blocs</span>
+                <button class="btn-fs" onclick="openFullscreen()" title="Plein ecran"><i class="bi bi-arrows-fullscreen"></i></button>
             </div>
             <div class="canvas-wrap" id="canvasWrap">
                 <div class="canvas-inner" id="canvasInner"></div>
@@ -435,6 +480,22 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Fullscreen modal --}}
+    <div class="canvas-fullscreen" id="fsModal">
+        <div class="fs-header">
+            <i class="bi bi-bounding-box"></i>
+            <h3>Cartographie</h3>
+            <span style="font-size:0.7rem; color:var(--text-secondary);" id="fsNodeCount"></span>
+            <div style="margin-left:auto; display:flex; gap:0.5rem;">
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
+                <button class="zoom-btn" onclick="zoomReset()" title="Reset"><i class="bi bi-arrows-fullscreen"></i></button>
+                <button class="btn-fs" onclick="closeFullscreen()"><i class="bi bi-x-lg"></i> Fermer</button>
+            </div>
+        </div>
+        <div class="fs-body" id="fsBody"></div>
     </div>
 @endsection
 
@@ -800,6 +861,54 @@ function applyTransform(){
 function zoomIn(){  zoom = Math.min(2, zoom + 0.15); applyTransform(); }
 function zoomOut(){ zoom = Math.max(0.3, zoom - 0.15); applyTransform(); }
 function zoomReset(){ zoom = 1; camX = 0; camY = 0; applyTransform(); }
+
+// ════════════════════════════════════════
+// FULLSCREEN
+// ════════════════════════════════════════
+const fsModal = document.getElementById('fsModal');
+const fsBody  = document.getElementById('fsBody');
+let fsActive = false;
+
+function openFullscreen(){
+    fsBody.appendChild(canvasInner);
+    fsModal.classList.add('active');
+    fsActive = true;
+    // Bind zoom/pan on fsBody
+    fsBody.addEventListener('wheel', fsWheel, { passive: false });
+    fsBody.addEventListener('mousedown', fsMouseDown);
+    zoomReset();
+    document.getElementById('fsNodeCount').textContent =
+        nodes.length + ' bloc' + (nodes.length !== 1 ? 's' : '');
+    document.addEventListener('keydown', fsEscape);
+}
+
+function closeFullscreen(){
+    canvasWrap.appendChild(canvasInner);
+    fsModal.classList.remove('active');
+    fsActive = false;
+    fsBody.removeEventListener('wheel', fsWheel);
+    fsBody.removeEventListener('mousedown', fsMouseDown);
+    document.removeEventListener('keydown', fsEscape);
+    zoomReset();
+}
+
+function fsEscape(e){ if (e.key === 'Escape') closeFullscreen(); }
+
+function fsWheel(e){
+    e.preventDefault();
+    const d = e.deltaY > 0 ? -0.08 : 0.08;
+    zoom = Math.min(2, Math.max(0.3, zoom + d));
+    applyTransform();
+}
+
+function fsMouseDown(e){
+    if (e.target.closest('.node') || e.target.closest('.port')) return;
+    panning = true;
+    panStart = { x: e.clientX - camX, y: e.clientY - camY };
+    fsBody.classList.add('grabbing');
+    const up = () => { panning = false; fsBody.classList.remove('grabbing'); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mouseup', up);
+}
 
 // ════════════════════════════════════════
 // ADD / DELETE / SELECT
