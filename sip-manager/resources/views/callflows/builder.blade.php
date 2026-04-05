@@ -650,16 +650,20 @@ function drawBezier(ctx, a, b){
 }
 
 function startPortPos(){
-    return { x: 400 + 90, y: 30 + 52 };
+    const el = canvasInner.querySelector(`[data-id="${startId}"]`);
+    const w = el ? el.offsetWidth : 180;
+    const h = el ? el.offsetHeight : 52;
+    return { x: 400 + w / 2, y: 30 + h };
 }
 function nodePortPos(id, dir){
     const n = nodes.find(x => x.id === id);
     if (!n) return {x:0,y:0};
     const el = canvasInner.querySelector(`[data-id="${id}"]`);
-    if (!el) return {x: n.x + 110, y: dir==='in' ? n.y : n.y + el?.offsetHeight||70};
+    const w = el ? el.offsetWidth : 220;
+    const h = el ? el.offsetHeight : 70;
     return {
-        x: n.x + 110,
-        y: dir === 'in' ? n.y : n.y + el.offsetHeight
+        x: n.x + w / 2,
+        y: dir === 'in' ? n.y : n.y + h
     };
 }
 
