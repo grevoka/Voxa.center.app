@@ -105,7 +105,7 @@ RUN mkdir -p /var/run/redis && chown redis:redis /var/run/redis
 COPY docker/asterisk/configs/ /etc/asterisk/
 
 # ── Cron scheduler ──
-RUN echo "* * * * * www-data cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1" \
+RUN printf 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n* * * * * www-data cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1\n' \
     > /etc/cron.d/laravel-scheduler \
     && chmod 0644 /etc/cron.d/laravel-scheduler
 
