@@ -609,27 +609,34 @@ function nodeDetail(n){
 // ════════════════════════════════════════
 function drawEdges(){
     const wrap = edgeCanvas.parentElement;
-    edgeCanvas.width  = wrap.clientWidth;
-    edgeCanvas.height = wrap.clientHeight;
+    const w = wrap.clientWidth  * 2;
+    const h = wrap.clientHeight * 2;
+    edgeCanvas.width  = w;
+    edgeCanvas.height = h;
+    edgeCanvas.style.width  = wrap.clientWidth  + 'px';
+    edgeCanvas.style.height = wrap.clientHeight + 'px';
     const ctx = edgeCanvas.getContext('2d');
-    ctx.clearRect(0, 0, edgeCanvas.width, edgeCanvas.height);
+    ctx.scale(2, 2); // retina
+    ctx.clearRect(0, 0, w, h);
     ctx.save();
     ctx.translate(camX, camY);
     ctx.scale(zoom, zoom);
     ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 2 / zoom;
-    ctx.globalAlpha = 0.75;
+    ctx.lineWidth = 2.5 / zoom;
+    ctx.globalAlpha = 0.85;
     ctx.lineCap = 'round';
 
+    let edgeCount = 0;
     const firstLinked = getStartNext();
     if (firstLinked !== null) {
         drawBezier(ctx, startPortPos(), nodePortPos(firstLinked,'in'));
+        edgeCount++;
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
-            if (target) drawBezier(ctx, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
+            if (target) { drawBezier(ctx, nodePortPos(n.id,'out'), nodePortPos(target.id,'in')); edgeCount++; }
         }
     });
 
@@ -638,6 +645,7 @@ function drawEdges(){
     }
 
     ctx.restore();
+    console.log(`[drawEdges] zoom=${zoom.toFixed(2)} cam=${camX},${camY} canvas=${w}x${h} edges=${edgeCount}`);
 }
 
 function drawBezier(ctx, a, b){
