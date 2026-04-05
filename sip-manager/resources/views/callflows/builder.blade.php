@@ -76,6 +76,21 @@
         flex-shrink: 0;
     }
     .canvas-fullscreen .fs-header h3 { margin: 0; font-size: 0.95rem; }
+    .canvas-fullscreen .fs-content {
+        flex: 1; display: flex; overflow: hidden; min-height: 0;
+    }
+    .canvas-fullscreen .fs-panel {
+        display: flex; flex-direction: column;
+        background: var(--surface-2);
+        flex-shrink: 0;
+        min-width: 0;
+    }
+    .canvas-fullscreen .fs-panel-left {
+        width: 220px; border-right: 1px solid var(--border);
+    }
+    .canvas-fullscreen .fs-panel-right {
+        width: 260px; border-left: 1px solid var(--border);
+    }
     .canvas-fullscreen .fs-body {
         flex: 1;
         overflow: hidden;
@@ -111,8 +126,9 @@
         background: var(--surface-1, #0f1923);
         border: 1px solid var(--border);
         border-radius: 12px;
-        width: 680px; max-width: 95vw; max-height: 85vh;
+        width: 680px; max-width: 95vw; max-height: 92vh;
         display: flex; flex-direction: column;
+        overflow: hidden;
     }
     .tpl-modal-head {
         padding: 1rem 1.25rem;
@@ -122,30 +138,32 @@
     }
     .tpl-modal-body {
         flex: 1; overflow-y: auto; padding: 1rem 1.25rem;
+        min-height: 0;
     }
     .tpl-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem;
     }
     .tpl-card {
         border: 1px solid var(--border); border-radius: 8px;
-        padding: .85rem 1rem; cursor: pointer;
+        padding: .55rem .7rem; cursor: pointer;
         transition: border-color .15s, background .15s;
     }
     .tpl-card:hover, .tpl-card.selected { border-color: var(--accent); background: var(--surface-3); }
     .tpl-card.selected { box-shadow: 0 0 0 2px var(--accent); }
-    .tpl-card .tpl-icon { font-size: 1.2rem; margin-bottom: .4rem; color: var(--accent); }
-    .tpl-card h6 { margin: 0 0 .25rem; font-size: .82rem; font-weight: 700; }
-    .tpl-card p { margin: 0; font-size: .72rem; color: var(--text-secondary); }
+    .tpl-card .tpl-icon { font-size: 1rem; margin-bottom: .2rem; color: var(--accent); }
+    .tpl-card h6 { margin: 0 0 .15rem; font-size: .75rem; font-weight: 700; }
+    .tpl-card p { margin: 0; font-size: .65rem; color: var(--text-secondary); line-height: 1.3; }
     .tpl-card .tpl-badge {
         display: inline-block; font-size: .6rem; padding: 1px 6px;
         border-radius: 4px; background: var(--accent); color: #000;
         margin-left: .4rem; vertical-align: middle;
     }
-    .tpl-card .tpl-steps { font-size: .65rem; color: var(--text-secondary); margin-top: .4rem; }
+    .tpl-card .tpl-steps { font-size: .6rem; color: var(--text-secondary); margin-top: .2rem; }
     .tpl-footer {
         padding: .75rem 1.25rem;
         border-top: 1px solid var(--border);
         display: flex; justify-content: space-between; align-items: center;
+        flex-shrink: 0;
     }
     .wiz-step { display: none; }
     .wiz-step.active { display: block; }
@@ -232,20 +250,70 @@
     .wiz-feat-item.checked .wiz-check-box { background: var(--accent); border-color: var(--accent); }
     .wiz-or-divider {
         display: flex; align-items: center; gap: .75rem;
-        margin: 1.25rem 0; color: var(--text-secondary); font-size: .72rem;
+        margin: .65rem 0; color: var(--text-secondary); font-size: .72rem;
     }
     .wiz-or-divider::before, .wiz-or-divider::after {
         content: ''; flex: 1; height: 1px; background: var(--border);
     }
 
-    .edge-line {
+    /* ── Wizard timeline ── */
+    .wiz-timeline { display: flex; flex-direction: column; gap: 0; }
+    .wiz-tl-item {
+        display: flex; align-items: center; gap: .65rem;
+        padding: .5rem .75rem; border-radius: 8px;
+        border: 1px solid var(--border); background: var(--surface-2);
+        position: relative;
+    }
+    .wiz-tl-item.mandatory {
+        border-color: var(--accent); background: rgba(0,229,160,.08);
+    }
+    .wiz-tl-item.auto {
+        border-style: dashed; opacity: .7;
+    }
+    .wiz-tl-icon {
+        width: 28px; height: 28px; border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .85rem; flex-shrink: 0;
+    }
+    .wiz-tl-text { flex: 1; }
+    .wiz-tl-text h6 { margin: 0; font-size: .78rem; font-weight: 700; }
+    .wiz-tl-text p { margin: 0; font-size: .65rem; color: var(--text-secondary); }
+    .wiz-tl-remove {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: var(--surface-3); border: 1px solid var(--border);
+        color: var(--text-secondary); font-size: .6rem;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; flex-shrink: 0; transition: all .15s;
+    }
+    .wiz-tl-remove:hover { background: #f85149; color: #fff; border-color: #f85149; }
+    .wiz-tl-connector {
+        width: 2px; height: 18px; background: var(--border);
+        margin-left: 1.1rem;
+    }
+    .wiz-tl-connector.accent { background: var(--accent); }
+    .wiz-tl-label {
+        font-size: .6rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; color: var(--text-secondary); margin-bottom: .25rem;
+    }
+    .wiz-tl-drag {
+        cursor: grab; color: var(--text-secondary); font-size: .75rem;
+        flex-shrink: 0; opacity: .5; transition: opacity .15s;
+    }
+    .wiz-tl-drag:hover { opacity: 1; }
+    .wiz-tl-item.dragging {
+        opacity: .4; border-style: dashed;
+    }
+    .wiz-tl-item.drag-over {
+        border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .edges-svg {
         position: absolute;
-        width: 2px;
-        background: #22c55e;
-        opacity: 0.8;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         pointer-events: none;
-        transform-origin: top center;
-        border-radius: 1px;
+        overflow: visible;
+        z-index: 1;
     }
 
     /* ── Zoom bar ── */
@@ -336,27 +404,31 @@
     /* ── Ports (connection dots) ── */
     .port {
         position: absolute;
-        width: 12px; height: 12px;
+        width: 14px; height: 14px;
         border-radius: 50%;
         background: #22c55e;
         border: 2px solid var(--surface-2);
         cursor: crosshair;
         z-index: 6;
-        transition: transform .1s;
+        transition: transform .15s, box-shadow .15s;
     }
-    .port:hover { transform: scale(1.4); }
+    .port:hover {
+        transform: scale(1.6);
+        box-shadow: 0 0 8px rgba(34,197,94,.6);
+    }
     .port-out {
-        bottom: -6px;
+        bottom: -7px;
         left: 50%;
         transform: translateX(-50%);
     }
-    .port-out:hover { transform: translateX(-50%) scale(1.4); }
     .port-in {
-        top: -6px;
+        top: -7px;
         left: 50%;
         transform: translateX(-50%);
     }
-    .port-in:hover { transform: translateX(-50%) scale(1.4); }
+    .port-out:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(34,197,94,.6); }
+    .port-in:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(34,197,94,.6); }
+    .node:hover .port { box-shadow: 0 0 6px rgba(34,197,94,.3); }
 
     /* ── Start node (special) ── */
     .node-start {
@@ -400,33 +472,52 @@
     .nc-announcement .node-icon   { background: #d2992225; color: #d29922; }
     .nc-goto .node-header     { background: #bc8cff15; }
     .nc-goto .node-icon       { background: #bc8cff25; color: #bc8cff; }
+    .nc-ivr .node-header      { background: #e8671515; }
+    .nc-ivr .node-icon        { background: #e8671525; color: #e86715; }
 
     /* ── Palette ── */
+    .pal-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .35rem;
+        margin-bottom: .6rem;
+    }
     .pal-item {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        padding: 0.5rem 0.65rem;
+        gap: 0.4rem;
+        padding: 0.4rem 0.5rem;
         border-radius: 8px;
         border: 1px solid var(--border);
         background: var(--surface-3);
         cursor: pointer;
         transition: all .15s;
-        margin-bottom: 0.4rem;
-        font-size: 0.78rem;
+        font-size: 0.7rem;
         font-weight: 500;
         color: var(--text-secondary);
     }
     .pal-item:hover { border-color: #22c55e; color: #22c55e; background: var(--accent-dim); }
     .pal-icon {
-        width: 26px; height: 26px;
-        border-radius: 6px;
+        width: 22px; height: 22px;
+        border-radius: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         flex-shrink: 0;
     }
+    .cfg-toggle {
+        display: flex; align-items: center;
+        padding: .5rem .4rem; margin-bottom: .5rem;
+        font-weight: 700; font-size: .68rem;
+        letter-spacing: .5px; text-transform: uppercase;
+        color: var(--text-secondary);
+        cursor: pointer; user-select: none;
+        border-top: 1px solid var(--border);
+        padding-top: .65rem;
+    }
+    .cfg-toggle:hover { color: var(--text-primary); }
+    .cfg-collapsed { display: none !important; }
 
     /* ── Config (right) ── */
     .cfg-section { margin-bottom: 1rem; }
@@ -464,6 +555,18 @@
         font-size: 0.72rem;
     }
 
+    /* ── Edit hub cards ── */
+    .edit-hub-card {
+        flex: 1; min-width: 180px; max-width: 260px;
+        padding: 1.25rem; border-radius: 12px;
+        border: 1px solid var(--border); background: var(--surface-2);
+        cursor: pointer; transition: all .2s;
+        text-align: center;
+    }
+    .edit-hub-card:hover { border-color: var(--accent); background: var(--surface-3); transform: translateY(-2px); }
+    .edit-hub-card h6 { margin: .6rem 0 .3rem; font-size: .88rem; font-weight: 700; }
+    .edit-hub-card p { margin: 0; font-size: .72rem; color: var(--text-secondary); line-height: 1.4; }
+
     @media (max-width: 1100px) {
         .builder-wrap { grid-template-columns: 1fr; height: auto; }
     }
@@ -471,9 +574,53 @@
 @endpush
 
 @section('content')
+    @if(isset($callflow))
+    {{-- EDIT MODE: simple hub page --}}
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">{{ isset($callflow) ? 'Modifier' : 'Nouveau' }} scenario</h5>
+            <h5 style="font-weight:700; margin:0;">{{ $callflow->name }}</h5>
+            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">
+                {{ $callflow->description ?: 'Scenario d\'appel' }}
+                — <span style="color:{{ $callflow->enabled ? '#22c55e' : '#f85149' }};">{{ $callflow->enabled ? 'Actif' : 'Inactif' }}</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('callflows.index') }}" class="btn-outline-custom">
+                <i class="bi bi-arrow-left me-1"></i> Retour
+            </a>
+        </div>
+    </div>
+    <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
+        <div class="edit-hub-card" onclick="openFullscreen()">
+            <i class="bi bi-bounding-box" style="font-size:2rem; color:#22c55e;"></i>
+            <h6>Cartographie</h6>
+            <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
+        </div>
+        <div class="edit-hub-card" onclick="wizOpenEdit()">
+            <i class="bi bi-magic" style="font-size:2rem; color:#bc8cff;"></i>
+            <h6>Wizard</h6>
+            <p>Modifier les etapes via l'assistant pas-a-pas</p>
+        </div>
+        <div class="edit-hub-card" onclick="document.getElementById('btnSaveTpl').click()">
+            <i class="bi bi-bookmark-plus" style="font-size:2rem; color:#f0883e;"></i>
+            <h6>Sauver en template</h6>
+            <p>Enregistrer ce scenario comme modele reutilisable</p>
+        </div>
+        @if($callflow->trunk)
+        <div class="edit-hub-card" style="cursor:default;">
+            <i class="bi bi-info-circle" style="font-size:2rem; color:#58a6ff;"></i>
+            <h6>Infos</h6>
+            <p>Trunk: {{ $callflow->trunk->name }}<br>Contexte: {{ $callflow->inbound_context }}<br>{{ count($callflow->steps ?? []) }} etapes</p>
+        </div>
+        @endif
+    </div>
+    <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">Enregistrer</button>
+    <button type="button" class="btn-outline-custom" id="btnSaveTpl" style="display:none;">Template</button>
+    @else
+    {{-- CREATE MODE: original header --}}
+    <div class="section-header">
+        <div>
+            <h5 style="font-weight:700; margin:0;">Nouveau scenario</h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Cartographie 2D — glissez les blocs pour construire votre flux</p>
         </div>
         <div class="d-flex gap-2">
@@ -484,10 +631,11 @@
                 <i class="bi bi-bookmark-plus me-1"></i> Template
             </button>
             <button type="button" class="btn btn-accent" id="btnSave">
-                <i class="bi bi-check-lg me-1"></i> {{ isset($callflow) ? 'Enregistrer' : 'Creer' }}
+                <i class="bi bi-check-lg me-1"></i> Creer
             </button>
         </div>
     </div>
+    @endif
 
     <form id="flowForm" method="POST"
           action="{{ isset($callflow) ? route('callflows.update', $callflow) : route('callflows.store') }}">
@@ -500,87 +648,94 @@
         <input type="hidden" name="inbound_context" id="hidCtx">
         <input type="hidden" name="priority" id="hidPrio">
         <input type="hidden" name="enabled" id="hidEnabled">
+        <input type="hidden" name="positions" id="hidPositions">
         <input type="hidden" name="queue_members" id="hidQueueMembers">
     </form>
 
-    <div class="builder-wrap">
-        {{-- LEFT: config + palette --}}
+    <div class="builder-wrap" @if(isset($callflow)) style="display:none;" @endif>
+        {{-- LEFT: palette + config --}}
         <div class="panel">
-            <div class="panel-head"><i class="bi bi-sliders"></i> Configuration</div>
-            <div class="panel-body">
-                <div class="cfg-section">
-                    <label>Nom</label>
-                    <input type="text" class="form-control form-control-sm" id="cfgName"
-                           value="{{ old('name', $callflow->name ?? '') }}" required placeholder="accueil-principal">
-                </div>
-                <div class="cfg-section">
-                    <label>Description</label>
-                    <input type="text" class="form-control form-control-sm" id="cfgDesc"
-                           value="{{ old('description', $callflow->description ?? '') }}" placeholder="Optionnel">
-                </div>
-                <div class="cfg-section">
-                    <label>Trunk entrant</label>
-                    <select class="form-select form-select-sm" id="cfgTrunk" required>
-                        <option value="">— Choisir —</option>
-                        @foreach($trunks as $trunk)
-                            <option value="{{ $trunk->id }}"
-                                data-context="{{ $trunk->getEffectiveInboundContext() }}"
-                                {{ old('trunk_id', $callflow->trunk_id ?? '') == $trunk->id ? 'selected' : '' }}>
-                                {{ $trunk->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="cfg-section">
-                    <label>Contexte</label>
-                    <input type="text" class="form-control form-control-sm" id="cfgCtx"
-                           value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" required>
-                </div>
-                <div class="cfg-section">
-                    <label>Priorite</label>
-                    <input type="number" class="form-control form-control-sm" id="cfgPrio"
-                           value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
-                </div>
-                <div class="cfg-section">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="cfgEnabled"
-                            {{ old('enabled', $callflow->enabled ?? true) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="cfgEnabled"
-                               style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">Actif</label>
+            <div class="panel-head"><i class="bi bi-plus-circle"></i> Blocs</div>
+            <div class="panel-body" style="padding:.6rem;">
+                <div class="pal-grid">
+                    <div class="pal-item" onclick="addNode('answer')">
+                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre
+                    </div>
+                    <div class="pal-item" onclick="addNode('queue')">
+                        <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File
+                    </div>
+                    <div class="pal-item" onclick="addNode('ring')">
+                        <div class="pal-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div> Sonnerie
+                    </div>
+                    <div class="pal-item" onclick="addNode('voicemail')">
+                        <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie
+                    </div>
+                    <div class="pal-item" onclick="addNode('playback')">
+                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Audio
+                    </div>
+                    <div class="pal-item" onclick="addNode('announcement')">
+                        <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce
+                    </div>
+                    <div class="pal-item" onclick="addNode('moh')">
+                        <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique
+                    </div>
+                    <div class="pal-item" onclick="addNode('ivr')">
+                        <div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> IVR
+                    </div>
+                    <div class="pal-item" onclick="addNode('goto')">
+                        <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto
+                    </div>
+                    <div class="pal-item" onclick="addNode('hangup')">
+                        <div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> Raccrocher
                     </div>
                 </div>
 
-                <hr style="border-color:var(--border); margin:0.75rem 0;">
-                <div style="font-weight:700; font-size:0.68rem; letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:0.6rem;">
-                    <i class="bi bi-plus-circle me-1"></i> Ajouter un bloc
+                <div class="cfg-toggle" onclick="document.getElementById('cfgPanel').classList.toggle('cfg-collapsed')">
+                    <i class="bi bi-sliders me-1"></i> Configuration
+                    <i class="bi bi-chevron-down ms-auto" style="font-size:.6rem;"></i>
                 </div>
-
-                <div class="pal-item" onclick="addNode('answer')">
-                    <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre
-                </div>
-                <div class="pal-item" onclick="addNode('ring')">
-                    <div class="pal-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div> Sonnerie
-                </div>
-                <div class="pal-item" onclick="addNode('queue')">
-                    <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File d'attente
-                </div>
-                <div class="pal-item" onclick="addNode('voicemail')">
-                    <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie
-                </div>
-                <div class="pal-item" onclick="addNode('playback')">
-                    <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Lecture audio
-                </div>
-                <div class="pal-item" onclick="addNode('announcement')">
-                    <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce
-                </div>
-                <div class="pal-item" onclick="addNode('moh')">
-                    <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique
-                </div>
-                <div class="pal-item" onclick="addNode('goto')">
-                    <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto
-                </div>
-                <div class="pal-item" onclick="addNode('hangup')">
-                    <div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> Raccrocher
+                <div id="cfgPanel">
+                    <div class="cfg-section">
+                        <label>Nom</label>
+                        <input type="text" class="form-control form-control-sm" id="cfgName"
+                               value="{{ old('name', $callflow->name ?? '') }}" required placeholder="accueil-principal">
+                    </div>
+                    <div class="cfg-section">
+                        <label>Description</label>
+                        <input type="text" class="form-control form-control-sm" id="cfgDesc"
+                               value="{{ old('description', $callflow->description ?? '') }}" placeholder="Optionnel">
+                    </div>
+                    <div class="cfg-section">
+                        <label>Trunk entrant</label>
+                        <select class="form-select form-select-sm" id="cfgTrunk" required>
+                            <option value="">— Choisir —</option>
+                            @foreach($trunks as $trunk)
+                                <option value="{{ $trunk->id }}"
+                                    data-context="{{ $trunk->getEffectiveInboundContext() }}"
+                                    {{ old('trunk_id', $callflow->trunk_id ?? '') == $trunk->id ? 'selected' : '' }}>
+                                    {{ $trunk->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="cfg-section">
+                        <label>Contexte</label>
+                        <input type="text" class="form-control form-control-sm" id="cfgCtx"
+                               value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" required>
+                    </div>
+                    <div class="cfg-section">
+                        <label>Priorite</label>
+                        <input type="number" class="form-control form-control-sm" id="cfgPrio"
+                               value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
+                    </div>
+                    <div class="cfg-section">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cfgEnabled"
+                                {{ old('enabled', $callflow->enabled ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="cfgEnabled"
+                                   style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">Actif</label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -630,18 +785,96 @@
             <i class="bi bi-bounding-box"></i>
             <h3>Cartographie</h3>
             <span style="font-size:0.7rem; color:var(--text-secondary);" id="fsNodeCount"></span>
-            <div style="margin-left:auto; display:flex; gap:0.5rem;">
+            <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
                 <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
-                <button class="zoom-btn" onclick="zoomReset()" title="Reset"><i class="bi bi-arrows-fullscreen"></i></button>
-                <button class="btn-fs" onclick="closeFullscreen()"><i class="bi bi-x-lg"></i> Fermer</button>
+                <button class="zoom-btn" onclick="centerOnNodes()" title="Centrer"><i class="bi bi-bullseye"></i></button>
+                @if(isset($callflow))
+                <button class="btn-fs" onclick="closeFullscreen(); wizOpenEdit();" title="Wizard"><i class="bi bi-magic me-1"></i> Wizard</button>
+                @endif
+                <button class="btn btn-accent" style="font-size:.75rem; padding:4px 12px;" onclick="document.getElementById('btnSave').click()">
+                    <i class="bi bi-check-lg me-1"></i> Enregistrer
+                </button>
+                <button class="btn-fs" onclick="closeFullscreen()"><i class="bi bi-x-lg"></i></button>
             </div>
         </div>
-        <div class="fs-body" id="fsBody"></div>
+        <div class="fs-content">
+            {{-- LEFT: palette + config --}}
+            <div class="fs-panel fs-panel-left">
+                <div style="flex:1; overflow-y:auto; padding:.5rem;">
+                    <div style="font-weight:700; font-size:.68rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.4rem; padding:0 .2rem;">
+                        <i class="bi bi-plus-circle me-1"></i> Blocs
+                    </div>
+                    <div class="pal-grid">
+                        <div class="pal-item" onclick="addNode('answer')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre</div>
+                        <div class="pal-item" onclick="addNode('queue')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File</div>
+                        <div class="pal-item" onclick="addNode('ring')"><div class="pal-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div> Sonnerie</div>
+                        <div class="pal-item" onclick="addNode('voicemail')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie</div>
+                        <div class="pal-item" onclick="addNode('playback')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Audio</div>
+                        <div class="pal-item" onclick="addNode('announcement')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce</div>
+                        <div class="pal-item" onclick="addNode('moh')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique</div>
+                        <div class="pal-item" onclick="addNode('ivr')"><div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> IVR</div>
+                        <div class="pal-item" onclick="addNode('goto')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto</div>
+                        <div class="pal-item" onclick="addNode('hangup')"><div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> Raccrocher</div>
+                    </div>
+
+                    <div class="cfg-toggle" onclick="document.getElementById('fsCfgPanel').classList.toggle('cfg-collapsed')">
+                        <i class="bi bi-sliders me-1"></i> Configuration
+                        <i class="bi bi-chevron-down ms-auto" style="font-size:.6rem;"></i>
+                    </div>
+                    <div id="fsCfgPanel">
+                        <div class="cfg-section">
+                            <label>Nom</label>
+                            <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgName"
+                                   value="{{ old('name', $callflow->name ?? '') }}" placeholder="accueil-principal">
+                        </div>
+                        <div class="cfg-section">
+                            <label>Description</label>
+                            <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgDesc"
+                                   value="{{ old('description', $callflow->description ?? '') }}" placeholder="Optionnel">
+                        </div>
+                        <div class="cfg-section">
+                            <label>Trunk entrant</label>
+                            <select class="form-select form-select-sm fs-cfg-sync" data-target="cfgTrunk">
+                                <option value="">— Choisir —</option>
+                                @foreach($trunks as $trunk)
+                                    <option value="{{ $trunk->id }}"
+                                        data-context="{{ $trunk->getEffectiveInboundContext() }}"
+                                        {{ old('trunk_id', $callflow->trunk_id ?? '') == $trunk->id ? 'selected' : '' }}>
+                                        {{ $trunk->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="cfg-section">
+                            <label>Contexte</label>
+                            <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgCtx"
+                                   value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}">
+                        </div>
+                        <div class="cfg-section">
+                            <label>Priorite</label>
+                            <input type="number" class="form-control form-control-sm fs-cfg-sync" data-target="cfgPrio"
+                                   value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{-- CENTER: canvas --}}
+            <div class="fs-body" id="fsBody"></div>
+            {{-- RIGHT: properties --}}
+            <div class="fs-panel fs-panel-right">
+                <div class="panel-head" style="font-size:.72rem;padding:.6rem .75rem;"><i class="bi bi-gear me-1"></i> Proprietes</div>
+                <div class="panel-body" id="fsPropPanel" style="flex:1; overflow-y:auto; padding:.6rem;">
+                    <div class="cfg-empty">
+                        <i class="bi bi-hand-index" style="font-size:1.2rem; display:block; margin-bottom:.4rem;"></i>
+                        Cliquez sur un bloc
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    {{-- Template wizard overlay (only on create) --}}
-    @unless(isset($callflow))
+    {{-- Template wizard overlay --}}
     <div class="tpl-overlay" id="tplOverlay">
         <div class="tpl-modal">
             <div class="tpl-modal-head">
@@ -670,58 +903,65 @@
                         </div>
                         @endforeach
                     </div>
-                    <div class="wiz-or-divider">ou composez votre scenario</div>
-                    <div class="tpl-card" style="text-align:center;" onclick="wizSelectCustom(this)">
-                        <div class="tpl-icon" style="display:inline-block;"><i class="bi bi-sliders"></i></div>
-                        <h6>Creer sur mesure</h6>
-                        <p>Choisissez les fonctionnalites une par une</p>
+                    <div class="wiz-or-divider">ou</div>
+                    <div class="tpl-card selected-custom" style="border:2px dashed var(--border); background:var(--surface-1);" onclick="wizSelectCustom(this)">
+                        <div style="display:flex; align-items:center; gap:.75rem;">
+                            <div class="tpl-icon" style="margin:0; font-size:1.4rem;"><i class="bi bi-sliders"></i></div>
+                            <div>
+                                <h6 style="font-size:.9rem;">Creer sur mesure</h6>
+                                <p>Construisez votre scenario etape par etape</p>
+                            </div>
+                            <i class="bi bi-chevron-right" style="margin-left:auto; font-size:1rem; color:var(--text-secondary);"></i>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Step 2: feature picker (custom only) --}}
+                {{-- Step 2: step-by-step builder (custom only) --}}
                 <div class="wiz-step" id="wizStep2">
-                    <h5>Fonctionnalites du scenario</h5>
-                    <div class="wiz-subtitle">Cochez les etapes que vous souhaitez inclure</div>
-                    <div class="wiz-feat-grid" id="wizFeatGrid">
-                        <div class="wiz-feat-item checked" data-feat="answer" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div>
-                            <div class="wiz-feat-text"><h6>Repondre</h6><p>Decroche l'appel automatiquement</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                    <h5>Composez votre scenario</h5>
+                    <div class="wiz-subtitle">Ajoutez les etapes dans l'ordre souhaite</div>
+
+                    {{-- Timeline of added steps --}}
+                    <div id="wizTimeline" style="margin-bottom:1rem;"></div>
+
+                    {{-- Picker for next step --}}
+                    <div id="wizPicker">
+                        <div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.5rem;">
+                            <i class="bi bi-plus-circle me-1"></i> Ajouter une etape
                         </div>
-                        <div class="wiz-feat-item" data-feat="playback" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div>
-                            <div class="wiz-feat-text"><h6>Message d'accueil</h6><p>Joue un fichier audio</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
-                        </div>
-                        <div class="wiz-feat-item" data-feat="announcement" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div>
-                            <div class="wiz-feat-text"><h6>Annonce</h6><p>Annonce avant mise en attente</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
-                        </div>
-                        <div class="wiz-feat-item checked" data-feat="queue" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div>
-                            <div class="wiz-feat-text"><h6>File d'attente</h6><p>Distribue l'appel aux postes</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
-                        </div>
-                        <div class="wiz-feat-item" data-feat="ring" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div>
-                            <div class="wiz-feat-text"><h6>Sonnerie directe</h6><p>Sonne un poste sans file</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
-                        </div>
-                        <div class="wiz-feat-item" data-feat="moh" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div>
-                            <div class="wiz-feat-text"><h6>Musique d'attente</h6><p>Musique pendant l'attente</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
-                        </div>
-                        <div class="wiz-feat-item checked" data-feat="voicemail" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div>
-                            <div class="wiz-feat-text"><h6>Messagerie vocale</h6><p>Redirige vers la boite vocale</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
-                        </div>
-                        <div class="wiz-feat-item checked" data-feat="hangup" onclick="wizToggleFeat(this)">
-                            <div class="wiz-feat-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div>
-                            <div class="wiz-feat-text"><h6>Raccrocher</h6><p>Termine l'appel proprement</p></div>
-                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        <div class="wiz-feat-grid">
+                            <div class="wiz-feat-item" onclick="wizAddStep('playback')">
+                                <div class="wiz-feat-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div>
+                                <div class="wiz-feat-text"><h6>Message d'accueil</h6><p>Joue un fichier audio</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('announcement')">
+                                <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div>
+                                <div class="wiz-feat-text"><h6>Annonce</h6><p>Message avant mise en attente</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('queue')">
+                                <div class="wiz-feat-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div>
+                                <div class="wiz-feat-text"><h6>File d'attente</h6><p>Distribue l'appel aux postes</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('ring')">
+                                <div class="wiz-feat-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div>
+                                <div class="wiz-feat-text"><h6>Sonnerie directe</h6><p>Sonne un poste sans file</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('moh')">
+                                <div class="wiz-feat-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div>
+                                <div class="wiz-feat-text"><h6>Musique d'attente</h6><p>Musique pendant l'attente</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('voicemail')">
+                                <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div>
+                                <div class="wiz-feat-text"><h6>Messagerie vocale</h6><p>Redirige vers la boite vocale</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('ivr')">
+                                <div class="wiz-feat-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div>
+                                <div class="wiz-feat-text"><h6>Menu vocal (IVR)</h6><p>Touche 1, 2, 3... pour router</p></div>
+                            </div>
+                            <div class="wiz-feat-item" onclick="wizAddStep('goto')">
+                                <div class="wiz-feat-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div>
+                                <div class="wiz-feat-text"><h6>Goto</h6><p>Redirige vers un autre contexte</p></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -764,7 +1004,6 @@
             </div>
         </div>
     </div>
-    @endunless
 
     {{-- Save as template form --}}
     <form id="saveTplForm" method="POST" action="{{ route('callflows.save-template') }}" style="display:none;">
@@ -789,6 +1028,7 @@ const TYPES = {
     announcement: { label:'Annonce',           icon:'bi-megaphone',         color:'announcement' },
     moh:          { label:'Musique',           icon:'bi-music-note-beamed', color:'moh' },
     goto:         { label:'Goto',              icon:'bi-arrow-right-circle',color:'goto' },
+    ivr:          { label:'Menu vocal',        icon:'bi-grid-3x3-gap',      color:'ivr' },
     hangup:       { label:'Raccrocher',        icon:'bi-telephone-x',       color:'hangup' },
 };
 const DEFAULTS = {
@@ -800,6 +1040,7 @@ const DEFAULTS = {
     announcement: { sound:'custom/welcome' },
     moh:          { moh_class:'default', duration:10 },
     goto:         { target_context:'default' },
+    ivr:          { sound:'custom/menu', timeout:5, options: { '1': '', '2': '', '3': '' } },
     hangup:       {},
 };
 const QUEUES = @json($queues);
@@ -822,17 +1063,19 @@ const canvasInner = document.getElementById('canvasInner');
 // ════════════════════════════════════════
 const TEMPLATES = @json($templates ?? []);
 
-function loadSteps(steps) {
+function loadSteps(steps, savedPositions) {
     nodes = [];
     nextId = 1;
     selectedId = null;
     const startX = 400, startY = 60, gapY = 140;
     steps.forEach((s, i) => {
+        const nId = nextId++;
+        const pos = savedPositions && savedPositions[nId];
         const n = {
-            id: nextId++,
+            id: nId,
             type: s.type,
-            x: startX,
-            y: startY + 120 + i * gapY,
+            x: pos ? pos.x : startX,
+            y: pos ? pos.y : (startY + 120 + i * gapY),
             data: Object.assign({}, s),
             next: null
         };
@@ -843,12 +1086,11 @@ function loadSteps(steps) {
     render();
 }
 
-@unless(isset($callflow))
+const WIZ_EDIT_MODE = {{ isset($callflow) ? 'true' : 'false' }};
 let wizSelectedTplId = null;
 let wizIsCustom = false;
 let wizCurrentStep = 1;
-// Feature order for building steps from custom selection
-const FEAT_ORDER = ['answer','playback','announcement','moh','queue','ring','voicemail','hangup'];
+let wizCustomSteps = []; // user-added steps for custom builder
 
 function openTplModal() { document.getElementById('tplOverlay').classList.add('active'); }
 function closeTplModal() { document.getElementById('tplOverlay').classList.remove('active'); }
@@ -868,9 +1110,96 @@ function wizSelectCustom(card) {
     document.getElementById('wizBtnNext').disabled = false;
 }
 
-function wizToggleFeat(el) { el.classList.toggle('checked'); }
-function wizGetFeats() {
-    return [...document.querySelectorAll('.wiz-feat-item.checked')].map(el => el.dataset.feat);
+function wizAddStep(type) {
+    wizCustomSteps.push({ type, ...JSON.parse(JSON.stringify(DEFAULTS[type] || {})) });
+    wizRenderTimeline();
+    document.getElementById('wizBtnNext').disabled = false;
+}
+
+function wizRemoveStep(index) {
+    wizCustomSteps.splice(index, 1);
+    wizRenderTimeline();
+    if (!wizCustomSteps.length) document.getElementById('wizBtnNext').disabled = true;
+}
+
+function wizRenderTimeline() {
+    const el = document.getElementById('wizTimeline');
+    let html = '';
+
+    // Mandatory: Décrocher
+    html += '<div class="wiz-tl-label">Debut obligatoire</div>';
+    html += `<div class="wiz-tl-item mandatory">
+        <div class="wiz-tl-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div>
+        <div class="wiz-tl-text"><h6>Decrocher</h6><p>Repond a l'appel entrant</p></div>
+        <span style="font-size:.6rem; color:var(--accent); font-weight:700;">OBLIGATOIRE</span>
+    </div>`;
+
+    // User steps (draggable)
+    wizCustomSteps.forEach((s, i) => {
+        const t = TYPES[s.type] || { label: s.type, icon: 'bi-circle' };
+        html += '<div class="wiz-tl-connector accent"></div>';
+        html += `<div class="wiz-tl-item" draggable="true" data-wiz-idx="${i}"
+                      ondragstart="wizDragStart(event,${i})" ondragend="wizDragEnd(event)"
+                      ondragover="wizDragOver(event)" ondrop="wizDrop(event,${i})" ondragleave="wizDragLeave(event)">
+            <div class="wiz-tl-drag" title="Deplacer"><i class="bi bi-grip-vertical"></i></div>
+            <div class="wiz-tl-icon" style="background:${colorBg(s.type)};color:${colorFg(s.type)};"><i class="bi ${t.icon}"></i></div>
+            <div class="wiz-tl-text"><h6>${t.label}</h6><p>${wizStepDesc(s)}</p></div>
+            <div class="wiz-tl-remove" onclick="wizRemoveStep(${i})" title="Supprimer"><i class="bi bi-x"></i></div>
+        </div>`;
+    });
+
+    // Auto: Raccrocher
+    html += '<div class="wiz-tl-connector"></div>';
+    html += `<div class="wiz-tl-item auto">
+        <div class="wiz-tl-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div>
+        <div class="wiz-tl-text"><h6>Raccrocher</h6><p>Termine l'appel (ajoute automatiquement)</p></div>
+        <span style="font-size:.6rem; color:var(--text-secondary); font-weight:700;">AUTO</span>
+    </div>`;
+
+    el.innerHTML = html;
+}
+
+let wizDragIdx = null;
+function wizDragStart(e, idx) {
+    wizDragIdx = idx;
+    e.target.closest('.wiz-tl-item').classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+function wizDragEnd(e) {
+    wizDragIdx = null;
+    document.querySelectorAll('.wiz-tl-item').forEach(el => el.classList.remove('dragging','drag-over'));
+}
+function wizDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const item = e.target.closest('.wiz-tl-item[data-wiz-idx]');
+    if (item) item.classList.add('drag-over');
+}
+function wizDragLeave(e) {
+    const item = e.target.closest('.wiz-tl-item[data-wiz-idx]');
+    if (item) item.classList.remove('drag-over');
+}
+function wizDrop(e, toIdx) {
+    e.preventDefault();
+    if (wizDragIdx === null || wizDragIdx === toIdx) return;
+    const moved = wizCustomSteps.splice(wizDragIdx, 1)[0];
+    wizCustomSteps.splice(toIdx, 0, moved);
+    wizDragIdx = null;
+    wizRenderTimeline();
+}
+
+function wizStepDesc(s) {
+    switch(s.type) {
+        case 'playback': return s.sound || 'Fichier audio';
+        case 'announcement': return s.sound || 'Message d\'annonce';
+        case 'queue': return 'Distribution aux postes';
+        case 'ring': return 'Sonnerie directe';
+        case 'moh': return (s.moh_class || 'default') + ' (' + (s.duration || 10) + 's)';
+        case 'voicemail': return 'Boite ' + (s.mailbox || '1000');
+        case 'goto': return 'Vers ' + (s.target_context || 'default');
+        case 'ivr': return 'Touches ' + Object.keys(s.options || {}).join(', ');
+        default: return '';
+    }
 }
 
 function wizShowStep(n) {
@@ -882,19 +1211,29 @@ function wizShowStep(n) {
         const dot = document.getElementById('wizDot'+i);
         dot.className = 'step-dot' + (i < n ? ' done' : (i === n ? ' active' : ''));
     });
-    document.getElementById('wizBtnBack').style.display = n > 1 ? '' : 'none';
-    const isLast = wizIsCustom ? n === 3 : n === 3;
-    const configStep = wizIsCustom ? 3 : 2;
-    document.getElementById('wizBtnNext').innerHTML = n === configStep
-        ? '<i class="bi bi-check-lg me-1"></i> Creer le scenario'
+    const showBack = WIZ_EDIT_MODE ? n > 2 : n > 1;
+    document.getElementById('wizBtnBack').style.display = showBack ? '' : 'none';
+
+    // For custom: step 2 = builder, step 3 = config. For template: skip step 2, go to step 3.
+    const lastStep = 3;
+    const applyLabel = WIZ_EDIT_MODE ? 'Enregistrer' : 'Creer le scenario';
+    document.getElementById('wizBtnNext').innerHTML = n === lastStep
+        ? `<i class="bi bi-check-lg me-1"></i> ${applyLabel}`
         : 'Suivant <i class="bi bi-arrow-right ms-1"></i>';
-    const titles = { 1: 'Nouveau scenario', 2: wizIsCustom ? 'Fonctionnalites' : 'Configuration', 3: 'Configuration' };
+    const mainTitle = WIZ_EDIT_MODE ? 'Modifier le scenario' : 'Nouveau scenario';
+    const titles = { 1: mainTitle, 2: 'Composez votre scenario', 3: 'Configuration' };
     document.getElementById('wizTitle').textContent = titles[n] || '';
+
+    // On step 2, render the timeline and enable/disable next based on steps
+    if (n === 2) {
+        wizRenderTimeline();
+        document.getElementById('wizBtnNext').disabled = wizCustomSteps.length === 0;
+    }
 }
 
 function wizBack() {
     if (wizCurrentStep === 3) wizShowStep(wizIsCustom ? 2 : 1);
-    else if (wizCurrentStep === 2) wizShowStep(1);
+    else if (wizCurrentStep === 2 && !WIZ_EDIT_MODE) wizShowStep(1);
 }
 
 function wizNext() {
@@ -925,10 +1264,9 @@ function wizBuildDynFields() {
     // Determine which features are active
     let hasQueue = false, hasRing = false, hasVoicemail = false;
     if (wizIsCustom) {
-        const feats = wizGetFeats();
-        hasQueue = feats.includes('queue');
-        hasRing = feats.includes('ring');
-        hasVoicemail = feats.includes('voicemail');
+        hasQueue = wizCustomSteps.some(s => s.type === 'queue');
+        hasRing = wizCustomSteps.some(s => s.type === 'ring');
+        hasVoicemail = wizCustomSteps.some(s => s.type === 'voicemail');
     } else if (wizSelectedTplId !== null) {
         const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
         const steps = tpl ? (tpl.steps || []) : [];
@@ -993,16 +1331,16 @@ function wizApply() {
     let finalSteps = [];
 
     if (wizIsCustom) {
-        // Build steps from selected features in logical order
-        const feats = wizGetFeats();
-        FEAT_ORDER.forEach(feat => {
-            if (!feats.includes(feat)) return;
-            const step = Object.assign({ type: feat }, DEFAULTS[feat] || {});
-            if (feat === 'queue' && checkedExts.length > 0) { /* queue_name set by server */ }
-            if (feat === 'ring' && checkedExts.length > 0) step.extensions = [...checkedExts];
-            if (feat === 'voicemail' && mailboxEl && mailboxEl.value) step.mailbox = mailboxEl.value;
+        // Build: answer + user steps + hangup
+        finalSteps.push({ type: 'answer', wait: 1 });
+        wizCustomSteps.forEach(s => {
+            const step = JSON.parse(JSON.stringify(s));
+            if (step.type === 'queue' && checkedExts.length > 0) { /* queue_name set by server */ }
+            if (step.type === 'ring' && checkedExts.length > 0) step.extensions = [...checkedExts];
+            if (step.type === 'voicemail' && mailboxEl && mailboxEl.value) step.mailbox = mailboxEl.value;
             finalSteps.push(step);
         });
+        finalSteps.push({ type: 'hangup' });
     } else if (wizSelectedTplId !== null) {
         const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
         if (tpl && tpl.steps) {
@@ -1019,14 +1357,35 @@ function wizApply() {
     document.getElementById('hidTrunk').value = trunk;
     const trunkCtx = trunkOpt && trunkOpt.dataset.context ? trunkOpt.dataset.context : 'from-trunk';
     document.getElementById('hidCtx').value = trunkCtx;
-    document.getElementById('hidPrio').value = '1';
-    document.getElementById('hidEnabled').value = '1';
+    document.getElementById('hidPrio').value = document.getElementById('cfgPrio').value || '1';
+    document.getElementById('hidEnabled').value = document.getElementById('cfgEnabled').checked ? '1' : '0';
     document.getElementById('hidQueueMembers').value = checkedExts.join(',');
     document.getElementById('flowForm').submit();
 }
 
-document.addEventListener('DOMContentLoaded', () => openTplModal());
-@endunless
+function wizOpenEdit() {
+    const existing = @json(isset($callflow) ? ($callflow->steps ?? []) : []);
+    wizIsCustom = true;
+    wizCustomSteps = existing.filter(s => s.type !== 'answer' && s.type !== 'hangup')
+        .map(s => JSON.parse(JSON.stringify(s)));
+    document.getElementById('wizName').value = @json(isset($callflow) ? $callflow->name : '');
+    document.getElementById('wizDesc').value = @json(isset($callflow) ? ($callflow->description ?? '') : '');
+    document.getElementById('wizTrunk').value = String(@json(isset($callflow) ? $callflow->trunk_id : ''));
+    openTplModal();
+    wizShowStep(2);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!WIZ_EDIT_MODE) {
+        openTplModal();
+    } else {
+        // After a successful save, re-open fullscreen so user stays in context
+        const hasSuccess = {{ session('success') ? 'true' : 'false' }};
+        if (hasSuccess) {
+            requestAnimationFrame(() => { openFullscreen(); });
+        }
+    }
+});
 
 // ════════════════════════════════════════
 // AUTO-FILL context
@@ -1034,6 +1393,20 @@ document.addEventListener('DOMContentLoaded', () => openTplModal());
 document.getElementById('cfgTrunk').addEventListener('change', function(){
     const o = this.options[this.selectedIndex];
     if (o && o.dataset.context) document.getElementById('cfgCtx').value = o.dataset.context;
+});
+
+// ════════════════════════════════════════
+// SYNC fullscreen config ↔ main config
+// ════════════════════════════════════════
+document.querySelectorAll('.fs-cfg-sync').forEach(el => {
+    el.addEventListener('input', function() {
+        const target = document.getElementById(this.dataset.target);
+        if (target) target.value = this.value;
+    });
+    el.addEventListener('change', function() {
+        const target = document.getElementById(this.dataset.target);
+        if (target) { target.value = this.value; target.dispatchEvent(new Event('change')); }
+    });
 });
 
 // ════════════════════════════════════════
@@ -1049,8 +1422,8 @@ function render(){
     });
 
     document.getElementById('nodeCount').textContent = nodes.length + ' bloc' + (nodes.length!==1?'s':'');
-    drawEdges();
     applyTransform();
+    requestAnimationFrame(() => drawEdges());
 }
 
 function mkStart(){
@@ -1124,6 +1497,7 @@ function nodeDetail(n){
         case 'announcement': return n.data.sound||'custom/welcome';
         case 'moh':       return `${n.data.moh_class||'default'} (${n.data.duration||10}s)`;
         case 'goto':      return `→ ${n.data.target_context||'default'}`;
+        case 'ivr':       return `Menu: ${Object.keys(n.data.options||{}).join(', ')}`;
         case 'hangup':    return 'Fin';
         default: return '';
     }
@@ -1132,38 +1506,7 @@ function nodeDetail(n){
 // ════════════════════════════════════════
 // SVG EDGES (bezier)
 // ════════════════════════════════════════
-function drawEdges(){
-    // Remove old edge lines
-    canvasInner.querySelectorAll('.edge-line').forEach(el => el.remove());
-
-    const firstLinked = getStartNext();
-    if (firstLinked !== null) {
-        drawLine(startPortPos(), nodePortPos(firstLinked,'in'));
-    }
-
-    nodes.forEach(n => {
-        if (n.next !== null) {
-            const target = nodes.find(x => x.id === n.next);
-            if (target) drawLine(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
-        }
-    });
-}
-
-function drawLine(a, b){
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 1) return;
-    const angle = Math.atan2(dy, dx) - Math.PI / 2; // rotate so 0° = pointing down
-    const div = document.createElement('div');
-    div.className = 'edge-line';
-    div.style.left = a.x + 'px';
-    div.style.top  = a.y + 'px';
-    div.style.height = len + 'px';
-    div.style.transform = `rotate(${angle}rad)`;
-    canvasInner.appendChild(div);
-}
-
+// Port positions: always bottom-center (out) and top-center (in)
 function startPortPos(){
     const el = canvasInner.querySelector(`[data-id="${startId}"]`);
     const w = el ? el.offsetWidth : 180;
@@ -1182,6 +1525,51 @@ function nodePortPos(id, dir){
     };
 }
 
+function getOrCreateSvg(){
+    let svg = canvasInner.querySelector('.edges-svg');
+    if (!svg) {
+        svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.classList.add('edges-svg');
+        canvasInner.insertBefore(svg, canvasInner.firstChild);
+    }
+    return svg;
+}
+
+function drawEdges(){
+    const svg = getOrCreateSvg();
+    svg.innerHTML = '';
+
+    const firstLinked = getStartNext();
+    if (firstLinked !== null) {
+        drawCurve(svg, startPortPos(), nodePortPos(firstLinked,'in'));
+    }
+
+    nodes.forEach(n => {
+        if (n.next !== null) {
+            const target = nodes.find(x => x.id === n.next);
+            if (target) drawCurve(svg, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
+        }
+    });
+
+    if (wiring) {
+        drawCurve(svg, wiring.from, { x: wiring.mx, y: wiring.my }, true);
+    }
+}
+
+function drawCurve(svg, a, b, temp){
+    const dx = b.x - a.x, dy = b.y - a.y;
+    // Control point offset for bezier — adapts to distance
+    const cp = Math.max(40, Math.min(Math.abs(dy) * 0.5, 150));
+    const d = `M${a.x},${a.y} C${a.x},${a.y + cp} ${b.x},${b.y - cp} ${b.x},${b.y}`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', temp ? '#f0883e' : '#22c55e');
+    path.setAttribute('stroke-width', temp ? '3' : '2');
+    path.setAttribute('stroke-opacity', temp ? '0.6' : '0.8');
+    svg.appendChild(path);
+}
+
 // ════════════════════════════════════════
 // WIRING (connect ports by dragging)
 // ════════════════════════════════════════
@@ -1192,15 +1580,17 @@ function onPortDown(e){
     e.preventDefault();
     const port = e.target.closest('.port');
     const ownerId = port.dataset.owner;
-    const pos = (ownerId === startId) ? startPortPos() : nodePortPos(parseInt(ownerId), 'out');
-    wiring = { fromId: ownerId === startId ? startId : parseInt(ownerId), from: pos, mx: pos.x, my: pos.y };
+    const nId = ownerId === startId ? startId : parseInt(ownerId);
+    const pos = (nId === startId) ? startPortPos() : nodePortPos(nId, 'out');
+    wiring = { fromId: nId, from: pos, mx: pos.x, my: pos.y };
     document.addEventListener('mousemove', onWireMove);
     document.addEventListener('mouseup', onWireUp);
 }
 
 function onWireMove(e){
     if (!wiring) return;
-    const rect = canvasWrap.getBoundingClientRect();
+    const container = fsActive ? fsBody : canvasWrap;
+    const rect = container.getBoundingClientRect();
     wiring.mx = (e.clientX - rect.left - camX) / zoom;
     wiring.my = (e.clientY - rect.top - camY) / zoom;
     drawEdges();
@@ -1337,13 +1727,38 @@ function openFullscreen(){
     fsBody.appendChild(canvasInner);
     fsModal.classList.add('active');
     fsActive = true;
-    // Bind zoom/pan on fsBody
     fsBody.addEventListener('wheel', fsWheel, { passive: false });
     fsBody.addEventListener('mousedown', fsMouseDown);
-    zoomReset();
     document.getElementById('fsNodeCount').textContent =
         nodes.length + ' bloc' + (nodes.length !== 1 ? 's' : '');
     document.addEventListener('keydown', fsEscape);
+    render();
+    // Wait for layout to settle before centering
+    setTimeout(() => centerOnNodes(), 100);
+}
+
+function centerOnNodes(){
+    if (!nodes.length) { zoomReset(); return; }
+    const container = fsActive ? fsBody : canvasWrap;
+    const cw = container.clientWidth || 800, ch = container.clientHeight || 600;
+    let minX = 400, minY = 30, maxX = 400 + 180, maxY = 30 + 52;
+    nodes.forEach(n => {
+        minX = Math.min(minX, n.x);
+        minY = Math.min(minY, n.y);
+        maxX = Math.max(maxX, n.x + 220);
+        maxY = Math.max(maxY, n.y + 100);
+    });
+    const pad = 60;
+    const nodesW = maxX - minX + pad * 2;
+    const nodesH = maxY - minY + pad * 2;
+    zoom = Math.min(1, Math.min(cw / nodesW, ch / nodesH));
+    zoom = Math.max(0.35, zoom);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    camX = (cw / 2) - cx * zoom;
+    camY = (ch / 2) - cy * zoom;
+    applyTransform();
+    drawEdges();
 }
 
 function closeFullscreen(){
@@ -1431,9 +1846,12 @@ function selectNode(id){
 // ════════════════════════════════════════
 function renderProps(){
     const panel = document.getElementById('propPanel');
+    const fsPanel = document.getElementById('fsPropPanel');
     const n = nodes.find(x => x.id === selectedId);
     if (!n) {
-        panel.innerHTML = `<div class="cfg-empty"><i class="bi bi-hand-index" style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>Cliquez sur un bloc</div>`;
+        const empty = `<div class="cfg-empty"><i class="bi bi-hand-index" style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>Cliquez sur un bloc</div>`;
+        panel.innerHTML = empty;
+        if (fsPanel) fsPanel.innerHTML = empty;
         return;
     }
     const t = TYPES[n.type] || {};
@@ -1488,6 +1906,25 @@ function renderProps(){
         case 'goto':
             h += cfgF('Contexte', `<input type="text" class="form-control form-control-sm" value="${n.data.target_context||'default'}" onchange="setProp(${n.id},'target_context',this.value)">`);
             break;
+        case 'ivr':
+            h += cfgF('Fichier audio', `<input type="text" class="form-control form-control-sm" value="${n.data.sound||'custom/menu'}" onchange="setProp(${n.id},'sound',this.value)">`);
+            h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||5}" min="1" max="30" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Options (touche → destination)</label>`;
+            const opts = n.data.options || {};
+            Object.keys(opts).forEach(key => {
+                h += `<div class="member-item" style="gap:.3rem;">
+                    <span class="ext-badge" style="min-width:22px;text-align:center;">${key}</span>
+                    <input type="text" class="form-control form-control-sm" value="${opts[key]}" placeholder="ex: 100 ou queue-support"
+                           style="flex:1;" onchange="setIvrOpt(${n.id},'${key}',this.value)">
+                    <button class="wiz-tl-remove" onclick="removeIvrOpt(${n.id},'${key}')" style="width:18px;height:18px;font-size:.5rem;"><i class="bi bi-x"></i></button>
+                </div>`;
+            });
+            h += `<div style="margin-top:.4rem;display:flex;gap:.3rem;">
+                <input type="text" class="form-control form-control-sm" id="newIvrKey${n.id}" placeholder="Touche" style="width:55px;">
+                <button class="btn-outline-custom" style="padding:2px 8px;font-size:.7rem;" onclick="addIvrOpt(${n.id})">
+                    <i class="bi bi-plus me-1"></i>Ajouter</button>
+            </div>`;
+            break;
         case 'hangup':
             h += `<p style="color:var(--text-secondary);font-size:.8rem;">Termine l'appel.</p>`;
             break;
@@ -1507,6 +1944,7 @@ function renderProps(){
     }
 
     panel.innerHTML = h;
+    if (fsPanel) fsPanel.innerHTML = h;
 }
 
 function cfgF(label, input){
@@ -1514,11 +1952,11 @@ function cfgF(label, input){
 }
 
 function colorBg(type){
-    const m = {answer:'#58a6ff25',ring:'#00e5a025',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25'};
+    const m = {answer:'#58a6ff25',ring:'#00e5a025',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525'};
     return m[type]||'#58a6ff25';
 }
 function colorFg(type){
-    const m = {answer:'#58a6ff',ring:'#00e5a0',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff'};
+    const m = {answer:'#58a6ff',ring:'#00e5a0',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715'};
     return m[type]||'#58a6ff';
 }
 
@@ -1527,6 +1965,32 @@ function setProp(id, prop, val){
     if (!n) return;
     if (prop === '__unlink') { n.next = null; }
     else { n.data[prop] = val; }
+    render();
+    renderProps();
+}
+
+function setIvrOpt(id, key, val) {
+    const n = nodes.find(x => x.id === id);
+    if (!n) return;
+    if (!n.data.options) n.data.options = {};
+    n.data.options[key] = val;
+    render();
+}
+function addIvrOpt(id) {
+    const input = document.getElementById('newIvrKey'+id);
+    const key = (input ? input.value.trim() : '');
+    if (!key) return;
+    const n = nodes.find(x => x.id === id);
+    if (!n) return;
+    if (!n.data.options) n.data.options = {};
+    n.data.options[key] = '';
+    render();
+    renderProps();
+}
+function removeIvrOpt(id, key) {
+    const n = nodes.find(x => x.id === id);
+    if (!n || !n.data.options) return;
+    delete n.data.options[key];
     render();
     renderProps();
 }
@@ -1598,6 +2062,10 @@ function buildSteps(){
 // ════════════════════════════════════════
 document.getElementById('btnSave').addEventListener('click', () => {
     document.getElementById('stepsInput').value = JSON.stringify(buildSteps());
+    // Serialize node positions
+    const pos = {};
+    nodes.forEach(n => { pos[n.id] = { x: Math.round(n.x), y: Math.round(n.y) }; });
+    document.getElementById('hidPositions').value = JSON.stringify(pos);
     document.getElementById('hidName').value    = document.getElementById('cfgName').value;
     document.getElementById('hidDesc').value    = document.getElementById('cfgDesc').value;
     document.getElementById('hidTrunk').value   = document.getElementById('cfgTrunk').value;
@@ -1628,7 +2096,8 @@ document.getElementById('btnSaveTpl').addEventListener('click', () => {
 (function initFromExisting(){
     const existing = @json(isset($callflow) ? ($callflow->steps ?? []) : (isset($templateSteps) && $templateSteps ? $templateSteps : []));
     if (!existing.length) return;
-    loadSteps(existing);
+    const savedPos = @json(isset($callflow) ? ($callflow->positions ?? null) : null);
+    loadSteps(existing, savedPos);
 })();
 render();
 </script>
