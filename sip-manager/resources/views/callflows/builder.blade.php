@@ -204,6 +204,39 @@
     }
     .wiz-steps-indicator .step-dot.active { background: var(--accent); }
     .wiz-steps-indicator .step-dot.done { background: #22c55e; }
+    .wiz-feat-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: .5rem;
+    }
+    .wiz-feat-item {
+        padding: .6rem .75rem; border-radius: 8px;
+        border: 1px solid var(--border); background: var(--surface-2);
+        cursor: pointer; user-select: none;
+        display: flex; align-items: center; gap: .65rem;
+        transition: border-color .15s, background .15s;
+    }
+    .wiz-feat-item:hover { border-color: var(--text-secondary); }
+    .wiz-feat-item.checked { border-color: var(--accent); background: rgba(0,229,160,.1); }
+    .wiz-feat-item .wiz-feat-icon {
+        width: 32px; height: 32px; border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .9rem; flex-shrink: 0;
+    }
+    .wiz-feat-item .wiz-feat-text h6 { margin: 0; font-size: .78rem; font-weight: 700; }
+    .wiz-feat-item .wiz-feat-text p { margin: 0; font-size: .65rem; color: var(--text-secondary); }
+    .wiz-feat-item .wiz-check-box {
+        width: 18px; height: 18px; border-radius: 4px;
+        border: 2px solid var(--border); flex-shrink: 0; margin-left: auto;
+        display: flex; align-items: center; justify-content: center;
+        transition: all .15s; font-size: .7rem; color: #000;
+    }
+    .wiz-feat-item.checked .wiz-check-box { background: var(--accent); border-color: var(--accent); }
+    .wiz-or-divider {
+        display: flex; align-items: center; gap: .75rem;
+        margin: 1.25rem 0; color: var(--text-secondary); font-size: .72rem;
+    }
+    .wiz-or-divider::before, .wiz-or-divider::after {
+        content: ''; flex: 1; height: 1px; background: var(--border);
+    }
 
     .edge-line {
         position: absolute;
@@ -617,36 +650,85 @@
                 <div class="wiz-steps-indicator" style="margin-left:auto;">
                     <div class="step-dot active" id="wizDot1"></div>
                     <div class="step-dot" id="wizDot2"></div>
+                    <div class="step-dot" id="wizDot3"></div>
                 </div>
                 <button class="btn-fs" onclick="closeTplModal()"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="tpl-modal-body">
-                {{-- Step 1: choose template --}}
+
+                {{-- Step 1: choose template OR custom --}}
                 <div class="wiz-step active" id="wizStep1">
-                    <h5>Choisir un modele</h5>
-                    <div class="wiz-subtitle">Selectionnez un modele de depart ou commencez de zero</div>
+                    <h5>Modeles pre-configures</h5>
+                    <div class="wiz-subtitle">Selectionnez un modele pour demarrer rapidement</div>
                     <div class="tpl-grid">
-                        <div class="tpl-card" data-tpl-id="" onclick="wizSelectTpl(this, null)">
-                            <div class="tpl-icon"><i class="bi bi-file-earmark-plus"></i></div>
-                            <h6>Scenario vide</h6>
-                            <p>Commencer de zero</p>
-                        </div>
                         @foreach($templates as $tpl)
                         <div class="tpl-card" data-tpl-id="{{ $tpl->id }}" onclick="wizSelectTpl(this, {{ $tpl->id }})">
                             <div class="tpl-icon"><i class="bi {{ $tpl->icon }}"></i></div>
-                            <h6>{{ $tpl->name }}
-                                @if($tpl->is_system)<span class="tpl-badge">Systeme</span>@endif
-                            </h6>
+                            <h6>{{ $tpl->name }}</h6>
                             <p>{{ $tpl->description ?: 'Aucune description' }}</p>
                             <div class="tpl-steps">{{ count($tpl->steps) }} etape{{ count($tpl->steps) > 1 ? 's' : '' }}</div>
                         </div>
                         @endforeach
                     </div>
+                    <div class="wiz-or-divider">ou composez votre scenario</div>
+                    <div class="tpl-card" style="text-align:center;" onclick="wizSelectCustom(this)">
+                        <div class="tpl-icon" style="display:inline-block;"><i class="bi bi-sliders"></i></div>
+                        <h6>Creer sur mesure</h6>
+                        <p>Choisissez les fonctionnalites une par une</p>
+                    </div>
                 </div>
 
-                {{-- Step 2: configure scenario --}}
+                {{-- Step 2: feature picker (custom only) --}}
                 <div class="wiz-step" id="wizStep2">
-                    <h5 id="wizStep2Title">Configuration du scenario</h5>
+                    <h5>Fonctionnalites du scenario</h5>
+                    <div class="wiz-subtitle">Cochez les etapes que vous souhaitez inclure</div>
+                    <div class="wiz-feat-grid" id="wizFeatGrid">
+                        <div class="wiz-feat-item checked" data-feat="answer" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div>
+                            <div class="wiz-feat-text"><h6>Repondre</h6><p>Decroche l'appel automatiquement</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item" data-feat="playback" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div>
+                            <div class="wiz-feat-text"><h6>Message d'accueil</h6><p>Joue un fichier audio</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item" data-feat="announcement" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div>
+                            <div class="wiz-feat-text"><h6>Annonce</h6><p>Annonce avant mise en attente</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item checked" data-feat="queue" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div>
+                            <div class="wiz-feat-text"><h6>File d'attente</h6><p>Distribue l'appel aux postes</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item" data-feat="ring" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div>
+                            <div class="wiz-feat-text"><h6>Sonnerie directe</h6><p>Sonne un poste sans file</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item" data-feat="moh" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div>
+                            <div class="wiz-feat-text"><h6>Musique d'attente</h6><p>Musique pendant l'attente</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item checked" data-feat="voicemail" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div>
+                            <div class="wiz-feat-text"><h6>Messagerie vocale</h6><p>Redirige vers la boite vocale</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="wiz-feat-item checked" data-feat="hangup" onclick="wizToggleFeat(this)">
+                            <div class="wiz-feat-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div>
+                            <div class="wiz-feat-text"><h6>Raccrocher</h6><p>Termine l'appel proprement</p></div>
+                            <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Step 3: configure scenario --}}
+                <div class="wiz-step" id="wizStep3">
+                    <h5>Configuration</h5>
                     <div class="wiz-subtitle">Renseignez les informations de votre scenario</div>
 
                     <div class="cfg-section">
@@ -667,7 +749,7 @@
                         </select>
                     </div>
 
-                    {{-- Dynamic fields depending on template --}}
+                    {{-- Dynamic fields --}}
                     <div id="wizDynFields"></div>
                 </div>
             </div>
@@ -763,7 +845,10 @@ function loadSteps(steps) {
 
 @unless(isset($callflow))
 let wizSelectedTplId = null;
+let wizIsCustom = false;
 let wizCurrentStep = 1;
+// Feature order for building steps from custom selection
+const FEAT_ORDER = ['answer','playback','announcement','moh','queue','ring','voicemail','hangup'];
 
 function openTplModal() { document.getElementById('tplOverlay').classList.add('active'); }
 function closeTplModal() { document.getElementById('tplOverlay').classList.remove('active'); }
@@ -772,28 +857,61 @@ function wizSelectTpl(card, id) {
     document.querySelectorAll('#wizStep1 .tpl-card').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
     wizSelectedTplId = id;
+    wizIsCustom = false;
     document.getElementById('wizBtnNext').disabled = false;
+}
+function wizSelectCustom(card) {
+    document.querySelectorAll('#wizStep1 .tpl-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    wizSelectedTplId = null;
+    wizIsCustom = true;
+    document.getElementById('wizBtnNext').disabled = false;
+}
+
+function wizToggleFeat(el) { el.classList.toggle('checked'); }
+function wizGetFeats() {
+    return [...document.querySelectorAll('.wiz-feat-item.checked')].map(el => el.dataset.feat);
 }
 
 function wizShowStep(n) {
     wizCurrentStep = n;
     document.getElementById('wizStep1').classList.toggle('active', n === 1);
     document.getElementById('wizStep2').classList.toggle('active', n === 2);
-    document.getElementById('wizDot1').className = 'step-dot ' + (n >= 1 ? (n > 1 ? 'done' : 'active') : '');
-    document.getElementById('wizDot2').className = 'step-dot ' + (n === 2 ? 'active' : '');
+    document.getElementById('wizStep3').classList.toggle('active', n === 3);
+    [1,2,3].forEach(i => {
+        const dot = document.getElementById('wizDot'+i);
+        dot.className = 'step-dot' + (i < n ? ' done' : (i === n ? ' active' : ''));
+    });
     document.getElementById('wizBtnBack').style.display = n > 1 ? '' : 'none';
-    document.getElementById('wizBtnNext').textContent = n === 2 ? 'Creer le scenario' : 'Suivant';
-    const icon = n === 2 ? ' bi-check-lg' : ' bi-arrow-right';
-    document.getElementById('wizBtnNext').innerHTML = (n === 2 ? '<i class="bi bi-check-lg me-1"></i> Creer le scenario' : 'Suivant <i class="bi bi-arrow-right ms-1"></i>');
-    document.getElementById('wizTitle').textContent = n === 1 ? 'Nouveau scenario' : 'Configuration';
+    const isLast = wizIsCustom ? n === 3 : n === 3;
+    const configStep = wizIsCustom ? 3 : 2;
+    document.getElementById('wizBtnNext').innerHTML = n === configStep
+        ? '<i class="bi bi-check-lg me-1"></i> Creer le scenario'
+        : 'Suivant <i class="bi bi-arrow-right ms-1"></i>';
+    const titles = { 1: 'Nouveau scenario', 2: wizIsCustom ? 'Fonctionnalites' : 'Configuration', 3: 'Configuration' };
+    document.getElementById('wizTitle').textContent = titles[n] || '';
 }
 
-function wizBack() { wizShowStep(1); }
+function wizBack() {
+    if (wizCurrentStep === 3) wizShowStep(wizIsCustom ? 2 : 1);
+    else if (wizCurrentStep === 2) wizShowStep(1);
+}
 
 function wizNext() {
     if (wizCurrentStep === 1) {
+        if (wizIsCustom) {
+            // Go to feature picker
+            wizShowStep(2);
+        } else {
+            // Template selected → go straight to config (step 3)
+            wizBuildDynFields();
+            wizShowStep(3);
+            document.getElementById('wizName').focus();
+        }
+    } else if (wizCurrentStep === 2) {
+        // Custom: features chosen → go to config
         wizBuildDynFields();
-        wizShowStep(2);
+        wizShowStep(3);
         document.getElementById('wizName').focus();
     } else {
         wizApply();
@@ -803,25 +921,33 @@ function wizNext() {
 function wizBuildDynFields() {
     const dyn = document.getElementById('wizDynFields');
     dyn.innerHTML = '';
-    if (wizSelectedTplId === null) return; // scenario vide
 
-    const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
-    if (!tpl) return;
+    // Determine which features are active
+    let hasQueue = false, hasRing = false, hasVoicemail = false;
+    if (wizIsCustom) {
+        const feats = wizGetFeats();
+        hasQueue = feats.includes('queue');
+        hasRing = feats.includes('ring');
+        hasVoicemail = feats.includes('voicemail');
+    } else if (wizSelectedTplId !== null) {
+        const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
+        const steps = tpl ? (tpl.steps || []) : [];
+        hasQueue = steps.some(s => s.type === 'queue');
+        hasRing = steps.some(s => s.type === 'ring');
+        hasVoicemail = steps.some(s => s.type === 'voicemail');
+    }
 
-    const steps = tpl.steps || [];
-    const hasRing = steps.some(s => s.type === 'ring');
-    const hasQueue = steps.some(s => s.type === 'queue');
-    const hasVoicemail = steps.some(s => s.type === 'voicemail');
+    if (!hasQueue && !hasRing && !hasVoicemail) return;
 
     let html = '<hr style="border-color:var(--border); margin:.75rem 0;">';
-    html += '<div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.6rem;">Parametres du template</div>';
+    html += '<div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.6rem;">Parametres</div>';
 
     if (hasQueue || hasRing) {
         html += `<div class="cfg-section">
-            <label>Membres de la file d'attente</label>
+            <label>${hasQueue ? "Membres de la file d'attente" : "Postes a faire sonner"}</label>
             <div class="wiz-check-grid" id="wizExtGrid">
                 ${LINES.map(l => `
-                    <div class="wiz-check-item" data-ext="${l.extension}" onclick="wizToggleExt(this)">
+                    <div class="wiz-check-item" data-ext="${l.extension}" onclick="this.classList.toggle('checked')">
                         <div class="wiz-check-box"><i class="bi bi-check-lg"></i></div>
                         <span class="wiz-ext-num">${l.extension}</span>
                         <span class="wiz-ext-name">${l.display_name || ''}</span>
@@ -830,7 +956,6 @@ function wizBuildDynFields() {
             </div>
         </div>`;
     }
-
 
     if (hasVoicemail) {
         html += `<div class="cfg-section">
@@ -845,9 +970,6 @@ function wizBuildDynFields() {
     dyn.innerHTML = html;
 }
 
-function wizToggleExt(el) {
-    el.classList.toggle('checked');
-}
 function wizGetCheckedExts() {
     return [...document.querySelectorAll('.wiz-check-item.checked')].map(el => el.dataset.ext);
 }
@@ -858,35 +980,39 @@ function wizApply() {
     if (!name) { alert('Veuillez saisir un nom pour le scenario.'); document.getElementById('wizName').focus(); return; }
     if (!trunk) { alert('Veuillez choisir un trunk entrant.'); document.getElementById('wizTrunk').focus(); return; }
 
-    // Fill the main config fields
     document.getElementById('cfgName').value = name;
     document.getElementById('cfgDesc').value = document.getElementById('wizDesc').value || '';
     document.getElementById('cfgTrunk').value = trunk;
-    // Auto-fill context from trunk
     const trunkOpt = document.getElementById('wizTrunk').options[document.getElementById('wizTrunk').selectedIndex];
     if (trunkOpt && trunkOpt.dataset.context) {
         document.getElementById('cfgCtx').value = trunkOpt.dataset.context;
     }
 
-    // Collect checked extensions for queue creation
     const checkedExts = wizGetCheckedExts();
-
-    // Build final steps from template with wizard values
+    const mailboxEl = document.getElementById('wizMailbox');
     let finalSteps = [];
-    if (wizSelectedTplId !== null) {
+
+    if (wizIsCustom) {
+        // Build steps from selected features in logical order
+        const feats = wizGetFeats();
+        FEAT_ORDER.forEach(feat => {
+            if (!feats.includes(feat)) return;
+            const step = Object.assign({ type: feat }, DEFAULTS[feat] || {});
+            if (feat === 'queue' && checkedExts.length > 0) { /* queue_name set by server */ }
+            if (feat === 'ring' && checkedExts.length > 0) step.extensions = [...checkedExts];
+            if (feat === 'voicemail' && mailboxEl && mailboxEl.value) step.mailbox = mailboxEl.value;
+            finalSteps.push(step);
+        });
+    } else if (wizSelectedTplId !== null) {
         const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
         if (tpl && tpl.steps) {
             finalSteps = JSON.parse(JSON.stringify(tpl.steps));
-            const mailboxEl = document.getElementById('wizMailbox');
             finalSteps.forEach(s => {
-                if (s.type === 'voicemail' && mailboxEl && mailboxEl.value) {
-                    s.mailbox = mailboxEl.value;
-                }
+                if (s.type === 'voicemail' && mailboxEl && mailboxEl.value) s.mailbox = mailboxEl.value;
             });
         }
     }
 
-    // Submit the form directly
     document.getElementById('stepsInput').value = JSON.stringify(finalSteps);
     document.getElementById('hidName').value = name;
     document.getElementById('hidDesc').value = document.getElementById('wizDesc').value || '';
@@ -899,7 +1025,6 @@ function wizApply() {
     document.getElementById('flowForm').submit();
 }
 
-// Show wizard on page load (only for create)
 document.addEventListener('DOMContentLoaded', () => openTplModal());
 @endunless
 
