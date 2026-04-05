@@ -100,7 +100,7 @@
     }
     .btn-fs:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* ── Template chooser ── */
+    /* ── Template wizard ── */
     .tpl-overlay {
         position: fixed; inset: 0; z-index: 9998;
         background: rgba(0,0,0,.6); display: none;
@@ -111,7 +111,7 @@
         background: var(--surface-1, #0f1923);
         border: 1px solid var(--border);
         border-radius: 12px;
-        width: 640px; max-width: 95vw; max-height: 80vh;
+        width: 680px; max-width: 95vw; max-height: 85vh;
         display: flex; flex-direction: column;
     }
     .tpl-modal-head {
@@ -122,6 +122,8 @@
     }
     .tpl-modal-body {
         flex: 1; overflow-y: auto; padding: 1rem 1.25rem;
+    }
+    .tpl-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
     }
     .tpl-card {
@@ -129,7 +131,8 @@
         padding: .85rem 1rem; cursor: pointer;
         transition: border-color .15s, background .15s;
     }
-    .tpl-card:hover { border-color: var(--accent); background: var(--surface-3); }
+    .tpl-card:hover, .tpl-card.selected { border-color: var(--accent); background: var(--surface-3); }
+    .tpl-card.selected { box-shadow: 0 0 0 2px var(--accent); }
     .tpl-card .tpl-icon { font-size: 1.2rem; margin-bottom: .4rem; color: var(--accent); }
     .tpl-card h6 { margin: 0 0 .25rem; font-size: .82rem; font-weight: 700; }
     .tpl-card p { margin: 0; font-size: .72rem; color: var(--text-secondary); }
@@ -144,6 +147,42 @@
         border-top: 1px solid var(--border);
         display: flex; justify-content: space-between; align-items: center;
     }
+    .wiz-step { display: none; }
+    .wiz-step.active { display: block; }
+    .wiz-step .cfg-section { margin-bottom: .85rem; }
+    .wiz-step .cfg-section label {
+        display: block; font-size: .72rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .5px;
+        color: var(--text-secondary); margin-bottom: .3rem;
+    }
+    .wiz-step .form-control, .wiz-step .form-select {
+        font-size: .82rem;
+    }
+    .wiz-step h5 {
+        font-size: .85rem; font-weight: 700; margin: 0 0 .75rem;
+        color: var(--text-primary);
+    }
+    .wiz-step .wiz-subtitle {
+        font-size: .72rem; color: var(--text-secondary); margin-bottom: 1rem;
+    }
+    .wiz-ext-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4rem; }
+    .wiz-ext-tag {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: 2px 8px; border-radius: 4px; font-size: .75rem;
+        background: var(--accent); color: #000; font-weight: 600;
+    }
+    .wiz-ext-tag .remove { cursor: pointer; opacity: .7; }
+    .wiz-ext-tag .remove:hover { opacity: 1; }
+    .wiz-steps-indicator {
+        display: flex; gap: .5rem; align-items: center;
+        font-size: .7rem; color: var(--text-secondary);
+    }
+    .wiz-steps-indicator .step-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--border);
+    }
+    .wiz-steps-indicator .step-dot.active { background: var(--accent); }
+    .wiz-steps-indicator .step-dot.done { background: #22c55e; }
 
     .edge-line {
         position: absolute;
@@ -546,35 +585,78 @@
         <div class="fs-body" id="fsBody"></div>
     </div>
 
-    {{-- Template chooser overlay (only on create) --}}
+    {{-- Template wizard overlay (only on create) --}}
     @unless(isset($callflow))
     <div class="tpl-overlay" id="tplOverlay">
         <div class="tpl-modal">
             <div class="tpl-modal-head">
-                <i class="bi bi-bookmarks"></i> Choisir un template
-                <button class="btn-fs" style="margin-left:auto;" onclick="closeTplModal()"><i class="bi bi-x-lg"></i></button>
+                <i class="bi bi-magic"></i>
+                <span id="wizTitle">Nouveau scenario</span>
+                <div class="wiz-steps-indicator" style="margin-left:auto;">
+                    <div class="step-dot active" id="wizDot1"></div>
+                    <div class="step-dot" id="wizDot2"></div>
+                </div>
+                <button class="btn-fs" onclick="closeTplModal()"><i class="bi bi-x-lg"></i></button>
             </div>
-            <div class="tpl-modal-body" id="tplGrid">
-                {{-- Vide = from scratch --}}
-                <div class="tpl-card" onclick="useTpl(null)">
-                    <div class="tpl-icon"><i class="bi bi-file-earmark-plus"></i></div>
-                    <h6>Scenario vide</h6>
-                    <p>Commencer de zero</p>
+            <div class="tpl-modal-body">
+                {{-- Step 1: choose template --}}
+                <div class="wiz-step active" id="wizStep1">
+                    <h5>Choisir un modele</h5>
+                    <div class="wiz-subtitle">Selectionnez un modele de depart ou commencez de zero</div>
+                    <div class="tpl-grid">
+                        <div class="tpl-card" data-tpl-id="" onclick="wizSelectTpl(this, null)">
+                            <div class="tpl-icon"><i class="bi bi-file-earmark-plus"></i></div>
+                            <h6>Scenario vide</h6>
+                            <p>Commencer de zero</p>
+                        </div>
+                        @foreach($templates as $tpl)
+                        <div class="tpl-card" data-tpl-id="{{ $tpl->id }}" onclick="wizSelectTpl(this, {{ $tpl->id }})">
+                            <div class="tpl-icon"><i class="bi {{ $tpl->icon }}"></i></div>
+                            <h6>{{ $tpl->name }}
+                                @if($tpl->is_system)<span class="tpl-badge">Systeme</span>@endif
+                            </h6>
+                            <p>{{ $tpl->description ?: 'Aucune description' }}</p>
+                            <div class="tpl-steps">{{ count($tpl->steps) }} etape{{ count($tpl->steps) > 1 ? 's' : '' }}</div>
+                        </div>
+                        @endforeach
+                    </div>
                 </div>
-                @foreach($templates as $tpl)
-                <div class="tpl-card" onclick="useTpl({{ $tpl->id }})">
-                    <div class="tpl-icon"><i class="bi {{ $tpl->icon }}"></i></div>
-                    <h6>{{ $tpl->name }}
-                        @if($tpl->is_system)<span class="tpl-badge">Systeme</span>@endif
-                    </h6>
-                    <p>{{ $tpl->description ?: 'Aucune description' }}</p>
-                    <div class="tpl-steps">{{ count($tpl->steps) }} etape{{ count($tpl->steps) > 1 ? 's' : '' }}</div>
+
+                {{-- Step 2: configure scenario --}}
+                <div class="wiz-step" id="wizStep2">
+                    <h5 id="wizStep2Title">Configuration du scenario</h5>
+                    <div class="wiz-subtitle">Renseignez les informations de votre scenario</div>
+
+                    <div class="cfg-section">
+                        <label>Nom du scenario *</label>
+                        <input type="text" class="form-control form-control-sm" id="wizName" required placeholder="ex: accueil-principal">
+                    </div>
+                    <div class="cfg-section">
+                        <label>Description</label>
+                        <input type="text" class="form-control form-control-sm" id="wizDesc" placeholder="Optionnel">
+                    </div>
+                    <div class="cfg-section">
+                        <label>Trunk entrant *</label>
+                        <select class="form-select form-select-sm" id="wizTrunk" required>
+                            <option value="">— Choisir —</option>
+                            @foreach($trunks as $trunk)
+                            <option value="{{ $trunk->id }}" data-context="{{ $trunk->getEffectiveInboundContext() }}">{{ $trunk->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Dynamic fields depending on template --}}
+                    <div id="wizDynFields"></div>
                 </div>
-                @endforeach
             </div>
             <div class="tpl-footer">
-                <span style="font-size:.72rem; color:var(--text-secondary);">Vous pourrez modifier le scenario apres selection</span>
-                <button class="btn-outline-custom" onclick="closeTplModal()">Annuler</button>
+                <button class="btn-outline-custom" id="wizBtnBack" style="display:none;" onclick="wizBack()">
+                    <i class="bi bi-arrow-left me-1"></i> Retour
+                </button>
+                <span style="flex:1;"></span>
+                <button class="btn btn-accent" id="wizBtnNext" onclick="wizNext()" disabled>
+                    Suivant <i class="bi bi-arrow-right ms-1"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -658,18 +740,164 @@ function loadSteps(steps) {
 }
 
 @unless(isset($callflow))
+let wizSelectedTplId = null;
+let wizCurrentStep = 1;
+
 function openTplModal() { document.getElementById('tplOverlay').classList.add('active'); }
 function closeTplModal() { document.getElementById('tplOverlay').classList.remove('active'); }
-function useTpl(id) {
-    closeTplModal();
-    if (!id) return; // scenario vide
-    const tpl = TEMPLATES.find(t => t.id === id);
-    if (tpl && tpl.steps) loadSteps(tpl.steps);
+
+function wizSelectTpl(card, id) {
+    document.querySelectorAll('#wizStep1 .tpl-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    wizSelectedTplId = id;
+    document.getElementById('wizBtnNext').disabled = false;
 }
-// Show template chooser on page load (only for create)
-document.addEventListener('DOMContentLoaded', () => {
-    if (TEMPLATES.length > 0) openTplModal();
-});
+
+function wizShowStep(n) {
+    wizCurrentStep = n;
+    document.getElementById('wizStep1').classList.toggle('active', n === 1);
+    document.getElementById('wizStep2').classList.toggle('active', n === 2);
+    document.getElementById('wizDot1').className = 'step-dot ' + (n >= 1 ? (n > 1 ? 'done' : 'active') : '');
+    document.getElementById('wizDot2').className = 'step-dot ' + (n === 2 ? 'active' : '');
+    document.getElementById('wizBtnBack').style.display = n > 1 ? '' : 'none';
+    document.getElementById('wizBtnNext').textContent = n === 2 ? 'Creer le scenario' : 'Suivant';
+    const icon = n === 2 ? ' bi-check-lg' : ' bi-arrow-right';
+    document.getElementById('wizBtnNext').innerHTML = (n === 2 ? '<i class="bi bi-check-lg me-1"></i> Creer le scenario' : 'Suivant <i class="bi bi-arrow-right ms-1"></i>');
+    document.getElementById('wizTitle').textContent = n === 1 ? 'Nouveau scenario' : 'Configuration';
+}
+
+function wizBack() { wizShowStep(1); }
+
+function wizNext() {
+    if (wizCurrentStep === 1) {
+        wizBuildDynFields();
+        wizShowStep(2);
+        document.getElementById('wizName').focus();
+    } else {
+        wizApply();
+    }
+}
+
+function wizBuildDynFields() {
+    const dyn = document.getElementById('wizDynFields');
+    dyn.innerHTML = '';
+    if (wizSelectedTplId === null) return; // scenario vide
+
+    const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
+    if (!tpl) return;
+
+    const steps = tpl.steps || [];
+    const hasRing = steps.some(s => s.type === 'ring');
+    const hasQueue = steps.some(s => s.type === 'queue');
+    const hasVoicemail = steps.some(s => s.type === 'voicemail');
+
+    let html = '<hr style="border-color:var(--border); margin:.75rem 0;">';
+    html += '<div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.6rem;">Parametres du template</div>';
+
+    if (hasRing) {
+        html += `<div class="cfg-section">
+            <label>Postes a faire sonner</label>
+            <div style="display:flex; gap:.4rem;">
+                <select class="form-select form-select-sm" id="wizExtSelect" style="flex:1;">
+                    <option value="">— Ajouter un poste —</option>
+                    ${LINES.map(l => `<option value="${l.extension}">${l.extension} — ${l.display_name || l.extension}</option>`).join('')}
+                </select>
+                <button type="button" class="btn-outline-custom" style="padding:4px 10px;" onclick="wizAddExt()"><i class="bi bi-plus"></i></button>
+            </div>
+            <div class="wiz-ext-list" id="wizExtList"></div>
+        </div>`;
+    }
+
+    if (hasQueue) {
+        html += `<div class="cfg-section">
+            <label>File d'attente</label>
+            <select class="form-select form-select-sm" id="wizQueue">
+                <option value="">— Choisir —</option>
+                ${QUEUES.map(q => `<option value="${q.name}">${q.name}</option>`).join('')}
+            </select>
+        </div>`;
+    }
+
+    if (hasVoicemail) {
+        html += `<div class="cfg-section">
+            <label>Boite vocale</label>
+            <select class="form-select form-select-sm" id="wizMailbox">
+                <option value="">— Choisir —</option>
+                ${LINES.map(l => `<option value="${l.extension}">${l.extension} — ${l.display_name || l.extension}</option>`).join('')}
+            </select>
+        </div>`;
+    }
+
+    dyn.innerHTML = html;
+}
+
+const wizExtensions = [];
+function wizAddExt() {
+    const sel = document.getElementById('wizExtSelect');
+    if (!sel) return;
+    const val = sel.value;
+    if (!val || wizExtensions.includes(val)) return;
+    wizExtensions.push(val);
+    wizRenderExts();
+    sel.value = '';
+}
+function wizRemoveExt(ext) {
+    const idx = wizExtensions.indexOf(ext);
+    if (idx > -1) wizExtensions.splice(idx, 1);
+    wizRenderExts();
+}
+function wizRenderExts() {
+    const el = document.getElementById('wizExtList');
+    if (!el) return;
+    el.innerHTML = wizExtensions.map(e =>
+        `<span class="wiz-ext-tag">${e} <span class="remove" onclick="wizRemoveExt('${e}')">&times;</span></span>`
+    ).join('');
+}
+
+function wizApply() {
+    const name = document.getElementById('wizName').value.trim();
+    const trunk = document.getElementById('wizTrunk').value;
+    if (!name) { alert('Veuillez saisir un nom pour le scenario.'); document.getElementById('wizName').focus(); return; }
+    if (!trunk) { alert('Veuillez choisir un trunk entrant.'); document.getElementById('wizTrunk').focus(); return; }
+
+    // Fill the main config fields
+    document.getElementById('cfgName').value = name;
+    document.getElementById('cfgDesc').value = document.getElementById('wizDesc').value || '';
+    document.getElementById('cfgTrunk').value = trunk;
+    // Auto-fill context from trunk
+    const trunkOpt = document.getElementById('wizTrunk').options[document.getElementById('wizTrunk').selectedIndex];
+    if (trunkOpt && trunkOpt.dataset.context) {
+        document.getElementById('cfgCtx').value = trunkOpt.dataset.context;
+    }
+
+    // Load template steps with wizard values
+    if (wizSelectedTplId !== null) {
+        const tpl = TEMPLATES.find(t => t.id === wizSelectedTplId);
+        if (tpl && tpl.steps) {
+            const steps = JSON.parse(JSON.stringify(tpl.steps));
+            // Apply wizard values to steps
+            const queueEl = document.getElementById('wizQueue');
+            const mailboxEl = document.getElementById('wizMailbox');
+            steps.forEach(s => {
+                if (s.type === 'ring' && wizExtensions.length > 0) {
+                    s.extensions = [...wizExtensions];
+                }
+                if (s.type === 'queue' && queueEl && queueEl.value) {
+                    s.queue_name = queueEl.value;
+                }
+                if (s.type === 'voicemail' && mailboxEl && mailboxEl.value) {
+                    s.mailbox = mailboxEl.value;
+                }
+            });
+            loadSteps(steps);
+        }
+    }
+
+    closeTplModal();
+}
+
+// Show wizard on page load (only for create)
+document.addEventListener('DOMContentLoaded', () => openTplModal());
 @endunless
 
 // ════════════════════════════════════════
