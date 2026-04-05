@@ -59,8 +59,8 @@
     .canvas-svg {
         position: absolute;
         top: 0; left: 0;
-        width: 8000px;
-        height: 8000px;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
         overflow: visible;
         z-index: 10;
@@ -406,9 +406,8 @@
                 <span style="margin-left:auto; font-size:0.68rem; color:var(--text-secondary);" id="nodeCount">0 blocs</span>
             </div>
             <div class="canvas-wrap" id="canvasWrap">
-                <div class="canvas-inner" id="canvasInner">
-                    <svg class="canvas-svg" id="svgLayer"></svg>
-                </div>
+                <div class="canvas-inner" id="canvasInner"></div>
+                <svg class="canvas-svg" id="svgLayer"></svg>
                 <div class="zoom-bar">
                     <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
                     <button class="zoom-btn" onclick="zoomOut()" title="Zoom -"><i class="bi bi-dash"></i></button>
@@ -516,10 +515,7 @@ document.getElementById('cfgTrunk').addEventListener('change', function(){
 // RENDER
 // ════════════════════════════════════════
 function render(){
-    // Nodes — preserve the SVG element
     canvasInner.innerHTML = '';
-    canvasInner.appendChild(svgLayer);
-    // Start node
     const startEl = mkStart();
     canvasInner.appendChild(startEl);
 
@@ -612,28 +608,29 @@ function nodeDetail(n){
 // SVG EDGES (bezier)
 // ════════════════════════════════════════
 function drawEdges(){
-    let svg = '';
+    let paths = '';
     const firstLinked = getStartNext();
 
     if (firstLinked !== null) {
-        svg += bezier(startPortPos(startId,'out'), nodePortPos(firstLinked,'in'), '#22c55e');
+        paths += bezier(startPortPos(startId,'out'), nodePortPos(firstLinked,'in'), '#22c55e');
     }
 
     nodes.forEach(n => {
         if (n.next !== null) {
             const target = nodes.find(x => x.id === n.next);
             if (target) {
-                svg += bezier(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'), '#22c55e');
+                paths += bezier(nodePortPos(n.id,'out'), nodePortPos(target.id,'in'), '#22c55e');
             }
         }
     });
 
     // temp edge while wiring
     if (wiring) {
-        svg += bezier(wiring.from, {x: wiring.mx, y: wiring.my}, '#22c55e');
+        paths += bezier(wiring.from, {x: wiring.mx, y: wiring.my}, '#22c55e');
     }
 
-    svgLayer.innerHTML = svg;
+    // Wrap in <g> with same transform as canvasInner (no CSS transform on SVG)
+    svgLayer.innerHTML = `<g transform="translate(${camX},${camY}) scale(${zoom})">${paths}</g>`;
 }
 
 function bezier(a, b, color){
@@ -796,6 +793,7 @@ canvasWrap.addEventListener('wheel', e => {
 function applyTransform(){
     const t = `translate(${camX}px,${camY}px) scale(${zoom})`;
     canvasInner.style.transform = t;
+    drawEdges();
 }
 
 function zoomIn(){  zoom = Math.min(2, zoom + 0.15); applyTransform(); }
