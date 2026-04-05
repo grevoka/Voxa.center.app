@@ -9,12 +9,13 @@ class CallFlow extends Model
 {
     protected $fillable = [
         'name', 'description', 'trunk_id', 'inbound_context',
-        'steps', 'enabled', 'priority', 'created_by',
+        'steps', 'positions', 'enabled', 'priority', 'created_by',
     ];
 
     protected $casts = [
-        'steps'   => 'array',
-        'enabled' => 'boolean',
+        'steps'     => 'array',
+        'positions' => 'array',
+        'enabled'   => 'boolean',
     ];
 
     public function trunk(): BelongsTo

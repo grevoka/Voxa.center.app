@@ -49,10 +49,12 @@ class CallFlowController extends Controller
             'steps'           => 'required|json',
             'enabled'         => 'boolean',
             'priority'        => 'nullable|integer|min:1|max:100',
+            'positions'       => 'nullable|json',
             'queue_members'   => 'nullable|string',
         ]);
 
         $data['steps'] = json_decode($data['steps'], true);
+        $data['positions'] = !empty($data['positions']) ? json_decode($data['positions'], true) : null;
         $data['created_by'] = auth()->id();
         $data['enabled'] = $request->boolean('enabled', true);
 
@@ -104,8 +106,9 @@ class CallFlowController extends Controller
         $trunks = Trunk::orderBy('name')->get();
         $queues = CallQueue::where('enabled', true)->orderBy('name')->get();
         $lines = SipLine::orderBy('extension')->get();
+        $templates = CallFlowTemplate::orderByDesc('is_system')->orderBy('name')->get();
 
-        return view('callflows.builder', compact('callflow', 'trunks', 'queues', 'lines'));
+        return view('callflows.builder', compact('callflow', 'trunks', 'queues', 'lines', 'templates'));
     }
 
     public function update(Request $request, CallFlow $callflow)
@@ -117,10 +120,12 @@ class CallFlowController extends Controller
             'inbound_context' => 'required|string|max:50',
             'steps'           => 'required|json',
             'enabled'         => 'boolean',
+            'positions'       => 'nullable|json',
             'priority'        => 'nullable|integer|min:1|max:100',
         ]);
 
         $data['steps'] = json_decode($data['steps'], true);
+        $data['positions'] = !empty($data['positions']) ? json_decode($data['positions'], true) : null;
         $data['enabled'] = $request->boolean('enabled', true);
 
         $callflow->update($data);
