@@ -43,9 +43,25 @@
                                 <span style="color:var(--text-secondary);">—</span>
                             @endif
                         </td>
+                        @php
+                            $regId = strtolower($trunk->getAsteriskEndpointId());
+                            $regIdWithSuffix = $regId . '-reg';
+                            $liveStatus = $registrations[$regId] ?? ($registrations[$regIdWithSuffix] ?? null);
+                            if (!$liveStatus) {
+                                foreach ($registrations as $rName => $rStatus) {
+                                    if (str_contains($rName, $regId) || str_contains($rName, strtolower($trunk->name))) {
+                                        $liveStatus = $rStatus;
+                                        break;
+                                    }
+                                }
+                            }
+                            $isRegistered = $liveStatus === 'registered';
+                            $statusClass = $isRegistered ? 'online' : ($liveStatus === 'rejected' ? 'error' : ($trunk->status === 'online' ? 'busy' : 'offline'));
+                            $statusLabel = $isRegistered ? 'Registered' : ($liveStatus === 'rejected' ? 'Rejete' : ($liveStatus ? ucfirst($liveStatus) : ($trunk->status === 'online' ? 'En ligne' : 'Hors ligne')));
+                        @endphp
                         <td>
-                            <span class="status-dot {{ $trunk->status }}"></span>
-                            {{ $trunk->status === 'online' ? 'En ligne' : ($trunk->status === 'error' ? 'Erreur' : 'Hors ligne') }}
+                            <span class="status-dot {{ $statusClass }}"></span>
+                            {{ $statusLabel }}
                         </td>
                         <td>
                             <form action="{{ route('trunks.toggle', $trunk) }}" method="POST" class="d-inline">
@@ -80,4 +96,18 @@
     <div class="mt-3">
         {{ $trunks->links() }}
     </div>
+
+    {{-- Auto-refresh: fast after toggle, then every 30s --}}
+    <script>
+        (function() {
+            var toggled = {{ session('trunk_toggled') ? 'true' : 'false' }};
+            if (toggled) {
+                // Refresh quickly after toggle to pick up registration result
+                setTimeout(function() { window.location.replace(window.location.pathname); }, 8000);
+            } else {
+                // Normal periodic refresh for live status
+                setTimeout(function() { window.location.replace(window.location.pathname); }, 30000);
+            }
+        })();
+    </script>
 @endsection

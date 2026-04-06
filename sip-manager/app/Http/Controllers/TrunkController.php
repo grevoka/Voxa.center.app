@@ -16,7 +16,32 @@ class TrunkController extends Controller
     public function index()
     {
         $trunks = Trunk::latest()->paginate(25);
-        return view('trunks.index', compact('trunks'));
+        $registrations = $this->getRegistrations();
+        return view('trunks.index', compact('trunks', 'registrations'));
+    }
+
+    /**
+     * Parse "pjsip show registrations" for live trunk status.
+     */
+    private function getRegistrations(): array
+    {
+        $regs = [];
+        try {
+            $output = [];
+            exec('sudo /usr/sbin/asterisk -rx ' . escapeshellarg('pjsip show registrations') . ' 2>&1', $output);
+            $text = implode("\n", $output);
+
+            foreach (explode("\n", $text) as $line) {
+                if (!preg_match('/^\s*(\S+)\s+(\S+)\s+(\w+)/', $line, $m)) continue;
+                if ($m[1] === 'Registration') continue;
+                // Extract name before "/" (e.g. "trunk-ovh-sip-reg/sip:host:5060" -> "trunk-ovh-sip-reg")
+                $name = strtolower(explode('/', $m[1])[0]);
+                $regs[$name] = strtolower($m[3]);
+            }
+        } catch (\Throwable $e) {
+            // Silently fail — will show DB status as fallback
+        }
+        return $regs;
     }
 
     public function create()
@@ -89,10 +114,20 @@ class TrunkController extends Controller
 
     public function toggle(Trunk $trunk)
     {
-        $trunk->update([
-            'status' => $trunk->status === 'online' ? 'offline' : 'online',
-        ]);
+        $newStatus = $trunk->status === 'online' ? 'offline' : 'online';
+        $regId = $trunk->getAsteriskEndpointId() . '-reg';
 
-        return back()->with('success', "Trunk \"{$trunk->name}\" : {$trunk->status}");
+        if ($newStatus === 'offline') {
+            exec('sudo /usr/sbin/asterisk -rx ' . escapeshellarg("pjsip send unregister {$regId}") . ' 2>&1');
+        } else {
+            exec('sudo /usr/sbin/asterisk -rx ' . escapeshellarg("pjsip send register {$regId}") . ' 2>&1');
+        }
+
+        $trunk->update(['status' => $newStatus]);
+
+        $message = $newStatus === 'online'
+            ? "Trunk \"{$trunk->name}\" : registration en cours…"
+            : "Trunk \"{$trunk->name}\" : desinscription en cours…";
+        return back()->with('success', $message)->with('trunk_toggled', true);
     }
 }
