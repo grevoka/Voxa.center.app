@@ -6,6 +6,9 @@
         <h4>@yield('page-title', 'Tableau de bord')</h4>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('help.index') }}" class="btn-icon" title="Documentation">
+            <i class="bi bi-question-circle"></i>
+        </a>
         <button class="btn-icon" title="Notifications">
             <i class="bi bi-bell"></i>
         </button>
