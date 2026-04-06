@@ -21,6 +21,7 @@
         flex-direction: column;
         border-right: 1px solid var(--border);
         overflow: hidden;
+        min-width: 0;
     }
     .panel:last-child { border-right: none; }
     .panel-head {
@@ -86,7 +87,7 @@
         min-width: 0;
     }
     .canvas-fullscreen .fs-panel-left {
-        width: 220px; border-right: 1px solid var(--border);
+        width: 260px; border-right: 1px solid var(--border);
     }
     .canvas-fullscreen .fs-panel-right {
         width: 260px; border-left: 1px solid var(--border);
@@ -310,7 +311,7 @@
     .edges-svg {
         position: absolute;
         top: 0; left: 0;
-        width: 100%; height: 100%;
+        width: 1px; height: 1px;
         pointer-events: none;
         overflow: visible;
         z-index: 1;
@@ -474,6 +475,8 @@
     .nc-goto .node-icon       { background: #bc8cff25; color: #bc8cff; }
     .nc-ivr .node-header      { background: #e8671515; }
     .nc-ivr .node-icon        { background: #e8671525; color: #e86715; }
+    .nc-time .node-header     { background: #f0883e15; }
+    .nc-time .node-icon       { background: #f0883e25; color: #f0883e; }
 
     /* ── Palette ── */
     .pal-grid {
@@ -520,7 +523,8 @@
     .cfg-collapsed { display: none !important; }
 
     /* ── Config (right) ── */
-    .cfg-section { margin-bottom: 1rem; }
+    .cfg-section { margin-bottom: 1rem; position: relative; z-index: 2; }
+    .cfg-section input, .cfg-section select { pointer-events: auto; }
     .cfg-section label {
         font-weight: 600;
         font-size: 0.7rem;
@@ -617,24 +621,32 @@
     <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">Enregistrer</button>
     <button type="button" class="btn-outline-custom" id="btnSaveTpl" style="display:none;">Template</button>
     @else
-    {{-- CREATE MODE: original header --}}
+    {{-- CREATE MODE: same hub layout --}}
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">Nouveau scenario</h5>
-            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Cartographie 2D — glissez les blocs pour construire votre flux</p>
+            <h5 style="font-weight:700; margin:0;">Creer un scenario d'appel</h5>
+            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Choisissez un modele ou construisez votre flux</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('callflows.index') }}" class="btn-outline-custom">
                 <i class="bi bi-arrow-left me-1"></i> Retour
             </a>
-            <button type="button" class="btn-outline-custom" id="btnSaveTpl" title="Sauvegarder comme template">
-                <i class="bi bi-bookmark-plus me-1"></i> Template
-            </button>
-            <button type="button" class="btn btn-accent" id="btnSave">
-                <i class="bi bi-check-lg me-1"></i> Creer
-            </button>
         </div>
     </div>
+    <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
+        <div class="edit-hub-card" onclick="openTplModal()">
+            <i class="bi bi-magic" style="font-size:2rem; color:#bc8cff;"></i>
+            <h6>Wizard</h6>
+            <p>Assistant pas-a-pas pour creer votre scenario</p>
+        </div>
+        <div class="edit-hub-card" onclick="openFullscreen()">
+            <i class="bi bi-bounding-box" style="font-size:2rem; color:#22c55e;"></i>
+            <h6>Cartographie</h6>
+            <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
+        </div>
+    </div>
+    <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">Creer</button>
+    <button type="button" class="btn-outline-custom" id="btnSaveTpl" style="display:none;">Template</button>
     @endif
 
     <form id="flowForm" method="POST"
@@ -648,11 +660,14 @@
         <input type="hidden" name="inbound_context" id="hidCtx">
         <input type="hidden" name="priority" id="hidPrio">
         <input type="hidden" name="enabled" id="hidEnabled">
+        <input type="hidden" name="record_calls" id="hidRecord">
+        <input type="hidden" name="record_optout" id="hidOptout">
+        <input type="hidden" name="record_optout_key" id="hidOptoutKey">
         <input type="hidden" name="positions" id="hidPositions">
         <input type="hidden" name="queue_members" id="hidQueueMembers">
     </form>
 
-    <div class="builder-wrap" @if(isset($callflow)) style="display:none;" @endif>
+    <div class="builder-wrap" style="display:none;">
         {{-- LEFT: palette + config --}}
         <div class="panel">
             <div class="panel-head"><i class="bi bi-plus-circle"></i> Blocs</div>
@@ -676,11 +691,17 @@
                     <div class="pal-item" onclick="addNode('announcement')">
                         <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce
                     </div>
+                    <div class="pal-item" onclick="addNode('forward')">
+                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-forward"></i></div> Renvoi
+                    </div>
                     <div class="pal-item" onclick="addNode('moh')">
                         <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique
                     </div>
                     <div class="pal-item" onclick="addNode('ivr')">
                         <div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> IVR
+                    </div>
+                    <div class="pal-item" onclick="addNode('time_condition')">
+                        <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> Horaires
                     </div>
                     <div class="pal-item" onclick="addNode('goto')">
                         <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto
@@ -721,7 +742,7 @@
                     <div class="cfg-section">
                         <label>Contexte</label>
                         <input type="text" class="form-control form-control-sm" id="cfgCtx"
-                               value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" required>
+                               value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" required readonly style="opacity:.7;cursor:not-allowed;">
                     </div>
                     <div class="cfg-section">
                         <label>Priorite</label>
@@ -734,6 +755,42 @@
                                 {{ old('enabled', $callflow->enabled ?? true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="cfgEnabled"
                                    style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">Actif</label>
+                        </div>
+                    </div>
+                    <div class="cfg-section">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cfgRecord"
+                                {{ old('record_calls', $callflow->record_calls ?? false) ? 'checked' : '' }}
+                                onchange="toggleRecordOptions()">
+                            <label class="form-check-label" for="cfgRecord"
+                                   style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">
+                                <i class="bi bi-record-circle" style="color:#ef4444;"></i> Enregistrer les appels
+                            </label>
+                        </div>
+                        <small style="color:var(--text-secondary);font-size:0.68rem;">MixMonitor — les conversations seront enregistrees en WAV</small>
+                        <div id="recordOptions" style="display:{{ old('record_calls', $callflow->record_calls ?? false) ? '' : 'none' }};margin-top:0.5rem;padding:0.5rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:8px;">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="cfgOptout"
+                                    {{ old('record_optout', $callflow->record_optout ?? false) ? 'checked' : '' }}
+                                    onchange="toggleOptoutKey()">
+                                <label class="form-check-label" for="cfgOptout"
+                                       style="text-transform:none; font-size:0.78rem; color:var(--text-primary);">
+                                    Permettre l'arret par l'appelant
+                                </label>
+                            </div>
+                            <div id="optoutKeyGroup" style="display:{{ old('record_optout', $callflow->record_optout ?? false) ? '' : 'none' }};">
+                                <div class="d-flex align-items-center gap-2">
+                                    <small style="color:var(--text-secondary);font-size:0.72rem;white-space:nowrap;">Touche DTMF :</small>
+                                    <select class="form-select form-select-sm" id="cfgOptoutKey" style="width:70px;">
+                                        @foreach(['0','1','2','3','4','5','6','7','8','9','*','#'] as $k)
+                                            <option value="{{ $k }}" {{ old('record_optout_key', $callflow->record_optout_key ?? '8') === $k ? 'selected' : '' }}>{{ $k }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <small style="color:var(--text-secondary);font-size:0.65rem;margin-top:0.25rem;display:block;">
+                                    L'appelant pourra appuyer sur cette touche pour stopper l'enregistrement pendant la conversation
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -801,7 +858,7 @@
         <div class="fs-content">
             {{-- LEFT: palette + config --}}
             <div class="fs-panel fs-panel-left">
-                <div style="flex:1; overflow-y:auto; padding:.5rem;">
+                <div style="flex:1; overflow-y:auto; padding:.75rem;">
                     <div style="font-weight:700; font-size:.68rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.4rem; padding:0 .2rem;">
                         <i class="bi bi-plus-circle me-1"></i> Blocs
                     </div>
@@ -812,8 +869,10 @@
                         <div class="pal-item" onclick="addNode('voicemail')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie</div>
                         <div class="pal-item" onclick="addNode('playback')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Audio</div>
                         <div class="pal-item" onclick="addNode('announcement')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce</div>
+                        <div class="pal-item" onclick="addNode('forward')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-forward"></i></div> Renvoi</div>
                         <div class="pal-item" onclick="addNode('moh')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique</div>
                         <div class="pal-item" onclick="addNode('ivr')"><div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> IVR</div>
+                        <div class="pal-item" onclick="addNode('time_condition')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> Horaires</div>
                         <div class="pal-item" onclick="addNode('goto')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto</div>
                         <div class="pal-item" onclick="addNode('hangup')"><div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> Raccrocher</div>
                     </div>
@@ -849,12 +908,23 @@
                         <div class="cfg-section">
                             <label>Contexte</label>
                             <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgCtx"
-                                   value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}">
+                                   value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" readonly style="opacity:.7;cursor:not-allowed;">
                         </div>
                         <div class="cfg-section">
                             <label>Priorite</label>
                             <input type="number" class="form-control form-control-sm fs-cfg-sync" data-target="cfgPrio"
                                    value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
+                        </div>
+                        <div class="cfg-section">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="fsCfgRecord"
+                                    {{ old('record_calls', $callflow->record_calls ?? false) ? 'checked' : '' }}
+                                    onchange="document.getElementById('cfgRecord').checked = this.checked; toggleRecordOptions();">
+                                <label class="form-check-label" for="fsCfgRecord"
+                                       style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">
+                                    <i class="bi bi-record-circle" style="color:#ef4444;"></i> Enregistrer les appels
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1005,7 +1075,25 @@
         </div>
     </div>
 
-    {{-- Save as template form --}}
+    {{-- Save as template modal --}}
+    <div id="tplModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;">
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:380px;max-width:90vw;">
+            <h6 style="margin:0 0 1rem;font-weight:700;"><i class="bi bi-bookmark-plus me-2" style="color:#f0883e;"></i>Sauver comme template</h6>
+            <div class="cfg-section">
+                <label>Nom du template *</label>
+                <input type="text" class="form-control form-control-sm" id="tplModalName" placeholder="ex: Accueil standard" autofocus>
+            </div>
+            <div class="cfg-section">
+                <label>Description</label>
+                <input type="text" class="form-control form-control-sm" id="tplModalDesc" placeholder="Optionnel">
+            </div>
+            <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;">
+                <button class="btn-outline-custom" onclick="closeSaveTplModal()">Annuler</button>
+                <button class="btn btn-accent" onclick="submitSaveTplModal()"><i class="bi bi-check-lg me-1"></i>Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
     <form id="saveTplForm" method="POST" action="{{ route('callflows.save-template') }}" style="display:none;">
         @csrf
         <input type="hidden" name="steps" id="tplStepsInput">
@@ -1027,8 +1115,10 @@ const TYPES = {
     playback:     { label:'Lecture audio',     icon:'bi-volume-up',         color:'playback' },
     announcement: { label:'Annonce',           icon:'bi-megaphone',         color:'announcement' },
     moh:          { label:'Musique',           icon:'bi-music-note-beamed', color:'moh' },
+    forward:      { label:'Renvoi',            icon:'bi-telephone-forward', color:'forward' },
     goto:         { label:'Goto',              icon:'bi-arrow-right-circle',color:'goto' },
     ivr:          { label:'Menu vocal',        icon:'bi-grid-3x3-gap',      color:'ivr' },
+    time_condition:{ label:'Horaires',         icon:'bi-clock-history',     color:'time' },
     hangup:       { label:'Raccrocher',        icon:'bi-telephone-x',       color:'hangup' },
 };
 const DEFAULTS = {
@@ -1039,12 +1129,75 @@ const DEFAULTS = {
     playback:     { sound:'hello-world' },
     announcement: { sound:'custom/welcome' },
     moh:          { moh_class:'default', duration:10 },
+    forward:      { dest_type:'extension', destination:'', timeout:20 },
     goto:         { target_context:'default' },
     ivr:          { sound:'custom/menu', timeout:5, options: { '1': '', '2': '', '3': '' } },
+    time_condition: { time_start:'09:00', time_end:'18:00', days:'mon-fri', closed_sound:'custom/ferme', closed_action:'voicemail', closed_target:'1000' },
     hangup:       {},
 };
 const QUEUES = @json($queues);
 const LINES  = @json($lines);
+@php
+    $audioData = ($audioFiles ?? collect())->map(function($a) {
+        return ['id' => $a->id, 'name' => $a->name, 'ref' => $a->getAsteriskRef(), 'category' => $a->category, 'moh_class' => $a->moh_class];
+    })->values();
+@endphp
+const AUDIO_FILES = @json($audioData);
+
+function _fillMohSel(selId, classes, current) {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.innerHTML = '';
+    const local = classes.filter(c => !c.is_stream && !c.is_playlist);
+    const playlists = classes.filter(c => c.is_playlist);
+    const streams = classes.filter(c => c.is_stream);
+    [{label:'Fichiers locaux', items:local, suffix:f=>(f.files||[]).length+' fichiers'},
+     {label:'Playlists', items:playlists, suffix:f=>(f.files||[]).length+' titres'},
+     {label:'Flux streaming', items:streams, suffix:()=>'stream'}
+    ].forEach(g => {
+        if (!g.items.length) return;
+        const grp = document.createElement('optgroup');
+        grp.label = g.label;
+        g.items.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.name;
+            opt.textContent = (c.display_name || c.name) + ' (' + g.suffix(c) + ')';
+            if (c.name === current) opt.selected = true;
+            grp.appendChild(opt);
+        });
+        sel.appendChild(grp);
+    });
+}
+
+function audioSelect(nodeId, prop, currentVal, category = null) {
+    const filtered = category ? AUDIO_FILES.filter(a => a.category === category) : AUDIO_FILES;
+    let opts = '<option value="">— Choisir —</option>';
+    filtered.forEach(a => {
+        opts += `<option value="${a.ref}" ${currentVal === a.ref ? 'selected' : ''}>${a.name} (${a.ref})</option>`;
+    });
+    opts += `<option value="__custom__" ${(currentVal && !filtered.find(a => a.ref === currentVal)) ? 'selected' : ''}>Saisie manuelle…</option>`;
+    let h = `<select class="form-select form-select-sm" onchange="handleAudioSelect(${nodeId},'${prop}',this)">` + opts + `</select>`;
+    const isCustom = currentVal && !filtered.find(a => a.ref === currentVal);
+    h += `<input type="text" class="form-control form-control-sm mt-1 audio-custom-input" id="audio-custom-${nodeId}-${prop}" value="${isCustom ? currentVal : ''}" placeholder="ex: custom/welcome" onchange="setProp(${nodeId},'${prop}',this.value)" style="display:${isCustom ? '' : 'none'}">`;
+    return h;
+}
+function handleAudioSelect(nodeId, prop, sel) {
+    const ci = document.getElementById('audio-custom-'+nodeId+'-'+prop);
+    if (sel.value === '__custom__') {
+        ci.style.display = '';
+        ci.focus();
+    } else {
+        ci.style.display = 'none';
+        setProp(nodeId, prop, sel.value);
+    }
+}
+
+function toggleRecordOptions() {
+    document.getElementById('recordOptions').style.display = document.getElementById('cfgRecord').checked ? '' : 'none';
+}
+function toggleOptoutKey() {
+    document.getElementById('optoutKeyGroup').style.display = document.getElementById('cfgOptout').checked ? '' : 'none';
+}
 
 // ── State ──
 let nodes = [];        // {id, type, x, y, data:{}, next:null}
@@ -1194,10 +1347,12 @@ function wizStepDesc(s) {
         case 'announcement': return s.sound || 'Message d\'annonce';
         case 'queue': return 'Distribution aux postes';
         case 'ring': return 'Sonnerie directe';
+        case 'forward': return (s.dest_type==='external'?'Ext: ':'Poste ') + (s.destination||'?') + ' (' + (s.timeout||20) + 's)';
         case 'moh': return (s.moh_class || 'default') + ' (' + (s.duration || 10) + 's)';
         case 'voicemail': return 'Boite ' + (s.mailbox || '1000');
         case 'goto': return 'Vers ' + (s.target_context || 'default');
         case 'ivr': return 'Touches ' + Object.keys(s.options || {}).join(', ');
+        case 'time_condition': return (s.time_start||'09:00') + '-' + (s.time_end||'18:00') + ' ' + (s.days||'lun-ven');
         default: return '';
     }
 }
@@ -1490,6 +1645,7 @@ function mkNode(n){
 function nodeDetail(n){
     switch(n.type){
         case 'answer':    return `Attente ${n.data.wait||1}s`;
+        case 'forward':   return `${n.data.dest_type==='external'?'Externe':'Poste'}: ${n.data.destination||'<i>non defini</i>'} (${n.data.timeout||20}s)`;
         case 'ring':      return (n.data.extensions||[]).length ? `Postes: ${n.data.extensions.join(', ')}` : '<i>Aucun poste</i>';
         case 'queue':     return n.data.queue_name || '<i>Aucune file</i>';
         case 'voicemail': return `Boite ${n.data.mailbox||'1000'}`;
@@ -1498,6 +1654,7 @@ function nodeDetail(n){
         case 'moh':       return `${n.data.moh_class||'default'} (${n.data.duration||10}s)`;
         case 'goto':      return `→ ${n.data.target_context||'default'}`;
         case 'ivr':       return `Menu: ${Object.keys(n.data.options||{}).join(', ')}`;
+        case 'time_condition': return `${n.data.time_start||'09:00'}-${n.data.time_end||'18:00'} ${n.data.days||'mon-fri'}`;
         case 'hangup':    return 'Fin';
         default: return '';
     }
@@ -1866,6 +2023,21 @@ function renderProps(){
         case 'answer':
             h += cfgF('Delai (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.wait||1}" min="0" max="30" onchange="setProp(${n.id},'wait',+this.value)">`);
             break;
+        case 'forward':
+            h += cfgF('Type', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'dest_type',this.value); renderProps();">
+                <option value="extension" ${(n.data.dest_type||'extension')==='extension'?'selected':''}>Poste interne</option>
+                <option value="external" ${n.data.dest_type==='external'?'selected':''}>Numero externe</option>
+            </select>`);
+            if ((n.data.dest_type||'extension') === 'extension') {
+                let extOpts = '<option value="">— Choisir —</option>';
+                LINES.forEach(l => { extOpts += `<option value="${l.extension}" ${n.data.destination===String(l.extension)?'selected':''}>${l.extension} — ${l.callerid_name||l.username||''}</option>`; });
+                h += cfgF('Poste', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'destination',this.value)">${extOpts}</select>`);
+            } else {
+                h += cfgF('Numero', `<input type="tel" class="form-control form-control-sm" value="${n.data.destination||''}" placeholder="0612345678" onchange="setProp(${n.id},'destination',this.value)" style="font-family:'JetBrains Mono',monospace;">`);
+            }
+            h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||20}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            h += `<div style="margin-top:.5rem;font-size:.72rem;color:var(--text-secondary);"><i class="bi bi-info-circle me-1"></i>Si pas de reponse apres le timeout, le scenario continue au bloc suivant.</div>`;
+            break;
         case 'ring':
             h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||25}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
             h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Postes</label>`;
@@ -1894,20 +2066,29 @@ function renderProps(){
             </select>`);
             break;
         case 'playback':
-            h += cfgF('Fichier', `<input type="text" class="form-control form-control-sm" value="${n.data.sound||'hello-world'}" onchange="setProp(${n.id},'sound',this.value)">`);
+            h += cfgF('Fichier', audioSelect(n.id, 'sound', n.data.sound||'hello-world', 'sound'));
             break;
         case 'announcement':
-            h += cfgF('Fichier', `<input type="text" class="form-control form-control-sm" value="${n.data.sound||'custom/welcome'}" onchange="setProp(${n.id},'sound',this.value)">`);
+            h += cfgF('Fichier', audioSelect(n.id, 'sound', n.data.sound||'custom/welcome', 'sound'));
             break;
         case 'moh':
-            h += cfgF('Classe', `<input type="text" class="form-control form-control-sm" value="${n.data.moh_class||'default'}" onchange="setProp(${n.id},'moh_class',this.value)">`);
+            {
+                const selId = 'mohSel_'+n.id;
+                const cur = n.data.moh_class||'default';
+                h += cfgF('Classe', `<select class="form-select form-select-sm" id="${selId}" onchange="setProp(${n.id},'moh_class',this.value)"><option value="default">default</option></select>`);
+                setTimeout(()=>{
+                    if(!window._mohCache){
+                        fetch('/api/moh').then(r=>r.json()).then(cls=>{window._mohCache=cls; _fillMohSel(selId,cls,cur);});
+                    } else { _fillMohSel(selId,window._mohCache,cur); }
+                },0);
+            }
             h += cfgF('Duree (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.duration||10}" min="1" max="300" onchange="setProp(${n.id},'duration',+this.value)">`);
             break;
         case 'goto':
             h += cfgF('Contexte', `<input type="text" class="form-control form-control-sm" value="${n.data.target_context||'default'}" onchange="setProp(${n.id},'target_context',this.value)">`);
             break;
         case 'ivr':
-            h += cfgF('Fichier audio', `<input type="text" class="form-control form-control-sm" value="${n.data.sound||'custom/menu'}" onchange="setProp(${n.id},'sound',this.value)">`);
+            h += cfgF('Fichier audio', audioSelect(n.id, 'sound', n.data.sound||'custom/menu', 'sound'));
             h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||5}" min="1" max="30" onchange="setProp(${n.id},'timeout',+this.value)">`);
             h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Options (touche → destination)</label>`;
             const opts = n.data.options || {};
@@ -1920,10 +2101,29 @@ function renderProps(){
                 </div>`;
             });
             h += `<div style="margin-top:.4rem;display:flex;gap:.3rem;">
-                <input type="text" class="form-control form-control-sm" id="newIvrKey${n.id}" placeholder="Touche" style="width:55px;">
-                <button class="btn-outline-custom" style="padding:2px 8px;font-size:.7rem;" onclick="addIvrOpt(${n.id})">
+                <input type="text" class="form-control form-control-sm ivr-key-input" data-node="${n.id}" placeholder="Touche" style="width:55px;">
+                <button class="btn-outline-custom" style="padding:2px 8px;font-size:.7rem;" onclick="addIvrOpt(${n.id}, this)">
                     <i class="bi bi-plus me-1"></i>Ajouter</button>
             </div>`;
+            break;
+        case 'time_condition':
+            h += cfgF('Heure ouverture', `<input type="time" class="form-control form-control-sm" value="${n.data.time_start||'09:00'}" onchange="setProp(${n.id},'time_start',this.value)">`);
+            h += cfgF('Heure fermeture', `<input type="time" class="form-control form-control-sm" value="${n.data.time_end||'18:00'}" onchange="setProp(${n.id},'time_end',this.value)">`);
+            h += cfgF('Jours', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'days',this.value)">
+                <option value="mon-fri" ${(n.data.days||'mon-fri')==='mon-fri'?'selected':''}>Lun — Ven</option>
+                <option value="mon-sat" ${(n.data.days)==='mon-sat'?'selected':''}>Lun — Sam</option>
+                <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Lun — Dim (tous)</option>
+                <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sam — Dim</option>
+            </select>`);
+            h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
+            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Si ferme</label>`;
+            h += cfgF('Action', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'closed_action',this.value)">
+                <option value="voicemail" ${(n.data.closed_action||'voicemail')==='voicemail'?'selected':''}>Messagerie</option>
+                <option value="playback" ${(n.data.closed_action)==='playback'?'selected':''}>Annonce + raccrocher</option>
+                <option value="hangup" ${(n.data.closed_action)==='hangup'?'selected':''}>Raccrocher</option>
+            </select>`);
+            h += cfgF('Annonce fermeture', audioSelect(n.id, 'closed_sound', n.data.closed_sound||'custom/ferme', 'sound'));
+            h += cfgF('Cible (boite/ext)', `<input type="text" class="form-control form-control-sm" value="${n.data.closed_target||'1000'}" onchange="setProp(${n.id},'closed_target',this.value)" placeholder="ex: 1000">`);
             break;
         case 'hangup':
             h += `<p style="color:var(--text-secondary);font-size:.8rem;">Termine l'appel.</p>`;
@@ -1952,11 +2152,11 @@ function cfgF(label, input){
 }
 
 function colorBg(type){
-    const m = {answer:'#58a6ff25',ring:'#00e5a025',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525'};
+    const m = {answer:'#58a6ff25',ring:'#00e5a025',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525',forward:'#58a6ff25'};
     return m[type]||'#58a6ff25';
 }
 function colorFg(type){
-    const m = {answer:'#58a6ff',ring:'#00e5a0',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715'};
+    const m = {answer:'#58a6ff',ring:'#00e5a0',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715',forward:'#58a6ff'};
     return m[type]||'#58a6ff';
 }
 
@@ -1976,8 +2176,8 @@ function setIvrOpt(id, key, val) {
     n.data.options[key] = val;
     render();
 }
-function addIvrOpt(id) {
-    const input = document.getElementById('newIvrKey'+id);
+function addIvrOpt(id, btn) {
+    const input = btn.parentElement.querySelector('.ivr-key-input');
     const key = (input ? input.value.trim() : '');
     if (!key) return;
     const n = nodes.find(x => x.id === id);
@@ -2031,7 +2231,10 @@ function refreshDialplan(){
             body: JSON.stringify({
                 steps: JSON.stringify(buildSteps()),
                 trunk_id: document.getElementById('cfgTrunk').value,
-                inbound_context: document.getElementById('cfgCtx').value
+                inbound_context: document.getElementById('cfgCtx').value,
+                record_calls: document.getElementById('cfgRecord').checked ? '1' : '0',
+                record_optout: document.getElementById('cfgOptout').checked ? '1' : '0',
+                record_optout_key: document.getElementById('cfgOptoutKey').value
             })
         })
         .then(r => r.json())
@@ -2072,6 +2275,9 @@ document.getElementById('btnSave').addEventListener('click', () => {
     document.getElementById('hidCtx').value     = document.getElementById('cfgCtx').value;
     document.getElementById('hidPrio').value    = document.getElementById('cfgPrio').value;
     document.getElementById('hidEnabled').value = document.getElementById('cfgEnabled').checked ? '1' : '0';
+    document.getElementById('hidRecord').value = document.getElementById('cfgRecord').checked ? '1' : '0';
+    document.getElementById('hidOptout').value = document.getElementById('cfgOptout').checked ? '1' : '0';
+    document.getElementById('hidOptoutKey').value = document.getElementById('cfgOptoutKey').value;
     document.getElementById('flowForm').submit();
 });
 
@@ -2081,13 +2287,27 @@ document.getElementById('btnSave').addEventListener('click', () => {
 document.getElementById('btnSaveTpl').addEventListener('click', () => {
     const steps = buildSteps();
     if (!steps.length) { alert('Ajoutez au moins un bloc avant de sauvegarder un template.'); return; }
-    const name = prompt('Nom du template :');
-    if (!name) return;
-    const desc = prompt('Description (optionnel) :') || '';
-    document.getElementById('tplStepsInput').value = JSON.stringify(steps);
+    document.getElementById('tplModalName').value = '';
+    document.getElementById('tplModalDesc').value = '';
+    const modal = document.getElementById('tplModal');
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('tplModalName').focus(), 100);
+});
+function closeSaveTplModal() {
+    document.getElementById('tplModal').style.display = 'none';
+}
+function submitSaveTplModal() {
+    const name = document.getElementById('tplModalName').value.trim();
+    if (!name) { document.getElementById('tplModalName').focus(); return; }
+    const desc = document.getElementById('tplModalDesc').value.trim();
+    document.getElementById('tplStepsInput').value = JSON.stringify(buildSteps());
     document.getElementById('tplNameInput').value = name;
     document.getElementById('tplDescInput').value = desc;
     document.getElementById('saveTplForm').submit();
+}
+// Close on backdrop click
+document.getElementById('tplModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSaveTplModal();
 });
 
 // ════════════════════════════════════════

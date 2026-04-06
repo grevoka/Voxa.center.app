@@ -7,6 +7,7 @@ use App\Models\CallFlowTemplate;
 use App\Models\CallQueue;
 use App\Models\Trunk;
 use App\Models\SipLine;
+use App\Models\AudioFile;
 use App\Services\DialplanService;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,7 @@ class CallFlowController extends Controller
         $queues = CallQueue::where('enabled', true)->orderBy('name')->get();
         $lines = SipLine::orderBy('extension')->get();
         $templates = CallFlowTemplate::orderByDesc('is_system')->orderBy('name')->get();
+        $audioFiles = AudioFile::orderBy('name')->get();
 
         // If a template was chosen, pre-fill
         $templateSteps = null;
@@ -36,7 +38,7 @@ class CallFlowController extends Controller
             }
         }
 
-        return view('callflows.builder', compact('trunks', 'queues', 'lines', 'templates', 'templateSteps'));
+        return view('callflows.builder', compact('trunks', 'queues', 'lines', 'templates', 'templateSteps', 'audioFiles'));
     }
 
     public function store(Request $request)
@@ -47,16 +49,22 @@ class CallFlowController extends Controller
             'trunk_id'        => 'required|exists:trunks,id',
             'inbound_context' => 'required|string|max:50',
             'steps'           => 'required|json',
-            'enabled'         => 'boolean',
-            'priority'        => 'nullable|integer|min:1|max:100',
-            'positions'       => 'nullable|json',
-            'queue_members'   => 'nullable|string',
+            'enabled'            => 'boolean',
+            'record_calls'       => 'boolean',
+            'record_optout'      => 'boolean',
+            'record_optout_key'  => 'nullable|string|size:1|regex:/^[0-9*#]$/',
+            'priority'           => 'nullable|integer|min:1|max:100',
+            'positions'          => 'nullable|json',
+            'queue_members'      => 'nullable|string',
         ]);
 
         $data['steps'] = json_decode($data['steps'], true);
         $data['positions'] = !empty($data['positions']) ? json_decode($data['positions'], true) : null;
         $data['created_by'] = auth()->id();
         $data['enabled'] = $request->boolean('enabled', true);
+        $data['record_calls'] = $request->boolean('record_calls');
+        $data['record_optout'] = $request->boolean('record_optout');
+        $data['record_optout_key'] = $request->input('record_optout_key', '8');
 
         // Auto-create queue if wizard sent members
         if ($request->filled('queue_members')) {
@@ -107,8 +115,9 @@ class CallFlowController extends Controller
         $queues = CallQueue::where('enabled', true)->orderBy('name')->get();
         $lines = SipLine::orderBy('extension')->get();
         $templates = CallFlowTemplate::orderByDesc('is_system')->orderBy('name')->get();
+        $audioFiles = AudioFile::orderBy('name')->get();
 
-        return view('callflows.builder', compact('callflow', 'trunks', 'queues', 'lines', 'templates'));
+        return view('callflows.builder', compact('callflow', 'trunks', 'queues', 'lines', 'templates', 'audioFiles'));
     }
 
     public function update(Request $request, CallFlow $callflow)
@@ -119,14 +128,20 @@ class CallFlowController extends Controller
             'trunk_id'        => 'required|exists:trunks,id',
             'inbound_context' => 'required|string|max:50',
             'steps'           => 'required|json',
-            'enabled'         => 'boolean',
-            'positions'       => 'nullable|json',
-            'priority'        => 'nullable|integer|min:1|max:100',
+            'enabled'            => 'boolean',
+            'record_calls'       => 'boolean',
+            'record_optout'      => 'boolean',
+            'record_optout_key'  => 'nullable|string|size:1|regex:/^[0-9*#]$/',
+            'positions'          => 'nullable|json',
+            'priority'           => 'nullable|integer|min:1|max:100',
         ]);
 
         $data['steps'] = json_decode($data['steps'], true);
         $data['positions'] = !empty($data['positions']) ? json_decode($data['positions'], true) : null;
         $data['enabled'] = $request->boolean('enabled', true);
+        $data['record_calls'] = $request->boolean('record_calls');
+        $data['record_optout'] = $request->boolean('record_optout');
+        $data['record_optout_key'] = $request->input('record_optout_key', '8');
 
         $callflow->update($data);
 
@@ -205,6 +220,9 @@ class CallFlowController extends Controller
             'trunk_id' => $trunkId,
             'inbound_context' => $context,
             'steps' => $steps,
+            'record_calls' => $request->boolean('record_calls'),
+            'record_optout' => $request->boolean('record_optout'),
+            'record_optout_key' => $request->input('record_optout_key', '8'),
         ]);
         $flow->setRelation('trunk', Trunk::find($trunkId) ?? new Trunk(['name' => 'unknown']));
 

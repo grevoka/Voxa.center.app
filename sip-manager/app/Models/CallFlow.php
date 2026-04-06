@@ -9,13 +9,16 @@ class CallFlow extends Model
 {
     protected $fillable = [
         'name', 'description', 'trunk_id', 'inbound_context',
-        'steps', 'positions', 'enabled', 'priority', 'created_by',
+        'steps', 'positions', 'enabled', 'record_calls',
+        'record_optout', 'record_optout_key', 'priority', 'created_by',
     ];
 
     protected $casts = [
-        'steps'     => 'array',
-        'positions' => 'array',
-        'enabled'   => 'boolean',
+        'steps'          => 'array',
+        'positions'      => 'array',
+        'enabled'        => 'boolean',
+        'record_calls'   => 'boolean',
+        'record_optout'  => 'boolean',
     ];
 
     public function trunk(): BelongsTo
@@ -45,13 +48,27 @@ class CallFlow extends Model
         $lines[] = " same => n,Set(CDR(direction)=inbound)";
         $lines[] = " same => n,Set(CDR(trunk)={$this->trunk->name})";
 
+        // Recording opt-out feature name
+        $optoutKey = $this->record_optout_key ?: '8';
+        $featureName = "stoprecord_{$optoutKey}";
+
         // Auto-answer if no explicit answer step before first action
         $hasAnswer = collect($this->steps)->contains(fn($s) => ($s['type'] ?? '') === 'answer');
         if (!$hasAnswer) {
             $lines[] = " same => n,Ringing()";
             $lines[] = " same => n,Wait(1)";
             $lines[] = " same => n,Answer()";
+            if ($this->record_calls) {
+                $lines[] = " same => n,MixMonitor(\${UNIQUEID}.wav,b)";
+                if ($this->record_optout) {
+                    $lines[] = " same => n,Set(DYNAMIC_FEATURES={$featureName})";
+                }
+                $recordInserted = true;
+            }
         }
+
+        // Call recording via MixMonitor
+        $recordInserted = false;
 
         foreach ($this->steps as $step) {
             $type = $step['type'] ?? '';
@@ -61,6 +78,13 @@ class CallFlow extends Model
                     $lines[] = " same => n,Ringing()";
                     $lines[] = " same => n,Wait(" . ($step['wait'] ?? 1) . ")";
                     $lines[] = " same => n,Answer()";
+                    if ($this->record_calls && !$recordInserted) {
+                        $lines[] = " same => n,MixMonitor(\${UNIQUEID}.wav,b)";
+                        if ($this->record_optout) {
+                            $lines[] = " same => n,Set(DYNAMIC_FEATURES={$featureName})";
+                        }
+                        $recordInserted = true;
+                    }
                     break;
 
                 case 'playback':
@@ -83,6 +107,24 @@ class CallFlow extends Model
                         // If answered, hangup cleanly; otherwise continue scenario
                         $lines[] = " same => n,GotoIf(\$[\"\${DIALSTATUS}\" = \"ANSWER\"]?hangup)";
                         $lines[] = " same => n,NoOp(Dial failed: \${DIALSTATUS} — continuing scenario)";
+                    }
+                    break;
+
+                case 'forward':
+                    $destType = $step['dest_type'] ?? 'extension';
+                    $destination = $step['destination'] ?? '';
+                    $timeout = $step['timeout'] ?? 20;
+                    if ($destination !== '') {
+                        if ($destType === 'extension') {
+                            $target = "PJSIP/{$destination}";
+                        } else {
+                            $trunk = \App\Models\Trunk::where('status', 'online')->first();
+                            $trunkId = $trunk ? $trunk->getAsteriskEndpointId() : 'trunk';
+                            $target = "PJSIP/{$destination}@{$trunkId}";
+                        }
+                        $lines[] = " same => n,Dial({$target},{$timeout},tTm(default))";
+                        $lines[] = " same => n,GotoIf(\$[\"\${DIALSTATUS}\" = \"ANSWER\"]?hangup)";
+                        $lines[] = " same => n,NoOp(Forward to {$destination} failed: \${DIALSTATUS} — continuing)";
                     }
                     break;
 
@@ -113,7 +155,39 @@ class CallFlow extends Model
                     break;
 
                 case 'time_condition':
-                    $lines[] = " same => n,NoOp(Time condition: " . ($step['label'] ?? 'check') . ")";
+                    $timeStart = $step['time_start'] ?? '09:00';
+                    $timeEnd   = $step['time_end'] ?? '18:00';
+                    $days      = $step['days'] ?? 'mon-fri';
+                    $closedAction = $step['closed_action'] ?? 'voicemail';
+                    $closedSound  = $step['closed_sound'] ?? '';
+                    $closedTarget = $step['closed_target'] ?? '1000';
+
+                    // Map day ranges to Asterisk format
+                    $dayMap = [
+                        'mon-fri' => 'mon-fri',
+                        'mon-sat' => 'mon-sat',
+                        'mon-sun' => '*',
+                        'sat-sun' => 'sat-sun',
+                    ];
+                    $astDays = $dayMap[$days] ?? $days;
+
+                    $closedLabel = 'closed_' . preg_replace('/[^a-z0-9]/', '', strtolower($this->name));
+
+                    $lines[] = " same => n,NoOp(Horaires: {$timeStart}-{$timeEnd} {$astDays})";
+                    $lines[] = " same => n,GotoIfTime({$timeStart}-{$timeEnd},{$astDays},*,*?open_{$closedLabel})";
+
+                    // Closed branch
+                    if ($closedSound) {
+                        $lines[] = " same => n,Answer()";
+                        $lines[] = " same => n,Playback({$closedSound})";
+                    }
+                    if ($closedAction === 'voicemail') {
+                        $lines[] = " same => n,VoiceMail({$closedTarget}@default,u)";
+                    }
+                    $lines[] = " same => n,Hangup()";
+
+                    // Open branch — continue with next steps
+                    $lines[] = " same => n(open_{$closedLabel}),NoOp(Ouvert — on continue)";
                     break;
             }
         }

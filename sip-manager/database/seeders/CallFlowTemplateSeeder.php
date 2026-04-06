@@ -67,6 +67,19 @@ class CallFlowTemplateSeeder extends Seeder
                     ['type' => 'hangup'],
                 ],
             ],
+            [
+                'name'        => 'Bureau Lun-Ven 9h-18h',
+                'description' => 'Verifie les horaires d\'ouverture (lun-ven 09:00-18:00), accueil + file si ouvert, messagerie si ferme',
+                'icon'        => 'bi-clock-history',
+                'steps'       => [
+                    ['type' => 'time_condition', 'time_start' => '09:00', 'time_end' => '18:00', 'days' => 'mon-fri', 'closed_sound' => 'custom/ferme', 'closed_action' => 'voicemail', 'closed_target' => '1000'],
+                    ['type' => 'answer', 'wait' => 1],
+                    ['type' => 'playback', 'sound' => 'custom/welcome'],
+                    ['type' => 'queue', 'queue_name' => '', 'timeout' => 60],
+                    ['type' => 'voicemail', 'mailbox' => '1000', 'vm_type' => 'u'],
+                    ['type' => 'hangup'],
+                ],
+            ],
         ];
 
         foreach ($templates as $t) {

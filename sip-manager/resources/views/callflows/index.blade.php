@@ -60,6 +60,7 @@
                                             'voicemail' => 'bi-voicemail',
                                             'playback' => 'bi-volume-up',
                                             'moh' => 'bi-music-note-beamed',
+                                            'forward' => 'bi-telephone-forward',
                                             'hangup' => 'bi-telephone-x',
                                             'announcement' => 'bi-megaphone',
                                             'goto' => 'bi-arrow-right-circle',
@@ -80,6 +81,9 @@
                                         <span style="font-size:0.75rem;">{{ $flow->enabled ? 'Actif' : 'Inactif' }}</span>
                                     </button>
                                 </form>
+                                @if($flow->record_calls)
+                                    <i class="bi bi-record-circle ms-1" style="color:#ef4444; font-size:0.75rem;" title="Enregistrement actif"></i>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
