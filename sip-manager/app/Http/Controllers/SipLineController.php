@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SipLine;
+use App\Models\Trunk;
 use App\Models\ActivityLog;
 use App\Http\Requests\SipLineRequest;
 use App\Services\SipProvisioningService;
@@ -23,7 +24,8 @@ class SipLineController extends Controller
     {
         $codecs     = config('asterisk.codecs');
         $transports = config('asterisk.transports');
-        return view('lines.create', compact('codecs', 'transports'));
+        $trunks     = Trunk::orderBy('name')->get();
+        return view('lines.create', compact('codecs', 'transports', 'trunks'));
     }
 
     public function store(SipLineRequest $request)
@@ -45,7 +47,8 @@ class SipLineController extends Controller
     {
         $codecs     = config('asterisk.codecs');
         $transports = config('asterisk.transports');
-        return view('lines.edit', compact('line', 'codecs', 'transports'));
+        $trunks     = Trunk::orderBy('name')->get();
+        return view('lines.edit', compact('line', 'codecs', 'transports', 'trunks'));
     }
 
     public function update(SipLineRequest $request, SipLine $line)

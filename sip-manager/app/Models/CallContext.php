@@ -57,17 +57,32 @@ class CallContext extends Model
     private function buildOutboundDialplan(string $pattern): array
     {
         $trunk = Trunk::find($this->trunk_id);
-        $trunkEndpoint = $trunk ? $trunk->getAsteriskEndpointId() : 'unknown';
+        $defaultEndpoint = $trunk ? $trunk->getAsteriskEndpointId() : 'unknown';
         $lines = [];
 
         $lines[] = "exten => {$pattern},1,NoOp(Appel sortant via {$this->name})";
         $lines[] = " same => n,Set(CDR(direction)=outbound)";
 
+        // Default trunk
+        $lines[] = " same => n,Set(TRUNK_EP={$defaultEndpoint})";
+
+        // Per-extension trunk override
+        $extOverrides = SipLine::whereNotNull('outbound_trunk_id')
+            ->with('outboundTrunk')
+            ->get();
+
+        foreach ($extOverrides as $ext) {
+            if ($ext->outboundTrunk) {
+                $extEndpoint = $ext->outboundTrunk->getAsteriskEndpointId();
+                $lines[] = " same => n,ExecIf(\$[\"\${CALLERID(num)}\" = \"{$ext->extension}\"]?Set(TRUNK_EP={$extEndpoint}))";
+            }
+        }
+
         if ($this->caller_id_override) {
             $lines[] = " same => n,Set(CALLERID(num)={$this->caller_id_override})";
         }
-
-        $dialStr = "PJSIP/\${EXTEN}@{$trunkEndpoint}";
+        // Pass caller ID to trunk via SIP headers
+        $lines[] = " same => n,Set(PJSIP_HEADER(add,P-Asserted-Identity)=<sip:\${CALLERID(num)}@\${TRUNK_EP}>)";
 
         if ($this->prefix_strip !== null && $this->prefix_strip !== '') {
             $stripLen = strlen($this->prefix_strip);
@@ -75,16 +90,16 @@ class CallContext extends Model
             if ($this->prefix_add !== null && $this->prefix_add !== '') {
                 $lines[] = " same => n,Set(OUTNUM={$this->prefix_add}\${OUTNUM})";
             }
-            $dialStr = "PJSIP/\${OUTNUM}@{$trunkEndpoint}";
         } elseif ($this->prefix_add !== null && $this->prefix_add !== '') {
             $lines[] = " same => n,Set(OUTNUM={$this->prefix_add}\${EXTEN})";
-            $dialStr = "PJSIP/\${OUTNUM}@{$trunkEndpoint}";
         }
 
         if ($this->record_calls) {
             $lines[] = " same => n,MixMonitor(\${UNIQUEID}.wav,b)";
         }
 
+        // Use OUTNUM if set, otherwise EXTEN
+        $dialStr = "PJSIP/\${IF(\$[\"\${OUTNUM}\" != \"\"]?\${OUTNUM}:\${EXTEN})}@\${TRUNK_EP}";
         $lines[] = " same => n,Dial({$dialStr},{$this->timeout},tTb(handler^addheader^1))";
         $lines[] = " same => n,Hangup()";
 

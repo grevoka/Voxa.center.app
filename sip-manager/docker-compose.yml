@@ -1,0 +1,63 @@
+services:
+  sip-manager:
+    build: .
+    container_name: sip-manager
+    restart: unless-stopped
+    ports:
+      - "8080:80"           # Web UI
+      - "5060:5060/udp"     # SIP UDP
+      - "5060:5060/tcp"     # SIP TCP
+      - "10000-10100:10000-10100/udp"  # RTP media
+    volumes:
+      - asterisk_config:/etc/asterisk
+      - asterisk_sounds:/var/lib/asterisk/sounds
+      - asterisk_spool:/var/spool/asterisk
+      - app_storage:/var/www/html/storage
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost:8080}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-sip_manager}
+      - DB_USERNAME=${DB_USERNAME:-sip}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - DB_AST_HOST=db
+      - DB_AST_PORT=3306
+      - DB_AST_DATABASE=${DB_AST_DATABASE:-asterisk_rt}
+      - DB_AST_USERNAME=${DB_USERNAME:-sip}
+      - DB_AST_PASSWORD=${DB_PASSWORD:-secret}
+      - SESSION_DRIVER=file
+      - CACHE_STORE=file
+      - QUEUE_CONNECTION=sync
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11
+    container_name: sip-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MARIADB_DATABASE: ${DB_DATABASE:-sip_manager}
+      MARIADB_USER: ${DB_USERNAME:-sip}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "${DB_EXTERNAL_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:
+  asterisk_config:
+  asterisk_sounds:
+  asterisk_spool:
+  app_storage:

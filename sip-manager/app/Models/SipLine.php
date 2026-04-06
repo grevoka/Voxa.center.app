@@ -13,7 +13,7 @@ class SipLine extends Model
 
     protected $fillable = [
         'extension', 'name', 'email', 'secret', 'protocol',
-        'caller_id', 'context', 'codecs', 'status', 'transport',
+        'caller_id', 'context', 'outbound_trunk_id', 'codecs', 'status', 'transport',
         'max_contacts', 'voicemail_enabled', 'voicemail_email',
         'notes', 'created_by',
     ];
@@ -22,6 +22,11 @@ class SipLine extends Model
         'codecs'            => 'array',
         'voicemail_enabled' => 'boolean',
     ];
+
+    public function outboundTrunk(): BelongsTo
+    {
+        return $this->belongsTo(Trunk::class, 'outbound_trunk_id');
+    }
 
     protected $hidden = ['secret'];
 

@@ -27,6 +27,7 @@ class SipLineRequest extends FormRequest
             'protocol'   => 'required|in:SIP/UDP,SIP/TCP,SIP/TLS,WebRTC',
             'caller_id'  => 'nullable|string|max:50',
             'context'    => 'nullable|string|max:50',
+            'outbound_trunk_id' => 'nullable|exists:trunks,id',
             'codecs'     => 'nullable|array',
             'codecs.*'   => 'string|in:ulaw,alaw,g722,g729,opus,gsm,ilbc,speex',
             'transport'  => 'nullable|string|max:50',

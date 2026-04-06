@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InstallController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SipLineController;
 use App\Http\Controllers\TrunkController;
@@ -8,9 +9,23 @@ use App\Http\Controllers\CallLogController;
 use App\Http\Controllers\AsteriskLogController;
 use App\Http\Controllers\CallFlowController;
 use App\Http\Controllers\CallQueueController;
+use App\Http\Controllers\OutboundRouteController;
+use App\Http\Controllers\AudioController;
+use App\Http\Controllers\ConferenceRoomController;
+use App\Http\Controllers\VoicemailController;
+use App\Http\Controllers\LiveController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\MohController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+
+// Installation wizard (no auth required)
+Route::get('install', [InstallController::class, 'index'])->name('install.index');
+Route::post('install/requirements', [InstallController::class, 'requirements'])->name('install.requirements');
+Route::post('install/database', [InstallController::class, 'database'])->name('install.database');
+Route::post('install/admin', [InstallController::class, 'admin'])->name('install.admin');
+Route::post('install/finalize', [InstallController::class, 'finalize'])->name('install.finalize');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -47,11 +62,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('callflows/templates/{template}', [CallFlowController::class, 'deleteTemplate'])
          ->name('callflows.delete-template');
 
+    // Routes sortantes
+    Route::get('outbound', [OutboundRouteController::class, 'index'])->name('outbound.index');
+    Route::get('outbound/create', [OutboundRouteController::class, 'create'])->name('outbound.create');
+    Route::post('outbound', [OutboundRouteController::class, 'store'])->name('outbound.store');
+    Route::get('outbound/{outbound_route}/edit', [OutboundRouteController::class, 'edit'])->name('outbound.edit');
+    Route::put('outbound/{outbound_route}', [OutboundRouteController::class, 'update'])->name('outbound.update');
+    Route::delete('outbound/{outbound_route}', [OutboundRouteController::class, 'destroy'])->name('outbound.destroy');
+    Route::post('outbound/{outbound_route}/toggle', [OutboundRouteController::class, 'toggle'])->name('outbound.toggle');
+    Route::post('outbound/reorder', [OutboundRouteController::class, 'reorder'])->name('outbound.reorder');
+
     // Files d'attente
     Route::resource('queues', CallQueueController::class)->except(['show']);
 
+    // Salles de conference
+    Route::resource('conferences', ConferenceRoomController::class)->except(['show']);
+    Route::post('conferences/{conference}/toggle', [ConferenceRoomController::class, 'toggle'])
+         ->name('conferences.toggle');
+
+    // Messagerie vocale
+    Route::get('voicemail', [VoicemailController::class, 'index'])->name('voicemail.index');
+    Route::get('voicemail/{extension}/{folder}/{file}/play', [VoicemailController::class, 'play'])->name('voicemail.play');
+    Route::delete('voicemail/{extension}/{folder}/{file}', [VoicemailController::class, 'destroy'])->name('voicemail.destroy');
+
     // Journal d'appels
     Route::get('logs', [CallLogController::class, 'index'])->name('logs.index');
+
+    // Supervision en direct
+    Route::get('live', [LiveController::class, 'index'])->name('live.index');
+    Route::get('live/poll', [LiveController::class, 'poll'])->name('live.poll');
 
     // Asterisk Console
     Route::get('asterisk/logs', [AsteriskLogController::class, 'index'])->name('asterisk.logs');
@@ -61,9 +100,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Parametres
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::put('settings/smtp', [SettingController::class, 'updateSmtp'])->name('settings.smtp.update');
+    Route::post('settings/smtp/test', [SettingController::class, 'testSmtp'])->name('settings.smtp.test');
+
+    // Fichiers audio
+    Route::get('audio', [AudioController::class, 'index'])->name('audio.index');
+    Route::post('audio/upload', [AudioController::class, 'upload'])->name('audio.upload');
+    Route::delete('audio/{audio}', [AudioController::class, 'destroy'])->name('audio.destroy');
+    Route::get('audio/{audio}/play', [AudioController::class, 'play'])->name('audio.play');
+    Route::get('api/audio', [AudioController::class, 'api'])->name('audio.api');
+
+    // Musiques d'attente (MOH)
+    Route::get('moh', [MohController::class, 'index'])->name('moh.index');
+    Route::post('moh/set-default', [MohController::class, 'setDefault'])->name('moh.set-default');
+    Route::post('moh/reset', [MohController::class, 'resetDefault'])->name('moh.reset');
+    Route::get('moh/{class}/{file}/play', [MohController::class, 'play'])->name('moh.play');
+    Route::post('moh/streams', [MohController::class, 'storeStream'])->name('moh.streams.store');
+    Route::post('moh/streams/{stream}/toggle', [MohController::class, 'toggleStream'])->name('moh.streams.toggle');
+    Route::delete('moh/streams/{stream}', [MohController::class, 'destroyStream'])->name('moh.streams.destroy');
+    Route::post('moh/playlists', [MohController::class, 'storePlaylist'])->name('moh.playlists.store');
+    Route::put('moh/playlists/{playlist}', [MohController::class, 'updatePlaylist'])->name('moh.playlists.update');
+    Route::post('moh/playlists/{playlist}/toggle', [MohController::class, 'togglePlaylist'])->name('moh.playlists.toggle');
+    Route::delete('moh/playlists/{playlist}', [MohController::class, 'destroyPlaylist'])->name('moh.playlists.destroy');
+    Route::get('api/moh', [MohController::class, 'api'])->name('moh.api');
+
+    // Logs systeme (activite)
+    Route::get('activity', [ActivityLogController::class, 'index'])->name('activity.index');
 
     // Codecs (page statique depuis config)
     Route::view('codecs', 'codecs.index')->name('codecs.index');
+
+    // Documentation utilisateur
+    Route::view('help', 'help.index')->name('help.index');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

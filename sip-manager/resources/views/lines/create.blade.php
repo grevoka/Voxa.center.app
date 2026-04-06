@@ -67,6 +67,20 @@
                                    value="{{ old('context', 'from-internal') }}">
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-telephone-outbound me-1" style="color:var(--accent);"></i> Trunk sortant
+                            </label>
+                            <select name="outbound_trunk_id" class="form-select">
+                                <option value="">— Defaut (route globale) —</option>
+                                @foreach($trunks as $trunk)
+                                    <option value="{{ $trunk->id }}" {{ old('outbound_trunk_id') == $trunk->id ? 'selected' : '' }}>
+                                        {{ $trunk->name }} ({{ $trunk->host }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small style="color:var(--text-secondary);font-size:0.72rem;">Force la sortie via ce trunk pour ce poste (vide = trunk de la route sortante)</small>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Max contacts</label>
                             <input type="number" name="max_contacts" class="form-control"
                                    value="{{ old('max_contacts', 1) }}" min="1" max="10">
