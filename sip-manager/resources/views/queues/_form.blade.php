@@ -80,9 +80,35 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Musique d'attente</label>
-                        <input type="text" class="form-control" name="music_on_hold"
-                               value="{{ old('music_on_hold', $queue->music_on_hold ?? 'default') }}"
-                               placeholder="default">
+                        <select class="form-select" name="music_on_hold" id="mohSelect">
+                            <option value="default">default</option>
+                        </select>
+                        <script>
+                        fetch('/api/moh').then(r=>r.json()).then(classes=>{
+                            const sel=document.getElementById('mohSelect');
+                            const current='{{ old('music_on_hold', $queue->music_on_hold ?? 'default') }}';
+                            sel.innerHTML='';
+                            const local=classes.filter(c=>!c.is_stream&&!c.is_playlist);
+                            const playlists=classes.filter(c=>c.is_playlist);
+                            const streams=classes.filter(c=>c.is_stream);
+                            [{label:'Fichiers locaux',items:local,suffix:f=>f.files.length+' fichiers'},
+                             {label:'Playlists',items:playlists,suffix:f=>f.files.length+' titres'},
+                             {label:'Flux streaming',items:streams,suffix:()=>'stream'}
+                            ].forEach(g=>{
+                                if(!g.items.length) return;
+                                const grp=document.createElement('optgroup');
+                                grp.label=g.label;
+                                g.items.forEach(c=>{
+                                    const opt=document.createElement('option');
+                                    opt.value=c.name;
+                                    opt.textContent=(c.display_name||c.name)+' ('+g.suffix(c)+')';
+                                    if(c.name===current) opt.selected=true;
+                                    grp.appendChild(opt);
+                                });
+                                sel.appendChild(grp);
+                            });
+                        });
+                        </script>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Timeout agent (sec)</label>
