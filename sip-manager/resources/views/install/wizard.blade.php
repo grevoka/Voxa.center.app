@@ -248,72 +248,113 @@
                 @elseif($step === 2)
                     <form action="{{ route('install.database') }}" method="POST">
                         @csrf
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label">URL de l'application</label>
-                            <input type="url" name="app_url" class="form-control" value="{{ old('app_url', request()->root()) }}" placeholder="http://sipctrl.example.com:8080">
+                            @php
+                                $appUrl = str_replace('http://', 'https://', request()->root());
+                            @endphp
+                            <input type="url" name="app_url" class="form-control" value="{{ $appUrl }}" readonly style="background:var(--surface-1);cursor:default;">
                         </div>
 
-                        {{-- Main DB --}}
-                        <div class="db-section">
-                            <div class="db-section-title">
-                                <i class="bi bi-database me-1" style="color:var(--accent);"></i> Base de donnees principale
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-8">
-                                    <label class="form-label">Hote</label>
-                                    <input type="text" name="db_host" class="form-control" value="{{ old('db_host', 'db') }}" required>
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label">Port</label>
-                                    <input type="number" name="db_port" class="form-control" value="{{ old('db_port', 3306) }}" required>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Nom de la base</label>
-                                    <input type="text" name="db_database" class="form-control" value="{{ old('db_database', 'sip_manager') }}" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Utilisateur</label>
-                                    <input type="text" name="db_username" class="form-control" value="{{ old('db_username', 'sip') }}" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Mot de passe</label>
-                                    <input type="password" name="db_password" class="form-control" value="{{ old('db_password') }}">
-                                </div>
-                            </div>
-                        </div>
+                        @php
+                            $dbReady = false;
+                            try {
+                                \Illuminate\Support\Facades\DB::connection()->getPdo();
+                                \Illuminate\Support\Facades\DB::connection('asterisk')->getPdo();
+                                $dbReady = true;
+                            } catch (\Throwable $e) {}
+                        @endphp
 
-                        {{-- Asterisk DB --}}
-                        <div class="db-section">
-                            <div class="db-section-title">
-                                <i class="bi bi-database me-1" style="color:var(--accent);"></i> Base Asterisk Realtime
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-8">
-                                    <label class="form-label">Hote</label>
-                                    <input type="text" name="db_ast_host" class="form-control" value="{{ old('db_ast_host', 'db') }}" required>
+                        @if($dbReady)
+                            {{-- Docker mode: DB already configured --}}
+                            <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-check-circle-fill" style="color:var(--accent);font-size:1.1rem;"></i>
+                                    <span style="font-weight:700;font-size:0.9rem;">Base de donnees configuree automatiquement</span>
                                 </div>
-                                <div class="col-4">
-                                    <label class="form-label">Port</label>
-                                    <input type="number" name="db_ast_port" class="form-control" value="{{ old('db_ast_port', 3306) }}" required>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Nom de la base</label>
-                                    <input type="text" name="db_ast_database" class="form-control" value="{{ old('db_ast_database', 'asterisk_rt') }}" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Utilisateur</label>
-                                    <input type="text" name="db_ast_username" class="form-control" value="{{ old('db_ast_username', 'sip') }}" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Mot de passe</label>
-                                    <input type="password" name="db_ast_password" class="form-control" value="{{ old('db_ast_password') }}">
+                                <div style="font-size:0.78rem;color:var(--text-secondary);">
+                                    Les deux bases de donnees (SIP Manager et Asterisk Realtime) sont connectees et operationnelles.
+                                    La configuration a ete generee automatiquement par le container Docker.
                                 </div>
                             </div>
-                        </div>
+
+                            {{-- Hidden fields with actual .env values --}}
+                            <input type="hidden" name="db_host" value="{{ config('database.connections.mysql.host') }}">
+                            <input type="hidden" name="db_port" value="{{ config('database.connections.mysql.port') }}">
+                            <input type="hidden" name="db_database" value="{{ config('database.connections.mysql.database') }}">
+                            <input type="hidden" name="db_username" value="{{ config('database.connections.mysql.username') }}">
+                            <input type="hidden" name="db_password" value="{{ config('database.connections.mysql.password') }}">
+                            <input type="hidden" name="db_ast_host" value="{{ config('database.connections.asterisk.host') }}">
+                            <input type="hidden" name="db_ast_port" value="{{ config('database.connections.asterisk.port') }}">
+                            <input type="hidden" name="db_ast_database" value="{{ config('database.connections.asterisk.database') }}">
+                            <input type="hidden" name="db_ast_username" value="{{ config('database.connections.asterisk.username') }}">
+                            <input type="hidden" name="db_ast_password" value="{{ config('database.connections.asterisk.password') }}">
+                        @else
+                            {{-- Manual mode: show DB forms --}}
+                            <div class="db-section">
+                                <div class="db-section-title">
+                                    <i class="bi bi-database me-1" style="color:var(--accent);"></i> Base de donnees principale
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <label class="form-label">Hote</label>
+                                        <input type="text" name="db_host" class="form-control" value="{{ old('db_host', '127.0.0.1') }}" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label">Port</label>
+                                        <input type="number" name="db_port" class="form-control" value="{{ old('db_port', 3306) }}" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Nom de la base</label>
+                                        <input type="text" name="db_database" class="form-control" value="{{ old('db_database', 'sip_manager') }}" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Utilisateur</label>
+                                        <input type="text" name="db_username" class="form-control" value="{{ old('db_username', 'root') }}" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Mot de passe</label>
+                                        <input type="password" name="db_password" class="form-control" value="{{ old('db_password') }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="db-section">
+                                <div class="db-section-title">
+                                    <i class="bi bi-database me-1" style="color:var(--accent);"></i> Base Asterisk Realtime
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <label class="form-label">Hote</label>
+                                        <input type="text" name="db_ast_host" class="form-control" value="{{ old('db_ast_host', '127.0.0.1') }}" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label">Port</label>
+                                        <input type="number" name="db_ast_port" class="form-control" value="{{ old('db_ast_port', 3306) }}" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Nom de la base</label>
+                                        <input type="text" name="db_ast_database" class="form-control" value="{{ old('db_ast_database', 'asterisk_rt') }}" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Utilisateur</label>
+                                        <input type="text" name="db_ast_username" class="form-control" value="{{ old('db_ast_username', 'root') }}" required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Mot de passe</label>
+                                        <input type="password" name="db_ast_password" class="form-control" value="{{ old('db_ast_password') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-accent">
-                                <i class="bi bi-database-check me-1"></i> Tester & migrer <i class="bi bi-arrow-right ms-1"></i>
+                                @if($dbReady)
+                                    <i class="bi bi-arrow-right me-1"></i> Continuer
+                                @else
+                                    <i class="bi bi-database-check me-1"></i> Tester & migrer <i class="bi bi-arrow-right ms-1"></i>
+                                @endif
                             </button>
                         </div>
                     </form>
