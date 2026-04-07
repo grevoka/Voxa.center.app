@@ -113,6 +113,9 @@
                 <i class="bi bi-chevron-down nav-chevron"></i>
             </div>
             <div class="nav-group-items">
+                <a class="nav-item-custom {{ request()->routeIs('firewall.*') ? 'active' : '' }}" href="{{ route('firewall.index') }}">
+                    <i class="bi bi-shield-lock-fill"></i> Firewall SIP
+                </a>
                 <a class="nav-item-custom {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                     <i class="bi bi-gear-fill"></i> Parametres
                 </a>

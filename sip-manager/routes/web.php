@@ -17,6 +17,7 @@ use App\Http\Controllers\LiveController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\MohController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\FirewallController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -126,6 +127,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Logs systeme (activite)
     Route::get('activity', [ActivityLogController::class, 'index'])->name('activity.index');
+
+    // Firewall SIP
+    Route::get('firewall', [FirewallController::class, 'index'])->name('firewall.index');
+    Route::post('firewall', [FirewallController::class, 'store'])->name('firewall.store');
+    Route::post('firewall/mode', [FirewallController::class, 'setMode'])->name('firewall.mode');
+    Route::post('firewall/{rule}/toggle', [FirewallController::class, 'toggle'])->name('firewall.toggle');
+    Route::delete('firewall/{rule}', [FirewallController::class, 'destroy'])->name('firewall.destroy');
+    Route::post('firewall/unban', [FirewallController::class, 'unban'])->name('firewall.unban');
 
     // Codecs (page statique depuis config)
     Route::view('codecs', 'codecs.index')->name('codecs.index');

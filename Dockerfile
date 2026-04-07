@@ -19,8 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         redis-server \
         # Node 20 (pour Vite)
         ca-certificates gnupg \
-        # ODBC + capabilities + sudo
+        # ODBC + capabilities + sudo + security
         odbc-mariadb unixodbc unixodbc-dev libcap2 sudo \
+        fail2ban iptables \
         # Build deps pour Asterisk
         build-essential wget pkg-config \
         libedit-dev libjansson-dev libsqlite3-dev uuid-dev \
@@ -111,6 +112,14 @@ RUN printf 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n*
 
 # ── Supervisor (orchestre tout) ──
 COPY docker/allinone/supervisord.conf /etc/supervisor/conf.d/sip.conf
+
+# ── Fail2ban config ──
+COPY docker/allinone/fail2ban/ /etc/fail2ban/
+RUN mkdir -p /var/run/fail2ban
+
+# ── Post-start script (ODBC reload after MySQL is ready) ──
+COPY docker/allinone/asterisk-post-start.sh /usr/local/bin/asterisk-post-start.sh
+RUN chmod +x /usr/local/bin/asterisk-post-start.sh
 
 # ── Entrypoint ──
 COPY docker/allinone/entrypoint.sh /usr/local/bin/entrypoint.sh
