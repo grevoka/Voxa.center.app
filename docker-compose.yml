@@ -21,9 +21,7 @@ services:
       - "5060:5060/tcp"
       - "10000-10100:10000-10100/udp"
     environment:
-      DB_PASSWORD: wawa2346
-      ASTERISK_AMI_USER: laravel_ami
-      ASTERISK_AMI_SECRET: ami_secret
+      # DB_PASSWORD and ASTERISK_AMI_SECRET are auto-generated on first run if not set
       PUBLIC_IP: ""
       LOCAL_NET: "172.16.0.0/12"
     volumes:
