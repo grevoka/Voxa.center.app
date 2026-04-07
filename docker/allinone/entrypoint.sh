@@ -444,13 +444,13 @@ fi
 echo "[SIP] Running migrations..."
 php artisan migrate --force
 
-# ── Import seed dump si present (premier deploiement) ──
+# ── Seed default data (first run only) ──
 SEED_MARKER="/var/lib/mysql/.seed_imported"
-if [ ! -f "$SEED_MARKER" ] && [ -f "db-dump.sql" ]; then
-    echo "[SIP] Importing database seed dump..."
-    mysql -u root -p"${DB_PASS}" < db-dump.sql
+if [ ! -f "$SEED_MARKER" ]; then
+    echo "[SIP] Seeding default data..."
+    php artisan db:seed --class=Database\\Seeders\\CallFlowTemplateSeeder --force 2>/dev/null || true
     touch "$SEED_MARKER"
-    echo "[SIP] Seed dump imported"
+    echo "[SIP] Seeding complete"
 fi
 
 # ── Permissions ──

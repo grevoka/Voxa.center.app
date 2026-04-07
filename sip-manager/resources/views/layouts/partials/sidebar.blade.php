@@ -127,10 +127,10 @@
             <div style="width:28px;height:28px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;">
                 <i class="bi bi-person-fill" style="color:var(--accent); font-size:0.8rem;"></i>
             </div>
-            <div style="min-width:0; flex:1;">
+            <a href="{{ route('profile.edit') }}" style="min-width:0;flex:1;text-decoration:none;color:inherit;" title="Mon profil">
                 <div style="font-size:0.75rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->name ?? 'Admin' }}</div>
                 <div style="font-size:0.6rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ auth()->user()->email ?? '' }}</div>
-            </div>
+            </a>
             <form method="POST" action="{{ route('logout') }}" class="ms-auto">
                 @csrf
                 <button type="submit" class="btn-icon" title="Deconnexion" style="width:24px;height:24px;font-size:0.65rem;">
