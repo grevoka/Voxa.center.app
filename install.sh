@@ -172,10 +172,18 @@ fi
 if [ -d "$INSTALL_DIR/.git" ]; then
     log "Repertoire existant, mise a jour..."
     cd "$INSTALL_DIR"
-    git pull
+    git pull || warn "Git pull echoue — utilisation des fichiers existants."
+elif [ -d "$INSTALL_DIR/docker-compose.yml" ] || [ -f "$INSTALL_DIR/docker-compose.yml" ]; then
+    log "Repertoire existant sans git, utilisation tel quel."
+    cd "$INSTALL_DIR"
 else
     log "Clonage du depot SIP.ctrl..."
-    git clone https://github.com/grevoka/SIP.ctrl.git "$INSTALL_DIR"
+    # Try SSH first (no password needed if key is configured), fallback to HTTPS
+    if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+        git clone git@github.com:grevoka/SIP.ctrl.git "$INSTALL_DIR"
+    else
+        git clone https://github.com/grevoka/SIP.ctrl.git "$INSTALL_DIR"
+    fi
     cd "$INSTALL_DIR"
 fi
 
