@@ -4,10 +4,16 @@ set -e
 DB_USER="${DB_USERNAME:-root}"
 AMI_USER="${ASTERISK_AMI_USER:-laravel_ami}"
 
-# Generate random passwords on first install, reuse from .env on subsequent starts
+# Password persistence file (survives entrypoint crashes, stored on DB volume)
+PASS_FILE="/var/lib/mysql/.sip_passwords"
 ENV_FILE="/var/www/html/.env"
+
+# Generate random passwords on first install, reuse from persistent file on subsequent starts
 if [ -n "${DB_PASSWORD}" ]; then
     DB_PASS="${DB_PASSWORD}"
+elif [ -f "$PASS_FILE" ]; then
+    source "$PASS_FILE"
+    DB_PASS="${SAVED_DB_PASS}"
 elif [ -f "$ENV_FILE" ] && grep -q "^DB_PASSWORD=" "$ENV_FILE"; then
     DB_PASS=$(grep "^DB_PASSWORD=" "$ENV_FILE" | cut -d= -f2)
 else
@@ -17,12 +23,22 @@ fi
 
 if [ -n "${ASTERISK_AMI_SECRET}" ]; then
     AMI_PASS="${ASTERISK_AMI_SECRET}"
+elif [ -f "$PASS_FILE" ] && grep -q "SAVED_AMI_PASS" "$PASS_FILE"; then
+    source "$PASS_FILE"
+    AMI_PASS="${SAVED_AMI_PASS}"
 elif [ -f "$ENV_FILE" ] && grep -q "^ASTERISK_AMI_SECRET=" "$ENV_FILE"; then
     AMI_PASS=$(grep "^ASTERISK_AMI_SECRET=" "$ENV_FILE" | cut -d= -f2)
 else
     AMI_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 16)
     echo "[SIP] Generated random AMI password"
 fi
+
+# Persist passwords immediately (on DB volume, survives restarts)
+cat > "$PASS_FILE" << PASSEOF
+SAVED_DB_PASS=${DB_PASS}
+SAVED_AMI_PASS=${AMI_PASS}
+PASSEOF
+chmod 600 "$PASS_FILE"
 LOCAL_NET="${LOCAL_NET:-172.16.0.0/12}"
 
 # ── Detect public IP (with retries) ──
