@@ -301,6 +301,8 @@ mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
         `match` VARCHAR(80)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 EORT
+
+mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EOCDR'
     CREATE TABLE IF NOT EXISTS cdr (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         calldate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -315,7 +317,7 @@ EORT
         INDEX idx_calldate (calldate),
         INDEX idx_src (src), INDEX idx_dst (dst)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-EORT
+EOCDR
 echo "[SIP] Realtime tables OK"
 
 # ── Laravel .env (generer si absent) ──
