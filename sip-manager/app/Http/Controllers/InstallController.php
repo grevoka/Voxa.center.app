@@ -28,12 +28,25 @@ class InstallController extends Controller
 
     /**
      * Step 1: Check requirements then advance.
+     * If DB is already configured (Docker), skip step 2 and go to admin.
      */
     public function requirements(Request $request)
     {
         $reqs = $this->checkRequirements();
         if (in_array(false, $reqs, true)) {
             return back()->with('error', 'Certaines conditions ne sont pas remplies.');
+        }
+
+        // If DB is already configured by Docker entrypoint, skip step 2
+        if ($this->isDatabaseReady()) {
+            // Run migrations
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable) {
+                // Non-blocking
+            }
+            session(['install_step' => 3]);
+            return redirect()->route('install.index');
         }
 
         session(['install_step' => 2]);
@@ -203,6 +216,20 @@ class InstallController extends Controller
     public static function isInstalled(): bool
     {
         return file_exists(storage_path('installed'));
+    }
+
+    /**
+     * Check if DB is already configured and reachable (Docker setup).
+     */
+    private function isDatabaseReady(): bool
+    {
+        try {
+            DB::connection()->getPdo();
+            DB::connection('asterisk')->getPdo();
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**
