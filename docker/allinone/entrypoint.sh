@@ -1,10 +1,28 @@
 #!/bin/bash
 set -e
 
-DB_PASS="${DB_PASSWORD:-wawa2346}"
 DB_USER="${DB_USERNAME:-root}"
 AMI_USER="${ASTERISK_AMI_USER:-laravel_ami}"
-AMI_PASS="${ASTERISK_AMI_SECRET:-ami_secret}"
+
+# Generate random passwords on first install, reuse from .env on subsequent starts
+ENV_FILE="/var/www/html/.env"
+if [ -n "${DB_PASSWORD}" ]; then
+    DB_PASS="${DB_PASSWORD}"
+elif [ -f "$ENV_FILE" ] && grep -q "^DB_PASSWORD=" "$ENV_FILE"; then
+    DB_PASS=$(grep "^DB_PASSWORD=" "$ENV_FILE" | cut -d= -f2)
+else
+    DB_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 24)
+    echo "[SIP] Generated random DB password"
+fi
+
+if [ -n "${ASTERISK_AMI_SECRET}" ]; then
+    AMI_PASS="${ASTERISK_AMI_SECRET}"
+elif [ -f "$ENV_FILE" ] && grep -q "^ASTERISK_AMI_SECRET=" "$ENV_FILE"; then
+    AMI_PASS=$(grep "^ASTERISK_AMI_SECRET=" "$ENV_FILE" | cut -d= -f2)
+else
+    AMI_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 16)
+    echo "[SIP] Generated random AMI password"
+fi
 LOCAL_NET="${LOCAL_NET:-172.16.0.0/12}"
 
 # ── Detect public IP (with retries) ──
@@ -187,7 +205,7 @@ chown www-data:www-data /etc/asterisk/extensions.conf /etc/asterisk/queues.conf 
 touch /etc/asterisk/queues.conf
 chown www-data:www-data /etc/asterisk/extensions.conf /etc/asterisk/queues.conf /etc/asterisk/pjsip.conf
 chmod 664 /etc/asterisk/extensions.conf /etc/asterisk/queues.conf /etc/asterisk/pjsip.conf
-echo "www-data ALL=(root) NOPASSWD: /usr/sbin/asterisk, /usr/bin/tee /etc/asterisk/extensions.conf, /usr/bin/tee /etc/asterisk/queues.conf, /usr/bin/tee /etc/asterisk/pjsip.conf" > /etc/sudoers.d/asterisk-cli
+echo "www-data ALL=(root) NOPASSWD: /usr/sbin/asterisk, /usr/bin/tee /etc/asterisk/extensions.conf, /usr/bin/tee /etc/asterisk/queues.conf, /usr/bin/tee /etc/asterisk/pjsip.conf, /usr/bin/tee /etc/asterisk/musiconhold.conf" > /etc/sudoers.d/asterisk-cli
 chmod 0440 /etc/sudoers.d/asterisk-cli
 
 # ── Demarrer MariaDB + Redis temporairement pour les migrations ──
