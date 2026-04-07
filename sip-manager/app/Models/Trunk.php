@@ -15,6 +15,7 @@ class Trunk extends Model
         'name', 'type', 'transport', 'host', 'port',
         'username', 'secret', 'max_channels', 'codecs',
         'caller_id', 'context', 'inbound_ips', 'inbound_context',
+        'outbound_proxy',
         'status', 'register',
         'retry_interval', 'expiration', 'notes', 'created_by',
     ];

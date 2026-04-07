@@ -133,18 +133,29 @@ class SipProvisioningService
                 );
 
                 if ($trunk->register && $trunk->username) {
+                    $regData = [
+                        'transport'                => $trunk->getTransportKey(),
+                        'outbound_auth'            => $authId,
+                        'server_uri'               => $trunk->getServerUri(),
+                        'client_uri'               => $trunk->getClientUri(),
+                        'retry_interval'           => $trunk->retry_interval,
+                        'expiration'               => $trunk->expiration,
+                        'contact_user'             => $trunk->username,
+                        'auth_rejection_permanent' => 'no',
+                    ];
+
+                    // Add outbound proxy if configured (e.g. OVH sip-proxy)
+                    if ($trunk->outbound_proxy) {
+                        $proxy = $trunk->outbound_proxy;
+                        if (!str_starts_with($proxy, 'sip:')) {
+                            $proxy = "sip:{$proxy}";
+                        }
+                        $regData['outbound_proxy'] = $proxy;
+                    }
+
                     DB::connection($this->connection)->table('ps_registrations')->updateOrInsert(
                         ['id' => $registrationId],
-                        [
-                            'transport'                => $trunk->getTransportKey(),
-                            'outbound_auth'            => $authId,
-                            'server_uri'               => $trunk->getServerUri(),
-                            'client_uri'               => $trunk->getClientUri(),
-                            'retry_interval'           => $trunk->retry_interval,
-                            'expiration'               => $trunk->expiration,
-                            'contact_user'             => $trunk->username,
-                            'auth_rejection_permanent' => 'no',
-                        ]
+                        $regData
                     );
                 }
             });

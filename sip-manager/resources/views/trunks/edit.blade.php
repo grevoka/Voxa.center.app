@@ -58,6 +58,11 @@
                             <input type="number" name="max_channels" class="form-control"
                                    value="{{ old('max_channels', $trunk->max_channels) }}" required>
                         </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Proxy sortant <span style="font-size:0.7rem;color:var(--text-secondary);">(optionnel, ex: sip-proxy.ovh.net)</span></label>
+                            <input type="text" name="outbound_proxy" class="form-control"
+                                   value="{{ old('outbound_proxy', $trunk->outbound_proxy) }}" placeholder="ml835941-ovh-1.sip-proxy.io">
+                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Utilisateur / Auth</label>
                             <input type="text" name="username" class="form-control"

@@ -289,6 +289,7 @@ mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
         id VARCHAR(40) NOT NULL PRIMARY KEY,
         transport VARCHAR(40),
         outbound_auth VARCHAR(40),
+        outbound_proxy VARCHAR(255),
         server_uri VARCHAR(255),
         client_uri VARCHAR(255),
         retry_interval INT DEFAULT 60,
@@ -302,6 +303,13 @@ mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
     -- Add auth_rejection_permanent column if missing (for existing installs)
     SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='asterisk_rt' AND TABLE_NAME='ps_registrations' AND COLUMN_NAME='auth_rejection_permanent');
     SET @sqlstmt := IF(@exist = 0, 'ALTER TABLE ps_registrations ADD COLUMN auth_rejection_permanent VARCHAR(3) DEFAULT \'no\'', 'SELECT 1');
+    PREPARE stmt FROM @sqlstmt;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    -- Add outbound_proxy column if missing (for existing installs)
+    SET @exist := (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='asterisk_rt' AND TABLE_NAME='ps_registrations' AND COLUMN_NAME='outbound_proxy');
+    SET @sqlstmt := IF(@exist = 0, 'ALTER TABLE ps_registrations ADD COLUMN outbound_proxy VARCHAR(255) AFTER outbound_auth', 'SELECT 1');
     PREPARE stmt FROM @sqlstmt;
     EXECUTE stmt;
     DEALLOCATE PREPARE stmt;
