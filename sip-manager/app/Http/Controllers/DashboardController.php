@@ -37,7 +37,10 @@ class DashboardController extends Controller
             'outbound' => CallLog::whereDate('started_at', $today)->where('direction', 'outbound')->count(),
         ];
 
-        return view('dashboard.index', compact('stats', 'activeCalls', 'chartData', 'todayStats'));
+        // Recent calls
+        $recentCalls = CallLog::latest('started_at')->take(15)->get();
+
+        return view('dashboard.index', compact('stats', 'activeCalls', 'chartData', 'todayStats', 'recentCalls'));
     }
 
     private function getCallChartData(int $days): array

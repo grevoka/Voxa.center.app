@@ -44,43 +44,62 @@
         </div>
     </div>
 
-    {{-- Graphique appels 7 jours + Appels du jour --}}
+    {{-- Graphique MRTG appels 7 jours --}}
     <div class="row g-3 mb-4">
-        <div class="col-lg-8">
+        <div class="col-12">
             <div class="data-table" style="padding:1.25rem;">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                     <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-graph-up me-2" style="color:var(--accent);"></i>Trafic des appels — 7 derniers jours</h6>
+                    <div class="d-flex align-items-center gap-3" style="font-size:0.72rem;">
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#58a6ff;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Entrants</span>
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#00e5a0;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Sortants</span>
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#f85149;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Manques</span>
+                    </div>
                 </div>
-                <canvas id="callChart" height="220"></canvas>
+                <div style="position:relative;height:240px;">
+                    <canvas id="callChart"></canvas>
+                </div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="data-table" style="padding:1.25rem; height:100%;">
-                <h6 class="mb-3" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-calendar-day me-2" style="color:var(--accent);"></i>Aujourd'hui</h6>
-                <div class="d-flex flex-column gap-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span style="font-size:0.82rem;color:var(--text-secondary);">Total appels</span>
-                        <span style="font-weight:700;font-size:1.1rem;">{{ $todayStats['total'] }}</span>
-                    </div>
-                    <div style="border-bottom:1px solid var(--border);"></div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span style="font-size:0.82rem;"><span class="status-dot online"></span> Repondus</span>
-                        <span style="font-weight:600;">{{ $todayStats['answered'] }}</span>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span style="font-size:0.82rem;"><span class="status-dot busy"></span> Manques</span>
-                        <span style="font-weight:600;">{{ $todayStats['missed'] }}</span>
-                    </div>
-                    <div style="border-bottom:1px solid var(--border);"></div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span style="font-size:0.82rem;"><i class="bi bi-telephone-inbound-fill me-1" style="color:#58a6ff;font-size:0.75rem;"></i> Entrants</span>
-                        <span style="font-weight:600;">{{ $todayStats['inbound'] }}</span>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span style="font-size:0.82rem;"><i class="bi bi-telephone-outbound-fill me-1" style="color:#d29922;font-size:0.75rem;"></i> Sortants</span>
-                        <span style="font-weight:600;">{{ $todayStats['outbound'] }}</span>
-                    </div>
-                </div>
+    </div>
+
+    {{-- Stats du jour --}}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-2">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                <div style="font-size:1.4rem;font-weight:800;color:var(--text-primary);">{{ $todayStats['total'] }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Appels aujourd'hui</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                <div style="font-size:1.4rem;font-weight:800;color:#00e5a0;">{{ $todayStats['answered'] }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Repondus</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                <div style="font-size:1.4rem;font-weight:800;color:#f85149;">{{ $todayStats['missed'] }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Manques</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                <div style="font-size:1.4rem;font-weight:800;color:#58a6ff;">{{ $todayStats['inbound'] }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Entrants</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                <div style="font-size:1.4rem;font-weight:800;color:#d29922;">{{ $todayStats['outbound'] }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Sortants</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                @php $rate = $todayStats['total'] > 0 ? round(($todayStats['answered'] / $todayStats['total']) * 100) : 0; @endphp
+                <div style="font-size:1.4rem;font-weight:800;color:{{ $rate >= 80 ? '#00e5a0' : ($rate >= 50 ? '#d29922' : '#f85149') }};">{{ $rate }}%</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Taux reponse</div>
             </div>
         </div>
     </div>
@@ -127,6 +146,66 @@
             </a>
         </div>
     </div>
+
+    {{-- Derniers appels --}}
+    @if($recentCalls->count())
+    <div class="data-table mb-4">
+        <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
+            <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-journal-text me-2" style="color:var(--accent);"></i>Derniers appels</h6>
+            <a href="{{ route('logs.index') }}" style="font-size:0.72rem;color:var(--accent);text-decoration:none;">Voir tout <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Direction</th>
+                    <th>Appelant</th>
+                    <th>Destination</th>
+                    <th>Trunk</th>
+                    <th>Duree</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($recentCalls as $call)
+                <tr>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">
+                        {{ $call->started_at?->format('d/m H:i:s') ?? '-' }}
+                    </td>
+                    <td>
+                        @if($call->direction === 'inbound')
+                            <i class="bi bi-telephone-inbound-fill" style="color:#58a6ff;font-size:0.75rem;"></i>
+                        @elseif($call->direction === 'outbound')
+                            <i class="bi bi-telephone-outbound-fill" style="color:#d29922;font-size:0.75rem;"></i>
+                        @else
+                            <i class="bi bi-arrow-left-right" style="color:var(--text-secondary);font-size:0.75rem;"></i>
+                        @endif
+                    </td>
+                    <td style="font-size:0.82rem;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-weight:600;">{{ $call->src ?: '-' }}</span>
+                        @if($call->src_name)
+                            <span style="color:var(--text-secondary);font-size:0.72rem;margin-left:0.3rem;">{{ $call->src_name }}</span>
+                        @endif
+                    </td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;">{{ $call->dst ?: '-' }}</td>
+                    <td>
+                        @if($call->trunk_name)
+                            <span class="codec-tag" style="font-size:0.65rem;">{{ $call->trunk_name }}</span>
+                        @else
+                            <span style="color:var(--text-secondary);font-size:0.72rem;">—</span>
+                        @endif
+                    </td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">{{ $call->formatted_duration }}</td>
+                    <td>
+                        <span class="status-dot {{ $call->disposition_color }}"></span>
+                        <span style="font-size:0.75rem;">{{ $call->disposition_label }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
 
     {{-- Appels actifs --}}
     @if(count($activeCalls) > 0)
@@ -181,58 +260,104 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('callChart').getContext('2d');
+    const ctx = document.getElementById('callChart');
     const chartData = @json($chartData);
 
+    const inGrad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
+    inGrad.addColorStop(0, 'rgba(88,166,255,0.25)');
+    inGrad.addColorStop(1, 'rgba(88,166,255,0)');
+
+    const outGrad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
+    outGrad.addColorStop(0, 'rgba(0,229,160,0.2)');
+    outGrad.addColorStop(1, 'rgba(0,229,160,0)');
+
+    const missGrad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
+    missGrad.addColorStop(0, 'rgba(248,81,73,0.15)');
+    missGrad.addColorStop(1, 'rgba(248,81,73,0)');
+
     new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
             labels: chartData.labels,
             datasets: [
                 {
                     label: 'Entrants',
                     data: chartData.inbound,
-                    backgroundColor: 'rgba(88,166,255,0.7)',
-                    borderRadius: 4,
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.8,
+                    borderColor: '#58a6ff',
+                    backgroundColor: inGrad,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#58a6ff',
+                    pointBorderColor: '#0d1117',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
                 },
                 {
                     label: 'Sortants',
                     data: chartData.outbound,
-                    backgroundColor: 'rgba(210,153,34,0.7)',
-                    borderRadius: 4,
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.8,
+                    borderColor: '#00e5a0',
+                    backgroundColor: outGrad,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#00e5a0',
+                    pointBorderColor: '#0d1117',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
                 },
                 {
                     label: 'Manques',
                     data: chartData.missed,
-                    backgroundColor: 'rgba(248,81,73,0.5)',
-                    borderRadius: 4,
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.8,
+                    borderColor: '#f85149',
+                    backgroundColor: missGrad,
+                    borderWidth: 2,
+                    borderDash: [4, 3],
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#f85149',
+                    pointBorderColor: '#0d1117',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 5,
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: '#8b949e', font: { size: 11 }, padding: 15, usePointStyle: true, pointStyleWidth: 8 }
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(22,27,34,0.95)',
+                    borderColor: 'rgba(139,148,158,0.2)',
+                    borderWidth: 1,
+                    titleColor: '#e6edf3',
+                    bodyColor: '#8b949e',
+                    titleFont: { size: 12, weight: 600 },
+                    bodyFont: { size: 11 },
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    boxWidth: 8,
+                    boxHeight: 8,
+                    boxPadding: 4,
                 }
             },
             scales: {
                 x: {
-                    grid: { color: 'rgba(139,148,158,0.08)' },
-                    ticks: { color: '#8b949e', font: { size: 11 } }
+                    grid: { color: 'rgba(139,148,158,0.06)', drawTicks: false },
+                    ticks: { color: '#484f58', font: { size: 11, weight: 500 }, padding: 8 },
+                    border: { display: false }
                 },
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(139,148,158,0.08)' },
-                    ticks: { color: '#8b949e', font: { size: 11 }, stepSize: 1 }
+                    grid: { color: 'rgba(139,148,158,0.06)', drawTicks: false },
+                    ticks: { color: '#484f58', font: { size: 11 }, padding: 8, stepSize: 1 },
+                    border: { display: false }
                 }
             }
         }
