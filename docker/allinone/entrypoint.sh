@@ -465,6 +465,17 @@ php artisan tinker --execute="app(\App\Services\SipProvisioningService::class)->
 echo "[SIP] Generating extensions.conf + queues.conf from CallFlows..."
 php artisan tinker --execute="app(\App\Services\DialplanService::class)->writeAll();" 2>/dev/null || true
 
+# ── Ensure APP_KEY exists ──
+if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
+    php artisan key:generate --force
+    echo "[SIP] APP_KEY generated"
+fi
+
+# ── Final permissions + cache ──
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+php artisan config:clear 2>/dev/null || true
+
 # ── Arreter les services temporaires ──
 mysqladmin -u root -p"${DB_PASS}" shutdown 2>/dev/null || true
 redis-cli shutdown 2>/dev/null || true
