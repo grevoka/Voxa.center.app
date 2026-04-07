@@ -465,6 +465,10 @@ php artisan tinker --execute="app(\App\Services\SipProvisioningService::class)->
 echo "[SIP] Generating extensions.conf + queues.conf from CallFlows..."
 php artisan tinker --execute="app(\App\Services\DialplanService::class)->writeAll();" 2>/dev/null || true
 
+# ── Ensure .env is writable by www-data ──
+chown www-data:www-data .env 2>/dev/null || true
+chmod 664 .env 2>/dev/null || true
+
 # ── Ensure APP_KEY exists ──
 if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
     php artisan key:generate --force
