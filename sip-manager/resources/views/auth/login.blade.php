@@ -8,8 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
-            --accent: #22c55e;
-            --accent-dim: rgba(34,197,94,0.12);
+            --accent: #29b6f6;
+            --accent-dim: rgba(41,182,246,0.12);
+            --accent-gradient: linear-gradient(135deg, #29b6f6, #ab47bc);
             --surface-1: #0f1117;
             --surface-2: #1a1d27;
             --border: #2a2d3a;
@@ -73,7 +74,7 @@
         }
         .form-control::placeholder { color: var(--text-secondary); opacity: 0.6; }
         .btn-accent {
-            background: var(--accent);
+            background: var(--accent-gradient);
             color: #fff;
             border: none;
             font-weight: 700;
@@ -81,9 +82,9 @@
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
             width: 100%;
-            transition: background 0.15s;
+            transition: all 0.2s;
         }
-        .btn-accent:hover { background: #1ea74e; color: #fff; }
+        .btn-accent:hover { background: linear-gradient(135deg, #4fc3f7, #ce93d8); color: #fff; transform: translateY(-1px); }
         .form-check-input:checked {
             background-color: var(--accent);
             border-color: var(--accent);

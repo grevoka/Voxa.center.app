@@ -8,8 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
-            --accent: #22c55e;
-            --accent-dim: rgba(34,197,94,0.12);
+            --accent: #29b6f6;
+            --accent-dim: rgba(41,182,246,0.12);
+            --accent-gradient: linear-gradient(135deg, #29b6f6, #ab47bc);
             --surface-1: #0f1117;
             --surface-2: #1a1d27;
             --border: #2a2d3a;
