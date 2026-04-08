@@ -128,8 +128,7 @@
 <body>
     <div class="login-container">
         <div class="login-brand">
-            <h2><span>//</span> SIP<span>.</span>ctrl</h2>
-            <small>Telecom Management</small>
+            <img src="{{ asset('images/logo.png') }}" alt="Voxa Center" style="height:80px;object-fit:contain;">
         </div>
 
         <div class="login-card">
