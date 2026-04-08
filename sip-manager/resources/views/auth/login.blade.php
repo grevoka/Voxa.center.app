@@ -191,7 +191,7 @@
         </div>
 
         <div class="text-center mt-3" style="font-size:0.72rem;color:var(--text-secondary);">
-            Voxa Center — Cloud Telecom Platform
+            Voxa Center — Telecom Management
         </div>
     </div>
 </body>
