@@ -1,7 +1,7 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand" style="padding:0.75rem 1rem;text-align:center;">
         <a href="{{ route('dashboard') }}" style="text-decoration:none;display:block;">
-            <img src="{{ asset('images/logo.png') }}" alt="Voxa Center" style="height:48px;object-fit:contain;">
+            <img src="{{ asset('images/logo.png') . '?v=' . filemtime(public_path('images/logo.png')) }}" alt="Voxa Center" style="height:48px;object-fit:contain;">
             <div style="font-size:1.05rem;font-weight:800;letter-spacing:-0.5px;margin-top:0.3rem;">
                 <span style="background:linear-gradient(135deg,#58a6ff,#bc6ff1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">voxa</span><span style="color:var(--text-secondary);font-weight:400;">.</span><span style="color:#e2e4eb;font-weight:600;">center</span>
             </div>
