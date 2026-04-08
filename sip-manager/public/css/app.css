@@ -1,4 +1,4 @@
-:root {
+:root, [data-theme="dark"] {
     --accent: #29b6f6;
     --accent-dim: #29b6f620;
     --accent-mid: #29b6f650;
@@ -16,6 +16,41 @@
     --success: #00e5a0;
     --purple: #ab47bc;
 }
+
+[data-theme="light"] {
+    --accent: #1e88e5;
+    --accent-dim: #1e88e515;
+    --accent-mid: #1e88e540;
+    --accent-rgb: 30,136,229;
+    --accent-gradient: linear-gradient(135deg, #1e88e5, #8e24aa);
+    --surface: #f5f6fa;
+    --surface-2: #ffffff;
+    --surface-3: #eef0f4;
+    --border: #dce0e6;
+    --text-primary: #1a1d27;
+    --text-secondary: #5f6577;
+    --danger: #e53935;
+    --warning: #f9a825;
+    --info: #1976d2;
+    --success: #2e7d32;
+    --purple: #8e24aa;
+}
+
+[data-theme="light"] .sidebar { background: #fff; border-right-color: var(--border); }
+[data-theme="light"] .stat-card { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+[data-theme="light"] .data-table { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+[data-theme="light"] .table thead th { background: #f8f9fb; color: var(--text-secondary); }
+[data-theme="light"] .form-control, [data-theme="light"] .form-select { background: #fff; border-color: var(--border); color: var(--text-primary); }
+[data-theme="light"] .btn-accent { color: #fff; }
+[data-theme="light"] .btn-icon { background: #f0f1f5; border-color: var(--border); color: var(--text-secondary); }
+[data-theme="light"] .btn-icon:hover { background: var(--accent-dim); color: var(--accent); }
+[data-theme="light"] .nav-item-custom { color: var(--text-secondary); }
+[data-theme="light"] .nav-item-custom:hover { background: #f0f1f5; color: var(--text-primary); }
+[data-theme="light"] .codec-tag { background: #eef0f4; color: var(--text-secondary); }
+[data-theme="light"] .topbar { background: #fff; border-bottom-color: var(--border); }
+[data-theme="light"] .pagination .page-link { background: #fff; }
+[data-theme="light"] .pagination .page-item.active .page-link { color: #fff; }
+[data-theme="light"] .shortcut-card { background: #fff; }
 
 * { box-sizing: border-box; }
 
