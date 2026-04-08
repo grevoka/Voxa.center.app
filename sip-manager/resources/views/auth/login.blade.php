@@ -127,8 +127,11 @@
 </head>
 <body>
     <div class="login-container">
-        <div class="login-brand">
-            <img src="{{ asset('images/logo.png') }}" alt="Voxa Center" style="height:80px;object-fit:contain;">
+        <div class="login-brand" style="text-align:center;">
+            <img src="{{ asset('images/logo.png') }}" alt="Voxa Center" style="height:70px;object-fit:contain;">
+            <div style="font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;margin-top:0.4rem;">
+                <span style="background:linear-gradient(135deg,#58a6ff,#bc6ff1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">voxa</span><span style="color:var(--text-secondary);font-weight:400;">.</span><span style="color:#e2e4eb;font-weight:600;">center</span>
+            </div>
         </div>
 
         <div class="login-card">
