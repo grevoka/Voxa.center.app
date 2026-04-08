@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates gnupg \
         # ODBC + capabilities + sudo + security
         odbc-mariadb unixodbc unixodbc-dev libcap2 sudo \
-        fail2ban iptables \
+        fail2ban iptables ffmpeg \
         # Build deps pour Asterisk
         build-essential wget pkg-config \
         libedit-dev libjansson-dev libsqlite3-dev uuid-dev \
