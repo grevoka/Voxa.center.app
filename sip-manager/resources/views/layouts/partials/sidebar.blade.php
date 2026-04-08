@@ -1,7 +1,7 @@
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-        <a href="{{ route('dashboard') }}" style="text-decoration:none;">
-            <img src="{{ asset('images/logo.png') }}" alt="Voxa.center" style="height:38px;object-fit:contain;">
+    <div class="sidebar-brand" style="padding:0.75rem 1rem;">
+        <a href="{{ route('dashboard') }}" style="text-decoration:none;display:block;">
+            <img src="{{ asset('images/logo.png') }}" alt="Voxa Center" style="width:100%;max-width:200px;height:auto;object-fit:contain;">
         </a>
     </div>
     <div class="nav-section">
