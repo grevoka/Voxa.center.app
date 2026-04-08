@@ -251,7 +251,7 @@ class SipProvisioningService
     public function writeIdentifyConf(): void
     {
         $pjsipPath = '/etc/asterisk/pjsip.conf';
-        $marker = '; === AUTO-GENERATED TRUNKS BY SIP.ctrl ===';
+        $marker = '; === AUTO-GENERATED TRUNKS BY Voxa Center ===';
 
         try {
             // Read base pjsip.conf (everything before marker)

@@ -283,7 +283,7 @@
 
                     <div class="doc-block">
                         <h6><i class="bi bi-globe me-1" style="color:#58a6ff;"></i> Consulter depuis l'interface web</h6>
-                        <p>Vous pouvez egalement ecouter et gerer vos messages depuis l'interface SIP.ctrl.</p>
+                        <p>Vous pouvez egalement ecouter et gerer vos messages depuis l'interface Voxa Center.</p>
                         <div class="doc-steps">
                             <div class="doc-step">
                                 <span class="step-num">1</span>

@@ -142,14 +142,14 @@
                         <div class="mb-3">
                             <label class="form-label">Adresse expediteur</label>
                             <input type="email" name="smtp_from_address" class="form-control"
-                                   value="{{ old('smtp_from_address', \App\Models\SipSetting::get('smtp_from_address', 'noreply@sipctrl.local')) }}"
+                                   value="{{ old('smtp_from_address', \App\Models\SipSetting::get('smtp_from_address', 'noreply@voxa.center')) }}"
                                    placeholder="noreply@example.com">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Nom expediteur</label>
                             <input type="text" name="smtp_from_name" class="form-control"
-                                   value="{{ old('smtp_from_name', \App\Models\SipSetting::get('smtp_from_name', 'SIP.ctrl')) }}"
-                                   placeholder="SIP.ctrl">
+                                   value="{{ old('smtp_from_name', \App\Models\SipSetting::get('smtp_from_name', 'Voxa Center')) }}"
+                                   placeholder="Voxa Center">
                         </div>
                         <div class="form-check form-switch mt-3">
                             <input class="form-check-input" type="checkbox" name="voicemail_notify_enabled" value="1"

@@ -18,7 +18,7 @@ elif [ -f "$ENV_FILE" ] && grep -q "^DB_PASSWORD=" "$ENV_FILE"; then
     DB_PASS=$(grep "^DB_PASSWORD=" "$ENV_FILE" | cut -d= -f2)
 else
     DB_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 24)
-    echo "[SIP] Generated random DB password"
+    echo "[Voxa] Generated random DB password"
 fi
 
 if [ -n "${ASTERISK_AMI_SECRET}" ]; then
@@ -30,7 +30,7 @@ elif [ -f "$ENV_FILE" ] && grep -q "^ASTERISK_AMI_SECRET=" "$ENV_FILE"; then
     AMI_PASS=$(grep "^ASTERISK_AMI_SECRET=" "$ENV_FILE" | cut -d= -f2)
 else
     AMI_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 16)
-    echo "[SIP] Generated random AMI password"
+    echo "[Voxa] Generated random AMI password"
 fi
 
 # Persist passwords immediately (on DB volume, survives restarts)
@@ -43,16 +43,16 @@ LOCAL_NET="${LOCAL_NET:-172.16.0.0/12}"
 
 # ── Detect public IP (with retries) ──
 if [ -n "${PUBLIC_IP}" ]; then
-    echo "[SIP] Using provided PUBLIC_IP=${PUBLIC_IP}"
+    echo "[Voxa] Using provided PUBLIC_IP=${PUBLIC_IP}"
 else
-    echo "[SIP] Detecting public IP..."
+    echo "[Voxa] Detecting public IP..."
     for i in 1 2 3 4 5; do
         PUBLIC_IP=$(curl -s --max-time 5 https://api.ipify.org 2>/dev/null) && break
-        echo "[SIP] IP detection attempt $i failed, retrying..."
+        echo "[Voxa] IP detection attempt $i failed, retrying..."
         sleep 2
     done
     PUBLIC_IP="${PUBLIC_IP:-127.0.0.1}"
-    echo "[SIP] Detected PUBLIC_IP=${PUBLIC_IP}"
+    echo "[Voxa] Detected PUBLIC_IP=${PUBLIC_IP}"
 fi
 RTP_START="${RTP_START:-10000}"
 RTP_END="${RTP_END:-10100}"
@@ -62,7 +62,7 @@ cd /var/www/html
 
 # ── MariaDB : initialiser si premier lancement ──
 if [ ! -f "$MARKER" ]; then
-    echo "[SIP] First run — initializing MariaDB..."
+    echo "[Voxa] First run — initializing MariaDB..."
 
     rm -rf /var/lib/mysql/*
     mysql_install_db --user=mysql --datadir=/var/lib/mysql > /dev/null 2>&1
@@ -88,7 +88,7 @@ if [ ! -f "$MARKER" ]; then
 EOSQL
 
     # ── Creer les tables PJSIP Realtime dans asterisk_rt ──
-    echo "[SIP] Creating Asterisk Realtime tables..."
+    echo "[Voxa] Creating Asterisk Realtime tables..."
     mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
         CREATE TABLE IF NOT EXISTS ps_endpoints (
             id VARCHAR(40) NOT NULL PRIMARY KEY,
@@ -160,13 +160,13 @@ EORT
 
     mysqladmin -u root -p"${DB_PASS}" shutdown 2>/dev/null || true
     sleep 2
-    echo "[SIP] MariaDB initialized"
+    echo "[Voxa] MariaDB initialized"
 else
-    echo "[SIP] MariaDB already initialized"
+    echo "[Voxa] MariaDB already initialized"
 fi
 
 # ── ODBC Configuration ──
-echo "[SIP] Configuring ODBC..."
+echo "[Voxa] Configuring ODBC..."
 # Detecter le chemin ODBC driver (arm64 ou amd64)
 ODBC_LIB=$(find /usr/lib -name 'libmaodbc.so' 2>/dev/null | head -1)
 ODBC_SETUP=$(find /usr/lib -name 'libodbcmyS.so' 2>/dev/null | head -1)
@@ -196,17 +196,17 @@ EOF
 # ── Asterisk config : remplacer les placeholders (une seule fois) ──
 AST_MARKER="/etc/asterisk/.configured"
 if [ ! -f "$AST_MARKER" ]; then
-    echo "[SIP] Configuring Asterisk placeholders..."
+    echo "[Voxa] Configuring Asterisk placeholders..."
     sed -i "s|__DB_USER__|${DB_USER}|g; s|__DB_PASS__|${DB_PASS}|g" /etc/asterisk/res_odbc.conf
     sed -i "s|__AMI_USER__|${AMI_USER}|g; s|__AMI_PASS__|${AMI_PASS}|g" /etc/asterisk/manager.conf
     sed -i "s|__RTP_START__|${RTP_START}|g; s|__RTP_END__|${RTP_END}|g" /etc/asterisk/rtp.conf
     touch "$AST_MARKER"
 else
-    echo "[SIP] Asterisk config already configured"
+    echo "[Voxa] Asterisk config already configured"
 fi
 
 # ── PUBLIC_IP + LOCAL_NET : toujours appliquer (IP peut changer) ──
-echo "[SIP] Applying PUBLIC_IP=${PUBLIC_IP} to pjsip.conf..."
+echo "[Voxa] Applying PUBLIC_IP=${PUBLIC_IP} to pjsip.conf..."
 sed -i "s|external_media_address = .*|external_media_address = ${PUBLIC_IP}|g" /etc/asterisk/pjsip.conf
 sed -i "s|external_signaling_address = .*|external_signaling_address = ${PUBLIC_IP}|g" /etc/asterisk/pjsip.conf
 sed -i "s|__PUBLIC_IP__|${PUBLIC_IP}|g; s|__LOCAL_NET__|${LOCAL_NET}|g" /etc/asterisk/pjsip.conf
@@ -232,10 +232,10 @@ sleep 3
 until mysqladmin ping -u root -p"${DB_PASS}" --silent 2>/dev/null; do
     sleep 1
 done
-echo "[SIP] MariaDB is ready"
+echo "[Voxa] MariaDB is ready"
 
 # ── Creer les tables PJSIP Realtime (idempotent) ──
-echo "[SIP] Ensuring Asterisk Realtime tables exist..."
+echo "[Voxa] Ensuring Asterisk Realtime tables exist..."
 mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
     CREATE TABLE IF NOT EXISTS ps_endpoints (
         id VARCHAR(40) NOT NULL PRIMARY KEY,
@@ -342,13 +342,13 @@ mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EOCDR'
         INDEX idx_src (src), INDEX idx_dst (dst)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 EOCDR
-echo "[SIP] Realtime tables OK"
+echo "[Voxa] Realtime tables OK"
 
 # ── Laravel .env (generer si absent) ──
 if [ ! -f ".env" ]; then
-    echo "[SIP] Generating Laravel .env..."
+    echo "[Voxa] Generating Laravel .env..."
     cat > .env <<ENVEOF
-APP_NAME="SIP Manager"
+APP_NAME="Voxa Center"
 APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
@@ -403,12 +403,12 @@ SIP_DEFAULT_TRANSPORT=transport-udp
 SIP_DEFAULT_CODECS=alaw,ulaw,g722
 ENVEOF
     php artisan key:generate --force
-    echo "[SIP] Laravel .env created with APP_KEY"
+    echo "[Voxa] Laravel .env created with APP_KEY"
 fi
 
 # ── Garantir que les variables critiques existent dans .env ──
 if ! grep -q "^DB_AST_DATABASE=" .env 2>/dev/null; then
-    echo "[SIP] Adding missing DB_AST config to .env..."
+    echo "[Voxa] Adding missing DB_AST config to .env..."
     cat >> .env <<ASTEOF
 
 DB_AST_CONNECTION=asterisk
@@ -421,7 +421,7 @@ ASTEOF
 fi
 
 if ! grep -q "^ASTERISK_AMI_HOST=" .env 2>/dev/null; then
-    echo "[SIP] Adding missing AMI config to .env..."
+    echo "[Voxa] Adding missing AMI config to .env..."
     cat >> .env <<AMIEOF
 
 ASTERISK_AMI_HOST=127.0.0.1
@@ -437,28 +437,28 @@ php artisan cache:clear 2>/dev/null || true
 
 # ── Composer install si necessaire ──
 if [ ! -d "vendor" ]; then
-    echo "[SIP] Installing Composer dependencies..."
+    echo "[Voxa] Installing Composer dependencies..."
     composer install --optimize-autoloader --no-interaction
 fi
 
 # ── Build assets Vite si necessaire ──
 if [ ! -d "public/build" ]; then
-    echo "[SIP] Building frontend assets..."
+    echo "[Voxa] Building frontend assets..."
     npm install --no-fund --no-audit 2>&1 | tail -3
     npm run build
 fi
 
 # ── Migrations ──
-echo "[SIP] Running migrations..."
+echo "[Voxa] Running migrations..."
 php artisan migrate --force
 
 # ── Seed default data (first run only) ──
 SEED_MARKER="/var/lib/mysql/.seed_imported"
 if [ ! -f "$SEED_MARKER" ]; then
-    echo "[SIP] Seeding default data..."
+    echo "[Voxa] Seeding default data..."
     php artisan db:seed --class=Database\\Seeders\\CallFlowTemplateSeeder --force 2>/dev/null || true
     touch "$SEED_MARKER"
-    echo "[SIP] Seeding complete"
+    echo "[Voxa] Seeding complete"
 fi
 
 # ── Permissions ──
@@ -467,10 +467,10 @@ chmod -R 775 storage bootstrap/cache
 php artisan storage:link 2>/dev/null || true
 
 # ── Generate all Asterisk configs from DB ──
-echo "[SIP] Generating pjsip.conf trunk sections..."
+echo "[Voxa] Generating pjsip.conf trunk sections..."
 php artisan tinker --execute="app(\App\Services\SipProvisioningService::class)->writeIdentifyConf();" 2>/dev/null || true
 
-echo "[SIP] Generating extensions.conf + queues.conf from CallFlows..."
+echo "[Voxa] Generating extensions.conf + queues.conf from CallFlows..."
 php artisan tinker --execute="app(\App\Services\DialplanService::class)->writeAll();" 2>/dev/null || true
 
 # ── Ensure .env is writable by www-data ──
@@ -480,7 +480,7 @@ chmod 664 .env 2>/dev/null || true
 # ── Ensure APP_KEY exists ──
 if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then
     php artisan key:generate --force
-    echo "[SIP] APP_KEY generated"
+    echo "[Voxa] APP_KEY generated"
 fi
 
 # ── Final permissions + cache ──
@@ -497,7 +497,7 @@ sleep 1
 if grep -q "^search localhost" /etc/resolv.conf 2>/dev/null; then
     cp /etc/resolv.conf /tmp/resolv.conf.tmp
     grep -v "^search" /tmp/resolv.conf.tmp > /etc/resolv.conf 2>/dev/null || true
-    echo "[SIP] Fixed resolv.conf (removed search suffix)"
+    echo "[Voxa] Fixed resolv.conf (removed search suffix)"
 fi
 
 # ── Add DNS overrides for SIP domains from trunk outbound proxies ──
@@ -514,5 +514,5 @@ foreach (\$trunks as \$t) {
 }
 " 2>/dev/null || true
 
-echo "[SIP] All ready — starting all services via supervisor..."
+echo "[Voxa] All ready — starting all services via supervisor..."
 exec "$@"

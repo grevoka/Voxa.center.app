@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SIP.ctrl — Script d'installation automatique
+# Voxa Center — Script d'installation automatique
 # Usage: curl -sSL https://raw.githubusercontent.com/grevoka/SIP.ctrl/main/install.sh | bash
 #    ou: bash install.sh
 #
@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-log()  { echo -e "${GREEN}[SIP.ctrl]${NC} $1"; }
+log()  { echo -e "${GREEN}[Voxa Center]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 err()  { echo -e "${RED}[ERREUR]${NC} $1"; exit 1; }
 
@@ -26,7 +26,7 @@ fi
 echo ""
 echo -e "${CYAN}${BOLD}"
 echo "  ╔══════════════════════════════════════╗"
-echo "  ║     SIP.ctrl — Installation          ║"
+echo "  ║     Voxa Center — Installation          ║"
 echo "  ║     Telecom Management Platform      ║"
 echo "  ╚══════════════════════════════════════╝"
 echo -e "${NC}"
@@ -177,7 +177,7 @@ elif [ -d "$INSTALL_DIR/docker-compose.yml" ] || [ -f "$INSTALL_DIR/docker-compo
     log "Repertoire existant sans git, utilisation tel quel."
     cd "$INSTALL_DIR"
 else
-    log "Clonage du depot SIP.ctrl..."
+    log "Clonage du depot Voxa Center..."
     # Try SSH first (no password needed if key is configured), fallback to HTTPS
     if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
         git clone git@github.com:grevoka/SIP.ctrl.git "$INSTALL_DIR"

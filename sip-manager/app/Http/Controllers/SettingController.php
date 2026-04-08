@@ -76,9 +76,9 @@ class SettingController extends Controller
         try {
             $this->applySmtpConfig();
 
-            Mail::raw("Ceci est un email de test envoye depuis SIP.ctrl.\n\nSi vous recevez ce message, la configuration SMTP est correcte.", function ($message) use ($to) {
+            Mail::raw("Ceci est un email de test envoye depuis Voxa Center.\n\nSi vous recevez ce message, la configuration SMTP est correcte.", function ($message) use ($to) {
                 $message->to($to)
-                    ->subject('SIP.ctrl — Test SMTP');
+                    ->subject('Voxa Center — Test SMTP');
             });
 
             return back()->with('success', "Email de test envoyé à {$to}.");
@@ -98,8 +98,8 @@ class SettingController extends Controller
             'mail.mailers.smtp.username' => SipSetting::get('smtp_username', ''),
             'mail.mailers.smtp.password' => SipSetting::get('smtp_password', ''),
             'mail.mailers.smtp.encryption' => $encryption === 'none' ? null : $encryption,
-            'mail.from.address' => SipSetting::get('smtp_from_address', 'noreply@sipctrl.local'),
-            'mail.from.name' => SipSetting::get('smtp_from_name', 'SIP.ctrl'),
+            'mail.from.address' => SipSetting::get('smtp_from_address', 'noreply@voxa.center'),
+            'mail.from.name' => SipSetting::get('smtp_from_name', 'Voxa Center'),
         ]);
     }
 }

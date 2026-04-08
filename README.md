@@ -1,8 +1,8 @@
-# // SIP.ctrl
+# // Voxa Center
 
 **Plateforme de gestion de telephonie SIP / Asterisk PBX**
 
-SIP.ctrl est une application web de gestion de PBX Asterisk deployable en un clic via Docker. Elle permet de configurer et superviser un systeme de telephonie IP complet depuis une interface moderne.
+Voxa Center est une application web de gestion de PBX Asterisk deployable en un clic via Docker. Elle permet de configurer et superviser un systeme de telephonie IP complet depuis une interface moderne.
 
 ## Fonctionnalites
 

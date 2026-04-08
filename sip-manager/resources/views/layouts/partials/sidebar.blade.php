@@ -1,7 +1,8 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <h5><span>//</span> SIP<span>.</span>ctrl</h5>
-        <small>Telecom Management</small>
+        <a href="{{ route('dashboard') }}" style="text-decoration:none;">
+            <img src="{{ asset('images/logo.png') }}" alt="Voxa.center" style="height:38px;object-fit:contain;">
+        </a>
     </div>
     <div class="nav-section">
         <a class="nav-item-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">

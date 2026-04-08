@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Installation — SIP.ctrl</title>
+    <title>Installation — Voxa Center</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
@@ -273,7 +273,7 @@
                                     <span style="font-weight:700;font-size:0.9rem;">Base de donnees configuree automatiquement</span>
                                 </div>
                                 <div style="font-size:0.78rem;color:var(--text-secondary);">
-                                    Les deux bases de donnees (SIP Manager et Asterisk Realtime) sont connectees et operationnelles.
+                                    Les deux bases de donnees (Voxa Center et Asterisk Realtime) sont connectees et operationnelles.
                                     La configuration a ete generee automatiquement par le container Docker.
                                 </div>
                             </div>
@@ -409,7 +409,7 @@
                         </div>
                         <h5 style="font-weight:700;">Installation terminee !</h5>
                         <p style="font-size:0.85rem;color:var(--text-secondary);margin:1rem 0;">
-                            SIP.ctrl est pret. La base de donnees est configuree, les migrations executees
+                            Voxa Center est pret. La base de donnees est configuree, les migrations executees
                             et votre compte administrateur cree.
                         </p>
                         <p style="font-size:0.78rem;color:var(--text-secondary);">
@@ -419,7 +419,7 @@
                         <form action="{{ route('install.finalize') }}" method="POST" class="mt-3">
                             @csrf
                             <button type="submit" class="btn btn-accent btn-lg">
-                                <i class="bi bi-rocket-takeoff me-2"></i> Lancer SIP.ctrl
+                                <i class="bi bi-rocket-takeoff me-2"></i> Lancer Voxa Center
                             </button>
                         </form>
                     </div>
@@ -428,7 +428,7 @@
         </div>
 
         <div class="text-center mt-3" style="font-size:0.72rem;color:var(--text-secondary);">
-            SIP.ctrl — Telecom Management
+            Voxa Center — Cloud Telecom Platform
         </div>
     </div>
 </body>
