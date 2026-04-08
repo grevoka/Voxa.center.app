@@ -123,10 +123,15 @@ class SipProvisioningService
                     ]
                 );
 
+                // AOR contact: use proxy if configured (domain may not be DNS-resolvable)
+                $aorContact = $trunk->outbound_proxy
+                    ? "sip:{$trunk->outbound_proxy}:{$trunk->port}"
+                    : "sip:{$trunk->host}:{$trunk->port}";
+
                 DB::connection($this->connection)->table('ps_aors')->updateOrInsert(
                     ['id' => $id],
                     [
-                        'contact'            => "sip:{$trunk->host}:{$trunk->port}",
+                        'contact'            => $aorContact,
                         'qualify_frequency'  => '60',
                         'default_expiration' => $trunk->expiration,
                     ]
@@ -145,12 +150,17 @@ class SipProvisioningService
                     ];
 
                     // Add outbound proxy if configured (e.g. OVH sip-proxy)
+                    // When proxy is set, server_uri/client_uri use the domain (for SIP headers)
+                    // but the actual REGISTER is sent to the proxy IP
                     if ($trunk->outbound_proxy) {
                         $proxy = $trunk->outbound_proxy;
-                        if (!str_starts_with($proxy, 'sip:')) {
-                            $proxy = "sip:{$proxy}";
+                        // Strip sip: prefix if present for normalization
+                        $proxy = preg_replace('#^sip:#', '', $proxy);
+                        // Ensure port is included
+                        if (!str_contains($proxy, ':')) {
+                            $proxy .= ':' . $trunk->port;
                         }
-                        $regData['outbound_proxy'] = $proxy;
+                        $regData['outbound_proxy'] = "sip:{$proxy}";
                     }
 
                     DB::connection($this->connection)->table('ps_registrations')->updateOrInsert(

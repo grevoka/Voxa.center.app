@@ -70,11 +70,19 @@ class Trunk extends Model
 
     public function getServerUri(): string
     {
+        // When outbound_proxy is set, don't include port in server_uri
+        // (the domain may be a virtual SIP domain, not DNS-resolvable)
+        if ($this->outbound_proxy) {
+            return "sip:{$this->host}";
+        }
         return "sip:{$this->host}:{$this->port}";
     }
 
     public function getClientUri(): string
     {
+        if ($this->outbound_proxy) {
+            return "sip:{$this->username}@{$this->host}";
+        }
         return "sip:{$this->username}@{$this->host}:{$this->port}";
     }
 }

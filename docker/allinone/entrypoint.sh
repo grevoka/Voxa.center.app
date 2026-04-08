@@ -493,5 +493,26 @@ mysqladmin -u root -p"${DB_PASS}" shutdown 2>/dev/null || true
 redis-cli shutdown 2>/dev/null || true
 sleep 1
 
+# ── Fix DNS: remove search suffix that causes IPv6 loopback resolution ──
+if grep -q "^search localhost" /etc/resolv.conf 2>/dev/null; then
+    cp /etc/resolv.conf /tmp/resolv.conf.tmp
+    grep -v "^search" /tmp/resolv.conf.tmp > /etc/resolv.conf 2>/dev/null || true
+    echo "[SIP] Fixed resolv.conf (removed search suffix)"
+fi
+
+# ── Add DNS overrides for SIP domains from trunk outbound proxies ──
+php artisan tinker --execute="
+\$trunks = App\Models\Trunk::whereNotNull('outbound_proxy')->where('outbound_proxy','!=','')->get();
+foreach (\$trunks as \$t) {
+    \$proxy = preg_replace('#^sip:#', '', \$t->outbound_proxy);
+    \$proxy = explode(':', \$proxy)[0];
+    \$ip = gethostbyname(\$proxy);
+    if (\$ip !== \$proxy && \$ip !== \$t->host) {
+        @file_put_contents('/etc/hosts', \"\n\$ip \$t->host\", FILE_APPEND);
+        echo \"Added /etc/hosts: \$ip \$t->host\n\";
+    }
+}
+" 2>/dev/null || true
+
 echo "[SIP] All ready — starting all services via supervisor..."
 exec "$@"
