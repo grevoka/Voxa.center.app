@@ -39,7 +39,7 @@
                         <i class="bi bi-check-lg me-1"></i> Sauvegarder
                     </button>
                     @if(session('status') === 'profile-updated')
-                        <span style="font-size:0.8rem;color:#00e5a0;margin-left:0.75rem;"><i class="bi bi-check-circle me-1"></i>Enregistre</span>
+                        <span style="font-size:0.8rem;color:#29b6f6;margin-left:0.75rem;"><i class="bi bi-check-circle me-1"></i>Enregistre</span>
                     @endif
                 </form>
             </div>
@@ -74,7 +74,7 @@
                         <i class="bi bi-key me-1"></i> Changer le mot de passe
                     </button>
                     @if(session('status') === 'password-updated')
-                        <span style="font-size:0.8rem;color:#00e5a0;margin-left:0.75rem;"><i class="bi bi-check-circle me-1"></i>Mot de passe mis a jour</span>
+                        <span style="font-size:0.8rem;color:#29b6f6;margin-left:0.75rem;"><i class="bi bi-check-circle me-1"></i>Mot de passe mis a jour</span>
                     @endif
                 </form>
             </div>

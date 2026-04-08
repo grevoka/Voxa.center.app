@@ -25,7 +25,7 @@
         <div class="col-6 col-lg-3">
             <div class="stat-card">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <div class="stat-icon" style="background:#00e5a020;color:#00e5a0;"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="stat-icon" style="background:#29b6f620;color:#29b6f6;"><i class="bi bi-check-circle-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['answered'] }}</div>
                 <div class="stat-label">Repondus</div>

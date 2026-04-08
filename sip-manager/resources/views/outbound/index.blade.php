@@ -101,7 +101,7 @@
                                     <span class="codec-tag" style="background:rgba(239,68,68,0.15);color:#ef4444;">-{{ $route->prefix_strip }}</span>
                                 @endif
                                 @if($route->prefix_add)
-                                    <span class="codec-tag" style="background:rgba(34,197,94,0.15);color:#22c55e;">+{{ $route->prefix_add }}</span>
+                                    <span class="codec-tag" style="background:rgba(41,182,246,0.15);color:#29b6f6;">+{{ $route->prefix_add }}</span>
                                 @endif
                             @else
                                 <span style="color:var(--text-secondary);">—</span>

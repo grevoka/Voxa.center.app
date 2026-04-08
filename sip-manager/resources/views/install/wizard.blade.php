@@ -120,7 +120,7 @@
             border-radius: 8px;
             padding: 0.5rem 1.5rem;
         }
-        .btn-accent:hover { background: #1ea74e; color: #fff; }
+        .btn-accent:hover { background: #1e96d0; color: #fff; }
         .btn-outline-custom {
             background: transparent;
             border: 1px solid var(--border);

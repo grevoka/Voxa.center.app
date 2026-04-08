@@ -19,7 +19,7 @@
                 <input type="hidden" name="mode" value="whitelist">
                 <div class="stat-card" style="cursor:pointer;padding:1rem;{{ $firewallMode === 'whitelist' ? 'border-color:var(--accent);' : '' }}" onclick="this.closest('form').submit()">
                     <div class="d-flex align-items-center gap-2">
-                        <div style="width:10px;height:10px;border-radius:50%;background:{{ $firewallMode === 'whitelist' ? '#00e5a0' : 'var(--text-secondary)' }};"></div>
+                        <div style="width:10px;height:10px;border-radius:50%;background:{{ $firewallMode === 'whitelist' ? '#29b6f6' : 'var(--text-secondary)' }};"></div>
                         <span style="font-weight:700;font-size:0.85rem;">Whitelist</span>
                     </div>
                     <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.3rem;">Seules les IPs autorisees passent. Plus securise.</div>
@@ -60,7 +60,7 @@
             <div class="data-table">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
                     <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
-                        <i class="bi bi-shield-check me-1" style="color:#00e5a0;"></i> Whitelist
+                        <i class="bi bi-shield-check me-1" style="color:#29b6f6;"></i> Whitelist
                         <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">Seules ces IPs peuvent acceder au SIP</span>
                     </h6>
                 </div>

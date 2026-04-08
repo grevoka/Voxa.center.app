@@ -52,7 +52,7 @@
                     <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-graph-up me-2" style="color:var(--accent);"></i>Trafic des appels — 7 derniers jours</h6>
                     <div class="d-flex align-items-center gap-3" style="font-size:0.72rem;">
                         <span><span style="display:inline-block;width:10px;height:3px;background:#58a6ff;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Entrants</span>
-                        <span><span style="display:inline-block;width:10px;height:3px;background:#00e5a0;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Sortants</span>
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#29b6f6;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Sortants</span>
                         <span><span style="display:inline-block;width:10px;height:3px;background:#f85149;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Manques</span>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
         </div>
         <div class="col-6 col-lg-2">
             <div class="stat-card" style="text-align:center;padding:1rem;">
-                <div style="font-size:1.4rem;font-weight:800;color:#00e5a0;">{{ $todayStats['answered'] }}</div>
+                <div style="font-size:1.4rem;font-weight:800;color:#29b6f6;">{{ $todayStats['answered'] }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Repondus</div>
             </div>
         </div>
@@ -98,7 +98,7 @@
         <div class="col-6 col-lg-2">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 @php $rate = $todayStats['total'] > 0 ? round(($todayStats['answered'] / $todayStats['total']) * 100) : 0; @endphp
-                <div style="font-size:1.4rem;font-weight:800;color:{{ $rate >= 80 ? '#00e5a0' : ($rate >= 50 ? '#d29922' : '#f85149') }};">{{ $rate }}%</div>
+                <div style="font-size:1.4rem;font-weight:800;color:{{ $rate >= 80 ? '#29b6f6' : ($rate >= 50 ? '#d29922' : '#f85149') }};">{{ $rate }}%</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Taux reponse</div>
             </div>
         </div>
@@ -141,7 +141,7 @@
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('moh.index') }}" class="shortcut-card">
-                <div class="shortcut-icon" style="background:#00e5a020;color:#00e5a0;"><i class="bi bi-music-note-beamed"></i></div>
+                <div class="shortcut-icon" style="background:#29b6f620;color:#29b6f6;"><i class="bi bi-music-note-beamed"></i></div>
                 <span>Musiques</span>
             </a>
         </div>
@@ -268,8 +268,8 @@ document.addEventListener('DOMContentLoaded', function() {
     inGrad.addColorStop(1, 'rgba(88,166,255,0)');
 
     const outGrad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
-    outGrad.addColorStop(0, 'rgba(0,229,160,0.2)');
-    outGrad.addColorStop(1, 'rgba(0,229,160,0)');
+    outGrad.addColorStop(0, 'rgba(41,182,246,0.2)');
+    outGrad.addColorStop(1, 'rgba(41,182,246,0)');
 
     const missGrad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
     missGrad.addColorStop(0, 'rgba(248,81,73,0.15)');
@@ -297,13 +297,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Sortants',
                     data: chartData.outbound,
-                    borderColor: '#00e5a0',
+                    borderColor: '#29b6f6',
                     backgroundColor: outGrad,
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 4,
-                    pointBackgroundColor: '#00e5a0',
+                    pointBackgroundColor: '#29b6f6',
                     pointBorderColor: '#0d1117',
                     pointBorderWidth: 2,
                     pointHoverRadius: 6,

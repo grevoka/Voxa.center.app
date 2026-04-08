@@ -95,7 +95,7 @@
             color: var(--accent);
             text-decoration: none;
         }
-        .forgot-link:hover { text-decoration: underline; color: #1ea74e; }
+        .forgot-link:hover { text-decoration: underline; color: #1e96d0; }
         .alert-danger {
             background: rgba(239,68,68,0.1);
             border: 1px solid rgba(239,68,68,0.3);

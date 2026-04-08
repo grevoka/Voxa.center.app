@@ -209,7 +209,7 @@
             {{-- ===== MESSAGERIE VOCALE ===== --}}
             <div class="stat-card doc-section" id="voicemail">
                 <div class="doc-section-header">
-                    <div class="doc-icon" style="background:rgba(0,229,160,0.12); color:#00e5a0;">
+                    <div class="doc-icon" style="background:rgba(41,182,246,0.12); color:#29b6f6;">
                         <i class="bi bi-voicemail"></i>
                     </div>
                     <div>
@@ -220,7 +220,7 @@
 
                 <div class="doc-body">
                     <div class="doc-block">
-                        <h6><i class="bi bi-telephone-fill me-1" style="color:#00e5a0;"></i> Consulter depuis le telephone</h6>
+                        <h6><i class="bi bi-telephone-fill me-1" style="color:#29b6f6;"></i> Consulter depuis le telephone</h6>
                         <p>Vous pouvez ecouter vos messages vocaux directement depuis votre poste.</p>
                         <div class="doc-steps">
                             <div class="doc-step">

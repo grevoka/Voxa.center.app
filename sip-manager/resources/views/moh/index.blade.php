@@ -162,7 +162,7 @@
                     <tbody>
                         @foreach($files as $file)
                             @php $isActive = $currentSource === 'file:' . $file['name']; @endphp
-                            <tr style="{{ $isActive ? 'background:rgba(0,229,160,0.04);' : '' }}">
+                            <tr style="{{ $isActive ? 'background:rgba(41,182,246,0.04);' : '' }}">
                                 <td>
                                     @if($isActive)
                                         <i class="bi bi-check-circle-fill" style="color:var(--accent); font-size:1.1rem;"></i>
@@ -174,7 +174,7 @@
                                     <div style="display:flex; align-items:center; gap:0.5rem;">
                                         <span style="font-weight:600; font-size:0.85rem;">{{ $file['display_name'] }}</span>
                                         @if($isActive)
-                                            <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(0,229,160,0.12); color:#00e5a0; text-transform:uppercase;">Par defaut</span>
+                                            <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(41,182,246,0.12); color:#29b6f6; text-transform:uppercase;">Par defaut</span>
                                         @endif
                                     </div>
                                     <div style="font-size:0.7rem; color:var(--text-secondary); font-family:'JetBrains Mono',monospace;">{{ $file['file'] }}</div>
@@ -213,7 +213,7 @@
                             <div style="font-weight:700; font-size:0.9rem;">
                                 {{ $playlist->display_name ?: $playlist->name }}
                                 @if($playlist->enabled)
-                                    <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(0,229,160,0.12); color:#00e5a0; text-transform:uppercase; margin-left:0.3rem;">Actif</span>
+                                    <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(41,182,246,0.12); color:#29b6f6; text-transform:uppercase; margin-left:0.3rem;">Actif</span>
                                 @endif
                             </div>
                             <div style="display:flex; align-items:center; gap:0.5rem;">

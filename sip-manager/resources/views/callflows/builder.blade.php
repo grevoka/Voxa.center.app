@@ -196,7 +196,7 @@
     }
     .wiz-check-item:hover { border-color: var(--text-secondary); }
     .wiz-check-item.checked {
-        border-color: var(--accent); background: rgba(0,229,160,.1);
+        border-color: var(--accent); background: rgba(41,182,246,.1);
     }
     .wiz-check-item .wiz-check-box {
         width: 18px; height: 18px; border-radius: 4px;
@@ -222,7 +222,7 @@
         background: var(--border);
     }
     .wiz-steps-indicator .step-dot.active { background: var(--accent); }
-    .wiz-steps-indicator .step-dot.done { background: #22c55e; }
+    .wiz-steps-indicator .step-dot.done { background: #29b6f6; }
     .wiz-feat-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: .5rem;
     }
@@ -234,7 +234,7 @@
         transition: border-color .15s, background .15s;
     }
     .wiz-feat-item:hover { border-color: var(--text-secondary); }
-    .wiz-feat-item.checked { border-color: var(--accent); background: rgba(0,229,160,.1); }
+    .wiz-feat-item.checked { border-color: var(--accent); background: rgba(41,182,246,.1); }
     .wiz-feat-item .wiz-feat-icon {
         width: 32px; height: 32px; border-radius: 6px;
         display: flex; align-items: center; justify-content: center;
@@ -266,7 +266,7 @@
         position: relative;
     }
     .wiz-tl-item.mandatory {
-        border-color: var(--accent); background: rgba(0,229,160,.08);
+        border-color: var(--accent); background: rgba(41,182,246,.08);
     }
     .wiz-tl-item.auto {
         border-style: dashed; opacity: .7;
@@ -339,7 +339,7 @@
         cursor: pointer;
         transition: all .15s;
     }
-    .zoom-btn:hover { border-color: #22c55e; color: #22c55e; }
+    .zoom-btn:hover { border-color: #29b6f6; color: #29b6f6; }
 
     /* ── Nodes ── */
     .node {
@@ -356,7 +356,7 @@
     .node:hover { box-shadow: 0 4px 20px rgba(0,0,0,.4); }
     .node.dragging { cursor: grabbing; z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
     .node.selected {
-        border-color: #22c55e;
+        border-color: #29b6f6;
         box-shadow: 0 0 0 3px var(--accent-dim), 0 4px 20px rgba(0,0,0,.3);
     }
 
@@ -407,7 +407,7 @@
         position: absolute;
         width: 14px; height: 14px;
         border-radius: 50%;
-        background: #22c55e;
+        background: #29b6f6;
         border: 2px solid var(--surface-2);
         cursor: crosshair;
         z-index: 6;
@@ -415,7 +415,7 @@
     }
     .port:hover {
         transform: scale(1.6);
-        box-shadow: 0 0 8px rgba(34,197,94,.6);
+        box-shadow: 0 0 8px rgba(41,182,246,.6);
     }
     .port-out {
         bottom: -7px;
@@ -427,15 +427,15 @@
         left: 50%;
         transform: translateX(-50%);
     }
-    .port-out:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(34,197,94,.6); }
-    .port-in:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(34,197,94,.6); }
-    .node:hover .port { box-shadow: 0 0 6px rgba(34,197,94,.3); }
+    .port-out:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(41,182,246,.6); }
+    .port-in:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(41,182,246,.6); }
+    .node:hover .port { box-shadow: 0 0 6px rgba(41,182,246,.3); }
 
     /* ── Start node (special) ── */
     .node-start {
         width: 180px;
-        background: #22c55e;
-        border-color: #22c55e;
+        background: #29b6f6;
+        border-color: #29b6f6;
         border-radius: 99px;
         text-align: center;
         cursor: default;
@@ -451,14 +451,14 @@
     }
     .node-start .port-out {
         background: #000;
-        border-color: #22c55e;
+        border-color: #29b6f6;
     }
 
     /* ── Node colors ── */
     .nc-answer .node-header   { background: #58a6ff15; }
     .nc-answer .node-icon     { background: #58a6ff25; color: #58a6ff; }
-    .nc-ring .node-header     { background: #00e5a015; }
-    .nc-ring .node-icon       { background: #00e5a025; color: #00e5a0; }
+    .nc-ring .node-header     { background: #29b6f615; }
+    .nc-ring .node-icon       { background: #29b6f625; color: #29b6f6; }
     .nc-queue .node-header    { background: #bc8cff15; }
     .nc-queue .node-icon      { background: #bc8cff25; color: #bc8cff; }
     .nc-voicemail .node-header { background: #d2992215; }
@@ -499,7 +499,7 @@
         font-weight: 500;
         color: var(--text-secondary);
     }
-    .pal-item:hover { border-color: #22c55e; color: #22c55e; background: var(--accent-dim); }
+    .pal-item:hover { border-color: #29b6f6; color: #29b6f6; background: var(--accent-dim); }
     .pal-icon {
         width: 22px; height: 22px;
         border-radius: 5px;
@@ -555,7 +555,7 @@
     .member-item .ext-badge {
         font-family: 'JetBrains Mono', monospace;
         font-weight: 600;
-        color: #22c55e;
+        color: #29b6f6;
         font-size: 0.72rem;
     }
 
@@ -585,7 +585,7 @@
             <h5 style="font-weight:700; margin:0;">{{ $callflow->name }}</h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">
                 {{ $callflow->description ?: 'Scenario d\'appel' }}
-                — <span style="color:{{ $callflow->enabled ? '#22c55e' : '#f85149' }};">{{ $callflow->enabled ? 'Actif' : 'Inactif' }}</span>
+                — <span style="color:{{ $callflow->enabled ? '#29b6f6' : '#f85149' }};">{{ $callflow->enabled ? 'Actif' : 'Inactif' }}</span>
             </p>
         </div>
         <div class="d-flex gap-2">
@@ -596,7 +596,7 @@
     </div>
     <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
         <div class="edit-hub-card" onclick="openFullscreen()">
-            <i class="bi bi-bounding-box" style="font-size:2rem; color:#22c55e;"></i>
+            <i class="bi bi-bounding-box" style="font-size:2rem; color:#29b6f6;"></i>
             <h6>Cartographie</h6>
             <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
         </div>
@@ -640,7 +640,7 @@
             <p>Assistant pas-a-pas pour creer votre scenario</p>
         </div>
         <div class="edit-hub-card" onclick="openFullscreen()">
-            <i class="bi bi-bounding-box" style="font-size:2rem; color:#22c55e;"></i>
+            <i class="bi bi-bounding-box" style="font-size:2rem; color:#29b6f6;"></i>
             <h6>Cartographie</h6>
             <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
         </div>
@@ -680,7 +680,7 @@
                         <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File
                     </div>
                     <div class="pal-item" onclick="addNode('ring')">
-                        <div class="pal-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div> Sonnerie
+                        <div class="pal-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div> Sonnerie
                     </div>
                     <div class="pal-item" onclick="addNode('voicemail')">
                         <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie
@@ -830,7 +830,7 @@
                     <i class="bi bi-chevron-down ms-auto" id="dpChev" style="font-size:.65rem;"></i>
                 </div>
                 <div id="dpWrap" style="display:none;">
-                    <pre id="dpCode" style="padding:.75rem; margin:0; font-family:'JetBrains Mono',monospace; font-size:.65rem; color:#22c55e; overflow:auto; max-height:220px; background:var(--surface);"></pre>
+                    <pre id="dpCode" style="padding:.75rem; margin:0; font-family:'JetBrains Mono',monospace; font-size:.65rem; color:#29b6f6; overflow:auto; max-height:220px; background:var(--surface);"></pre>
                 </div>
             </div>
         </div>
@@ -865,7 +865,7 @@
                     <div class="pal-grid">
                         <div class="pal-item" onclick="addNode('answer')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre</div>
                         <div class="pal-item" onclick="addNode('queue')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File</div>
-                        <div class="pal-item" onclick="addNode('ring')"><div class="pal-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div> Sonnerie</div>
+                        <div class="pal-item" onclick="addNode('ring')"><div class="pal-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div> Sonnerie</div>
                         <div class="pal-item" onclick="addNode('voicemail')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie</div>
                         <div class="pal-item" onclick="addNode('playback')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Audio</div>
                         <div class="pal-item" onclick="addNode('announcement')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce</div>
@@ -1013,7 +1013,7 @@
                                 <div class="wiz-feat-text"><h6>File d'attente</h6><p>Distribue l'appel aux postes</p></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('ring')">
-                                <div class="wiz-feat-icon" style="background:#00e5a025;color:#00e5a0;"><i class="bi bi-bell"></i></div>
+                                <div class="wiz-feat-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div>
                                 <div class="wiz-feat-text"><h6>Sonnerie directe</h6><p>Sonne un poste sans file</p></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('moh')">
@@ -1721,7 +1721,7 @@ function drawCurve(svg, a, b, temp){
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d', d);
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', temp ? '#f0883e' : '#22c55e');
+    path.setAttribute('stroke', temp ? '#f0883e' : '#29b6f6');
     path.setAttribute('stroke-width', temp ? '3' : '2');
     path.setAttribute('stroke-opacity', temp ? '0.6' : '0.8');
     svg.appendChild(path);
@@ -2152,11 +2152,11 @@ function cfgF(label, input){
 }
 
 function colorBg(type){
-    const m = {answer:'#58a6ff25',ring:'#00e5a025',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525',forward:'#58a6ff25'};
+    const m = {answer:'#58a6ff25',ring:'#29b6f625',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525',forward:'#58a6ff25'};
     return m[type]||'#58a6ff25';
 }
 function colorFg(type){
-    const m = {answer:'#58a6ff',ring:'#00e5a0',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715',forward:'#58a6ff'};
+    const m = {answer:'#58a6ff',ring:'#29b6f6',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715',forward:'#58a6ff'};
     return m[type]||'#58a6ff';
 }
 

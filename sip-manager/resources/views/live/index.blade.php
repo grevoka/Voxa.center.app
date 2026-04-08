@@ -35,7 +35,7 @@
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card text-center" style="padding:1rem;">
-                <div id="statInbound" style="font-size:1.8rem; font-weight:800; color:#00e5a0;">—</div>
+                <div id="statInbound" style="font-size:1.8rem; font-weight:800; color:#29b6f6;">—</div>
                 <div style="font-size:0.75rem; color:var(--text-secondary);">Entrants</div>
             </div>
         </div>
@@ -96,13 +96,13 @@
     <style>
         .live-dot {
             display: inline-block; width: 8px; height: 8px;
-            border-radius: 50%; background: #00e5a0;
+            border-radius: 50%; background: #29b6f6;
             animation: livePulse 1.5s ease-in-out infinite;
             margin-right: 4px;
         }
         @keyframes livePulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,229,160,0.5); }
-            50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(0,229,160,0); }
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(41,182,246,0.5); }
+            50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(41,182,246,0); }
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .spin { display: inline-block; animation: spin 1s linear infinite; }
@@ -121,7 +121,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 0.9rem; flex-shrink: 0;
         }
-        .call-dir.inbound { background: rgba(0,229,160,0.12); color: #00e5a0; }
+        .call-dir.inbound { background: rgba(41,182,246,0.12); color: #29b6f6; }
         .call-dir.outbound { background: rgba(88,166,255,0.12); color: #58a6ff; }
         .call-dir.internal { background: rgba(188,140,255,0.12); color: #bc8cff; }
 
@@ -130,7 +130,7 @@
         .call-detail { font-size: 0.75rem; color: var(--text-secondary); }
         .call-caller-badge {
             font-size: 0.6rem; font-weight: 600; padding: 1px 6px; border-radius: 4px;
-            background: rgba(0,229,160,0.12); color: #00e5a0; text-transform: uppercase;
+            background: rgba(41,182,246,0.12); color: #29b6f6; text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
@@ -138,7 +138,7 @@
             padding: 3px 10px; border-radius: 6px;
             font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
         }
-        .call-state.up { background: rgba(0,229,160,0.12); color: #00e5a0; }
+        .call-state.up { background: rgba(41,182,246,0.12); color: #29b6f6; }
         .call-state.ring, .call-state.ringing { background: rgba(210,153,34,0.12); color: #d29922; }
         .call-state.dialing { background: rgba(88,166,255,0.12); color: #58a6ff; }
         .call-state.down { background: rgba(248,81,73,0.12); color: #f85149; }
@@ -169,11 +169,11 @@
             border: 1px solid var(--border);
             transition: all .15s;
         }
-        .ep-card.online { border-color: rgba(0,229,160,0.3); }
+        .ep-card.online { border-color: rgba(41,182,246,0.3); }
         .ep-card .ep-dot {
             width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
         }
-        .ep-card.online .ep-dot { background: #00e5a0; box-shadow: 0 0 6px rgba(0,229,160,0.4); }
+        .ep-card.online .ep-dot { background: #29b6f6; box-shadow: 0 0 6px rgba(41,182,246,0.4); }
         .ep-card.offline .ep-dot { background: var(--text-secondary); opacity: 0.3; }
         .ep-ext { font-weight: 700; font-size: 0.85rem; }
         .ep-name { font-size: 0.72rem; color: var(--text-secondary); }
@@ -306,7 +306,7 @@
             let h = '';
             regs.forEach(r => {
                 const isUp = r.status === 'registered' || r.status === 'rejected' === false;
-                const color = r.status === 'registered' ? '#00e5a0' : '#f85149';
+                const color = r.status === 'registered' ? '#29b6f6' : '#f85149';
                 h += `<div class="trunk-row">
                     <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;"></span>
                     <span style="font-weight:600; font-size:0.85rem; min-width:150px;">${r.name}</span>
