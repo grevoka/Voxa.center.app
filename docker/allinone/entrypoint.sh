@@ -211,6 +211,10 @@ sed -i "s|external_media_address = .*|external_media_address = ${PUBLIC_IP}|g" /
 sed -i "s|external_signaling_address = .*|external_signaling_address = ${PUBLIC_IP}|g" /etc/asterisk/pjsip.conf
 sed -i "s|__PUBLIC_IP__|${PUBLIC_IP}|g; s|__LOCAL_NET__|${LOCAL_NET}|g" /etc/asterisk/pjsip.conf
 
+# ── Set container hostname for SIP headers ──
+echo "${PUBLIC_IP}" > /etc/hostname
+hostname "${PUBLIC_IP}" 2>/dev/null || true
+
 # Fix permissions (root car Docker, pas besoin de drop privileges)
 chown -R root:root /etc/asterisk /var/lib/asterisk /var/log/asterisk \
                    /var/spool/asterisk /var/run/asterisk
