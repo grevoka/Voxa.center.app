@@ -31,7 +31,7 @@
     <main class="main-content" style="{{ session('impersonate_admin_id') ? 'padding-top:3.5rem;' : '' }}">
         @include('layouts.partials.topbar')
 
-        <div class="content-area">
+        <div class="page-content">
             @if(session('success'))
                 <div class="alert alert-success d-flex align-items-center mb-3" style="border-radius:10px;font-size:0.85rem;">
                     <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
