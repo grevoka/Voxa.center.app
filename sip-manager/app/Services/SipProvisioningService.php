@@ -35,9 +35,12 @@ class SipProvisioningService
                         ? "\"{$line->name}\" <{$line->caller_id}>"
                         : $line->name,
                     'dtmf_mode'       => $isWebRTC ? 'auto' : 'rfc4733',
-                    'media_encryption' => ($line->protocol === 'SIP/TLS' || $isWebRTC)
-                        ? 'sdes' : 'no',
-                    'ice_support'     => $isWebRTC ? 'yes' : 'no',
+                    'media_encryption' => $isWebRTC ? 'dtls'
+                        : ($line->protocol === 'SIP/TLS' ? 'sdes' : 'no'),
+                    'ice_support'              => $isWebRTC ? 'yes' : 'no',
+                    'dtls_auto_generate_cert'  => $isWebRTC ? 'yes' : null,
+                    'dtls_verify'              => $isWebRTC ? 'no' : null,
+                    'dtls_setup'               => $isWebRTC ? 'actpass' : null,
                     'from_domain'     => \App\Models\SipSetting::get('sip_server', request()?->getHost() ?? ''),
                 ];
 
