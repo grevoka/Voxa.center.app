@@ -122,10 +122,14 @@ function phoneToggleConnect() {
     }
     phoneSetStatus('connecting', 'Connexion...');
     fetch('{{ route("operator.phone.config") }}', {
-        headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'},
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
         credentials: 'same-origin'
     })
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(cfg => {
             var socket = new JsSIP.WebSocketInterface(cfg.ws_uri);
             _phone = new JsSIP.UA({
@@ -144,7 +148,7 @@ function phoneToggleConnect() {
             });
             _phone.start();
         })
-        .catch(function() { phoneSetStatus('offline', 'Erreur config'); });
+        .catch(function(e) { console.error('Softphone config error:', e); phoneSetStatus('offline', 'Erreur: ' + e.message); });
 }
 
 function phoneCall() {
