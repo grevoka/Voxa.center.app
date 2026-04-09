@@ -6,6 +6,14 @@
         <h4>@yield('page-title', 'Tableau de bord')</h4>
     </div>
     <div class="d-flex align-items-center gap-2">
+        @if(session('impersonate_admin_id'))
+        <form action="{{ route('admin.impersonate.stop') }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" style="background:linear-gradient(135deg,#29b6f6,#ab47bc);border:none;color:#fff;border-radius:6px;padding:0.3rem 0.75rem;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
+                <i class="bi bi-arrow-return-left"></i> Revenir admin
+            </button>
+        </form>
+        @endif
         <button class="btn-icon" title="Changer le theme" onclick="toggleTheme()" id="themeToggle">
             <i class="bi bi-moon-fill" id="themeIcon"></i>
         </button>

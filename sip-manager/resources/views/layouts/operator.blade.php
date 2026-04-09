@@ -13,22 +13,9 @@
     @stack('styles')
 </head>
 <body>
-    @if(session('impersonate_admin_id'))
-    <div style="background:linear-gradient(135deg,#29b6f6,#ab47bc);color:#fff;text-align:center;padding:0.45rem;font-size:0.82rem;font-weight:600;position:fixed;top:0;left:0;right:0;z-index:9999;">
-        <i class="bi bi-person-badge me-1"></i>
-        Mode impersonation — {{ auth()->user()->name }} ({{ auth()->user()->sipLine?->extension }})
-        <form action="{{ route('admin.impersonate.stop') }}" method="POST" class="d-inline ms-2">
-            @csrf
-            <button type="submit" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:4px;padding:0.15rem 0.6rem;font-size:0.75rem;font-weight:700;cursor:pointer;">
-                <i class="bi bi-arrow-return-left me-1"></i>Revenir admin
-            </button>
-        </form>
-    </div>
-    @endif
-
     @include('layouts.partials.sidebar-operator')
 
-    <main class="main-content" style="{{ session('impersonate_admin_id') ? 'padding-top:3.5rem;' : '' }}">
+    <main class="main-content">
         @include('layouts.partials.topbar')
 
         <div class="page-content">
