@@ -26,6 +26,10 @@
                     <i class="bi bi-diagram-3-fill"></i> Trunks SIP
                     <span class="nav-badge">{{ \App\Models\Trunk::count() }}</span>
                 </a>
+                <a class="nav-item-custom {{ request()->routeIs('operators.*') ? 'active' : '' }}" href="{{ route('operators.index') }}">
+                    <i class="bi bi-headset"></i> Operateurs
+                    <span class="nav-badge">{{ \App\Models\User::where('role', 'operator')->count() }}</span>
+                </a>
             </div>
         </div>
 

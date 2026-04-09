@@ -28,6 +28,11 @@ class SipLine extends Model
         return $this->belongsTo(Trunk::class, 'outbound_trunk_id');
     }
 
+    public function operator(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(User::class, 'sip_line_id');
+    }
+
     protected $hidden = ['secret'];
 
     public function setSecretAttribute($value): void
