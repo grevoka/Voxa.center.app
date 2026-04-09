@@ -200,8 +200,18 @@ if [ ! -f "$AST_MARKER" ]; then
     sed -i "s|__DB_USER__|${DB_USER}|g; s|__DB_PASS__|${DB_PASS}|g" /etc/asterisk/res_odbc.conf
     sed -i "s|__AMI_USER__|${AMI_USER}|g; s|__AMI_PASS__|${AMI_PASS}|g" /etc/asterisk/manager.conf
     sed -i "s|__RTP_START__|${RTP_START}|g; s|__RTP_END__|${RTP_END}|g" /etc/asterisk/rtp.conf
-    # Add ICE host candidate with public IP for WebRTC
-    grep -q "ice_host_candidate" /etc/asterisk/rtp.conf || echo "ice_host_candidate=${PUBLIC_IP}" >> /etc/asterisk/rtp.conf
+    # Add ICE config for WebRTC: only advertise public IP, blacklist private ranges
+    if ! grep -q "ice_blacklist" /etc/asterisk/rtp.conf; then
+        cat >> /etc/asterisk/rtp.conf << ICEEOF
+ice_host_candidate=${PUBLIC_IP}:10000
+ice_blacklist=172.16.0.0/12
+ice_blacklist=10.0.0.0/8
+ice_blacklist=192.168.0.0/16
+ice_blacklist=127.0.0.0/8
+ice_blacklist=fe80::/10
+ice_blacklist=::1/128
+ICEEOF
+    fi
     touch "$AST_MARKER"
 else
     echo "[Voxa] Asterisk config already configured"
