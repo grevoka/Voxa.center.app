@@ -25,7 +25,11 @@ class WebPhoneController extends Controller
 
     private function getWsUri(): string
     {
-        $scheme = request()->isSecure() ? 'wss' : 'ws';
+        // Behind reverse proxy, check X-Forwarded-Proto header
+        $isSecure = request()->isSecure()
+            || request()->header('X-Forwarded-Proto') === 'https'
+            || str_starts_with(config('app.url', ''), 'https');
+        $scheme = $isSecure ? 'wss' : 'ws';
         $host = request()->getHost();
         return "{$scheme}://{$host}/ws";
     }
