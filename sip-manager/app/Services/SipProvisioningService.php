@@ -38,6 +38,7 @@ class SipProvisioningService
                     'media_encryption' => ($line->protocol === 'SIP/TLS' || $isWebRTC)
                         ? 'sdes' : 'no',
                     'ice_support'     => $isWebRTC ? 'yes' : 'no',
+                    'from_domain'     => \App\Models\SipSetting::get('sip_server', request()?->getHost() ?? ''),
                 ];
 
                 DB::connection($this->connection)->table('ps_endpoints')->updateOrInsert(
