@@ -21,7 +21,7 @@ class SipProvisioningService
                 $isWebRTC = $line->protocol === 'WebRTC';
 
                 $endpointData = [
-                    'transport'       => $isWebRTC ? 'transport-wss' : $transportKey,
+                    'transport'       => $isWebRTC ? '' : $transportKey,
                     'aors'            => $id,
                     'auth'            => $id,
                     'context'         => $line->context,

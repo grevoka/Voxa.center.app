@@ -87,6 +87,7 @@
 </style>
 
 <script>
+JsSIP.debug.enable('JsSIP:*');
 var _phone = null, _session = null, _timer = null, _seconds = 0;
 
 function phoneSetStatus(status, text) {
