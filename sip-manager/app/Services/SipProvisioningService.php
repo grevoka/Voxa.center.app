@@ -18,27 +18,31 @@ class SipProvisioningService
 
         try {
             DB::connection($this->connection)->transaction(function () use ($line, $id, $transportKey) {
+                $isWebRTC = $line->protocol === 'WebRTC';
+
+                $endpointData = [
+                    'transport'       => $isWebRTC ? 'transport-wss' : $transportKey,
+                    'aors'            => $id,
+                    'auth'            => $id,
+                    'context'         => $line->context,
+                    'disallow'        => 'all',
+                    'allow'           => $isWebRTC ? 'opus,ulaw,alaw' : $line->getCodecsList(),
+                    'direct_media'    => 'no',
+                    'force_rport'     => 'yes',
+                    'rewrite_contact' => 'yes',
+                    'rtp_symmetric'   => 'yes',
+                    'callerid'        => $line->caller_id
+                        ? "\"{$line->name}\" <{$line->caller_id}>"
+                        : $line->name,
+                    'dtmf_mode'       => $isWebRTC ? 'auto' : 'rfc4733',
+                    'media_encryption' => ($line->protocol === 'SIP/TLS' || $isWebRTC)
+                        ? 'sdes' : 'no',
+                    'ice_support'     => $isWebRTC ? 'yes' : 'no',
+                ];
+
                 DB::connection($this->connection)->table('ps_endpoints')->updateOrInsert(
                     ['id' => $id],
-                    [
-                        'transport'       => $transportKey,
-                        'aors'            => $id,
-                        'auth'            => $id,
-                        'context'         => $line->context,
-                        'disallow'        => 'all',
-                        'allow'           => $line->getCodecsList(),
-                        'direct_media'    => 'no',
-                        'force_rport'     => 'yes',
-                        'rewrite_contact' => 'yes',
-                        'rtp_symmetric'   => 'yes',
-                        'callerid'        => $line->caller_id
-                            ? "\"{$line->name}\" <{$line->caller_id}>"
-                            : $line->name,
-                        'dtmf_mode'       => 'rfc4733',
-                        'media_encryption' => ($line->protocol === 'SIP/TLS' || $line->protocol === 'WebRTC')
-                            ? 'sdes' : 'no',
-                        'ice_support'     => $line->protocol === 'WebRTC' ? 'yes' : 'no',
-                    ]
+                    $endpointData
                 );
 
                 DB::connection($this->connection)->table('ps_auths')->updateOrInsert(

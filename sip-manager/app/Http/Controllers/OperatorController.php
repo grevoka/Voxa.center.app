@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\SipLine;
 use App\Models\ActivityLog;
+use App\Services\SipProvisioningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -41,6 +42,13 @@ class OperatorController extends Controller
             'sip_line_id' => $data['sip_line_id'],
             'email_verified_at' => now(),
         ]);
+
+        // Reprovision line with WebRTC support for softphone
+        $line = SipLine::find($data['sip_line_id']);
+        if ($line) {
+            $line->update(['protocol' => 'WebRTC']);
+            app(SipProvisioningService::class)->provisionLine($line);
+        }
 
         ActivityLog::log('Operateur cree', $data['name'], 'success');
 

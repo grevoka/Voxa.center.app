@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/voicemail', [OperatorDashboardController::class, 'voicemail'])->name('voicemail');
         Route::get('/voicemail/{folder}/{file}/play', [OperatorDashboardController::class, 'playVoicemail'])->name('voicemail.play');
         Route::delete('/voicemail/{folder}/{file}', [OperatorDashboardController::class, 'destroyVoicemail'])->name('voicemail.destroy');
+        Route::get('/phone/config', [\App\Http\Controllers\WebPhoneController::class, 'config'])->name('phone.config');
     });
 
     // ── Impersonation ──

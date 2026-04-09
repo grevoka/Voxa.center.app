@@ -33,6 +33,11 @@
             <i class="bi bi-question-circle"></i> Aide
         </a>
     </div>
+
+    {{-- Softphone WebRTC --}}
+    @if(auth()->user()->sipLine)
+        @include('operator.partials.softphone')
+    @endif
     <div style="padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); margin-top:auto;">
         <div class="d-flex align-items-center gap-2" style="padding:0.35rem 0.75rem;">
             <div style="width:28px;height:28px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;">
