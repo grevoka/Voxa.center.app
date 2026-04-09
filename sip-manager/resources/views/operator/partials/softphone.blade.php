@@ -113,8 +113,11 @@ function phoneToggleConnect() {
         return;
     }
     phoneSetStatus('connecting', 'Connexion...');
-    fetch('{{ route("operator.phone.config") }}')
-        .then(r => r.json())
+    fetch('{{ route("operator.phone.config") }}', {
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'},
+        credentials: 'same-origin'
+    })
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(cfg => {
             var socket = new JsSIP.WebSocketInterface(cfg.ws_uri);
             _phone = new JsSIP.UA({
