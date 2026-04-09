@@ -86,7 +86,6 @@
 .dp-btn small { font-size: 0.45rem; color: var(--text-secondary); font-weight: 400; letter-spacing: 1px; }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/jssip@3.10.1/dist/jssip.min.js"></script>
 <script>
 var _phone = null, _session = null, _timer = null, _seconds = 0;
 
