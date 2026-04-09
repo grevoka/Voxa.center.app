@@ -34,9 +34,16 @@
         </a>
     </div>
 
-    {{-- Softphone WebRTC --}}
+    {{-- Softphone toggle button --}}
     @if(auth()->user()->sipLine)
-        @include('operator.partials.softphone')
+    <div style="padding:0.5rem 0.75rem;">
+        <button onclick="document.getElementById('softphonePopup').style.display=document.getElementById('softphonePopup').style.display==='none'?'block':'none'"
+                class="btn-icon" style="width:100%;padding:0.5rem;font-size:0.78rem;display:flex;align-items:center;justify-content:center;gap:0.4rem;border-radius:8px;">
+            <i class="bi bi-telephone-fill" style="color:var(--accent);"></i>
+            <span>Telephone</span>
+            <span id="phoneDotStatus" style="width:7px;height:7px;border-radius:50%;background:var(--text-secondary);"></span>
+        </button>
+    </div>
     @endif
     <div style="padding: 0.5rem 0.75rem; border-top: 1px solid var(--border); margin-top:auto;">
         <div class="d-flex align-items-center gap-2" style="padding:0.35rem 0.75rem;">

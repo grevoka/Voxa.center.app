@@ -93,9 +93,17 @@ var _phone = null, _session = null, _timer = null, _seconds = 0;
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
     var txt = document.getElementById('phoneStatusText');
+    var sidebarDot = document.getElementById('phoneDotStatus');
     var colors = {offline:'var(--text-secondary)', connecting:'var(--warning)', online:'var(--success)', busy:'var(--danger)'};
-    dot.style.background = colors[status] || colors.offline;
+    var c = colors[status] || colors.offline;
+    dot.style.background = c;
     txt.textContent = text;
+    if (sidebarDot) sidebarDot.style.background = c;
+    // Auto-show popup on incoming call
+    if (status === 'busy') {
+        var popup = document.getElementById('softphonePopup');
+        if (popup) popup.style.display = 'block';
+    }
 }
 
 function phoneDial(d) {

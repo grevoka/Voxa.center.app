@@ -33,7 +33,42 @@
         </div>
     </main>
 
+    {{-- Softphone popup --}}
+    @if(auth()->user()->sipLine)
+    <div id="softphonePopup" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9000;width:280px;background:var(--surface-2);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);overflow:hidden;cursor:default;">
+        <div id="softphoneHeader" style="background:var(--accent-gradient);padding:0.5rem 0.75rem;cursor:move;display:flex;align-items:center;justify-content:between;user-select:none;">
+            <div style="flex:1;color:#fff;font-size:0.78rem;font-weight:600;"><i class="bi bi-telephone-fill me-1"></i>Telephone</div>
+            <button onclick="document.getElementById('softphonePopup').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.85rem;padding:0;"><i class="bi bi-dash-lg"></i></button>
+        </div>
+        @include('operator.partials.softphone')
+    </div>
+    @endif
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+    {{-- Draggable popup --}}
+    <script>
+    (function() {
+        var el = document.getElementById('softphonePopup');
+        var header = document.getElementById('softphoneHeader');
+        if (!el || !header) return;
+        var dx=0, dy=0, mx=0, my=0;
+        header.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            mx = e.clientX; my = e.clientY;
+            document.onmouseup = function() { document.onmouseup = null; document.onmousemove = null; };
+            document.onmousemove = function(e) {
+                dx = mx - e.clientX; dy = my - e.clientY;
+                mx = e.clientX; my = e.clientY;
+                el.style.top = (el.offsetTop - dy) + 'px';
+                el.style.left = (el.offsetLeft - dx) + 'px';
+                el.style.bottom = 'auto';
+                el.style.right = 'auto';
+            };
+        });
+    })();
+    </script>
+
     @stack('scripts')
 </body>
 </html>
