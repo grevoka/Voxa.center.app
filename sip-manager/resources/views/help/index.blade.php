@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->user()?->isOperator() || session('impersonate_admin_id') ? 'layouts.operator' : 'layouts.app')
 
 @section('title', 'Documentation')
 @section('page-title', 'Documentation utilisateur')
