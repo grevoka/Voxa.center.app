@@ -229,13 +229,19 @@ function phoneBindSession(session, number) {
 
     session.on('peerconnection', function(e) {
         e.peerconnection.ontrack = function(ev) {
-            document.getElementById('phoneRemoteAudio').srcObject = ev.streams[0];
+            var audio = document.getElementById('phoneRemoteAudio');
+            audio.srcObject = ev.streams[0];
+            audio.play().catch(function(err) { console.warn('Audio play blocked:', err); });
             startVuMeter(ev.streams[0], 'vuRemote');
         };
         // Monitor local audio
         navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
             startVuMeter(stream, 'vuLocal');
         }).catch(function() {});
+        // Log ICE state
+        e.peerconnection.oniceconnectionstatechange = function() {
+            console.log('ICE state:', e.peerconnection.iceConnectionState);
+        };
     });
 
     session.on('ended', function() { phoneResetUI(); stopVuMeter(); });
