@@ -13,13 +13,28 @@ class WebPhoneController extends Controller
             return response()->json(['error' => 'No line assigned'], 404);
         }
 
+        // Generate TURN credentials (time-limited)
+        $turnSecret = env('TURN_SECRET', 'voxacenterturn2026');
+        $turnTtl = 86400;
+        $turnUser = time() + $turnTtl . ':' . $line->extension;
+        $turnPass = base64_encode(hash_hmac('sha1', $turnUser, $turnSecret, true));
+        $host = request()->getHost();
+
         return response()->json([
             'extension'  => $line->extension,
             'password'   => $line->decrypted_secret,
             'name'       => $line->name,
             'caller_id'  => $line->caller_id ?? $line->extension,
             'ws_uri'     => $this->getWsUri(),
-            'realm'      => request()->getHost(),
+            'realm'      => $host,
+            'ice_servers' => [
+                ['urls' => 'stun:stun.l.google.com:19302'],
+                [
+                    'urls' => "turn:{$host}:3478",
+                    'username' => $turnUser,
+                    'credential' => $turnPass,
+                ],
+            ],
         ]);
     }
 

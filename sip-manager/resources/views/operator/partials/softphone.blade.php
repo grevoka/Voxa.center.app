@@ -58,11 +58,24 @@
         </div>
     </div>
 
+    {{-- VU-mètre --}}
+    <div id="phoneVuMeter" style="display:none;margin-top:0.4rem;">
+        <div class="d-flex align-items-center gap-2" style="font-size:0.65rem;color:var(--text-secondary);">
+            <i class="bi bi-mic" style="font-size:0.7rem;"></i>
+            <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+                <div id="vuLocal" style="width:0%;height:100%;background:var(--accent);border-radius:2px;transition:width 0.1s;"></div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-1" style="font-size:0.65rem;color:var(--text-secondary);">
+            <i class="bi bi-volume-up" style="font-size:0.7rem;"></i>
+            <div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+                <div id="vuRemote" style="width:0%;height:100%;background:var(--success);border-radius:2px;transition:width 0.1s;"></div>
+            </div>
+        </div>
+    </div>
+
     {{-- Audio --}}
     <audio id="phoneRemoteAudio" autoplay></audio>
-    <audio id="phoneRingAudio" loop preload="auto">
-        <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
-    </audio>
 </div>
 
 <style>
@@ -88,7 +101,7 @@
 
 <script>
 JsSIP.debug.enable('JsSIP:*');
-var _phone = null, _session = null, _timer = null, _seconds = 0;
+var _phone = null, _session = null, _timer = null, _seconds = 0, _iceServers = null;
 
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
@@ -131,6 +144,7 @@ function phoneToggleConnect() {
     })
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(cfg => {
+            _iceServers = cfg.ice_servers || [{urls: 'stun:stun.l.google.com:19302'}];
             var socket = new JsSIP.WebSocketInterface(cfg.ws_uri);
             _phone = new JsSIP.UA({
                 sockets: [socket],
@@ -158,7 +172,7 @@ function phoneCall() {
 
     var opts = {
         mediaConstraints: {audio: true, video: false},
-        pcConfig: {iceServers: [{urls: 'stun:stun.l.google.com:19302'}]}
+        pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]}
     };
     _session = _phone.call('sip:' + num + '@' + '{{ request()->getHost() }}', opts);
     phoneBindSession(_session, num);
@@ -173,7 +187,7 @@ function phoneAnswer() {
     if (_session) {
         _session.answer({
             mediaConstraints: {audio: true, video: false},
-            pcConfig: {iceServers: [{urls: 'stun:stun.l.google.com:19302'}]}
+            pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]}
         });
     }
     document.getElementById('phoneIncoming').style.display = 'none';
@@ -216,11 +230,44 @@ function phoneBindSession(session, number) {
     session.on('peerconnection', function(e) {
         e.peerconnection.ontrack = function(ev) {
             document.getElementById('phoneRemoteAudio').srcObject = ev.streams[0];
+            startVuMeter(ev.streams[0], 'vuRemote');
         };
+        // Monitor local audio
+        navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
+            startVuMeter(stream, 'vuLocal');
+        }).catch(function() {});
     });
 
-    session.on('ended', function() { phoneResetUI(); });
-    session.on('failed', function() { phoneResetUI(); });
+    session.on('ended', function() { phoneResetUI(); stopVuMeter(); });
+    session.on('failed', function() { phoneResetUI(); stopVuMeter(); });
+}
+
+var _vuIntervals = [];
+function startVuMeter(stream, barId) {
+    try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        var source = ctx.createMediaStreamSource(stream);
+        source.connect(analyser);
+        var data = new Uint8Array(analyser.frequencyBinCount);
+        document.getElementById('phoneVuMeter').style.display = 'block';
+        var iv = setInterval(function() {
+            analyser.getByteFrequencyData(data);
+            var avg = data.reduce(function(a,b){return a+b;}, 0) / data.length;
+            var pct = Math.min(100, Math.round(avg * 1.5));
+            var bar = document.getElementById(barId);
+            if (bar) bar.style.width = pct + '%';
+        }, 100);
+        _vuIntervals.push({iv: iv, ctx: ctx});
+    } catch(e) {}
+}
+function stopVuMeter() {
+    _vuIntervals.forEach(function(v) { clearInterval(v.iv); v.ctx.close(); });
+    _vuIntervals = [];
+    document.getElementById('phoneVuMeter').style.display = 'none';
+    var vl = document.getElementById('vuLocal'); if(vl) vl.style.width = '0%';
+    var vr = document.getElementById('vuRemote'); if(vr) vr.style.width = '0%';
 }
 
 function phoneResetUI() {
