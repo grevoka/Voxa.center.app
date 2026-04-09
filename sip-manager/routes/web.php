@@ -58,8 +58,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ── Impersonation ──
-    Route::post('impersonate/{user}', [ImpersonateController::class, 'start'])->name('admin.impersonate')->middleware('admin');
     Route::post('impersonate/stop', [ImpersonateController::class, 'stop'])->name('admin.impersonate.stop');
+    Route::post('impersonate/{user}', [ImpersonateController::class, 'start'])->name('admin.impersonate')->middleware('admin');
 
     // ══════════════════════════════════════
     // ── Admin-only routes ──
