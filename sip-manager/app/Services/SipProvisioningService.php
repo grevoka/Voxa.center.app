@@ -60,7 +60,7 @@ class SipProvisioningService
                         'max_contacts'       => $line->max_contacts,
                         'remove_existing'    => 'yes',
                         'default_expiration' => 3600,
-                        'qualify_frequency'  => '60',
+                        'qualify_frequency'  => $isWebRTC ? '0' : '60',
                     ]
                 );
             });
