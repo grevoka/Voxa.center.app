@@ -18,6 +18,8 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\MohController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\FirewallController;
+use App\Http\Controllers\RecordingController;
+use App\Http\Controllers\CallerIdController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\OperatorDashboardController;
 use App\Http\Controllers\ImpersonateController;
@@ -56,6 +58,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/voicemail/{folder}/{file}/play', [OperatorDashboardController::class, 'playVoicemail'])->name('voicemail.play');
         Route::delete('/voicemail/{folder}/{file}', [OperatorDashboardController::class, 'destroyVoicemail'])->name('voicemail.destroy');
         Route::get('/phone/config', [\App\Http\Controllers\WebPhoneController::class, 'config'])->name('phone.config');
+        Route::get('/recordings', [RecordingController::class, 'operatorIndex'])->name('recordings');
+        Route::get('/recordings/{uniqueid}/play', [RecordingController::class, 'play'])->name('recordings.play');
     });
 
     // ── Impersonation ──
@@ -116,6 +120,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Journal d'appels
         Route::get('logs', [CallLogController::class, 'index'])->name('logs.index');
 
+        // Enregistrements
+        Route::get('recordings', [RecordingController::class, 'index'])->name('recordings.index');
+        Route::get('recordings/{uniqueid}/play', [RecordingController::class, 'play'])->name('recordings.play');
+        Route::delete('recordings/{uniqueid}', [RecordingController::class, 'destroy'])->name('recordings.destroy');
+
         // Supervision en direct
         Route::get('live', [LiveController::class, 'index'])->name('live.index');
         Route::get('live/poll', [LiveController::class, 'poll'])->name('live.poll');
@@ -162,6 +171,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('firewall/{rule}/toggle', [FirewallController::class, 'toggle'])->name('firewall.toggle');
         Route::delete('firewall/{rule}', [FirewallController::class, 'destroy'])->name('firewall.destroy');
         Route::post('firewall/unban', [FirewallController::class, 'unban'])->name('firewall.unban');
+
+        // Caller IDs
+        Route::get('caller-ids', [CallerIdController::class, 'index'])->name('caller-ids.index');
+        Route::post('caller-ids', [CallerIdController::class, 'store'])->name('caller-ids.store');
+        Route::put('caller-ids/{callerId}', [CallerIdController::class, 'update'])->name('caller-ids.update');
+        Route::post('caller-ids/{callerId}/toggle', [CallerIdController::class, 'toggle'])->name('caller-ids.toggle');
+        Route::delete('caller-ids/{callerId}', [CallerIdController::class, 'destroy'])->name('caller-ids.destroy');
+        Route::post('caller-ids/groups', [CallerIdController::class, 'storeGroup'])->name('caller-ids.groups.store');
+        Route::put('caller-ids/groups/{group}', [CallerIdController::class, 'updateGroup'])->name('caller-ids.groups.update');
+        Route::delete('caller-ids/groups/{group}', [CallerIdController::class, 'destroyGroup'])->name('caller-ids.groups.destroy');
 
         // Codecs (page statique depuis config)
         Route::view('codecs', 'codecs.index')->name('codecs.index');

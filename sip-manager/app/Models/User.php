@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -38,5 +39,18 @@ class User extends Authenticatable
     public function isOperator(): bool
     {
         return $this->role === 'operator';
+    }
+
+    public function callerIdGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(CallerIdGroup::class, 'caller_id_group_users');
+    }
+
+    public function availableCallerIds()
+    {
+        return CallerId::where('is_active', true)
+            ->whereHas('groups.users', fn ($q) => $q->where('users.id', $this->id))
+            ->with('trunk:id,name')
+            ->get();
     }
 }

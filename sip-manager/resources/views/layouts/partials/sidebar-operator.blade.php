@@ -26,6 +26,9 @@
         <a class="nav-item-custom {{ request()->routeIs('operator.voicemail*') ? 'active' : '' }}" href="{{ route('operator.voicemail') }}">
             <i class="bi bi-voicemail"></i> Messagerie vocale
         </a>
+        <a class="nav-item-custom {{ request()->routeIs('operator.recordings') ? 'active' : '' }}" href="{{ route('operator.recordings') }}">
+            <i class="bi bi-mic-fill"></i> Enregistrements
+        </a>
         <a class="nav-item-custom {{ request()->routeIs('profile.*') ? 'active' : '' }}" href="{{ route('profile.edit') }}">
             <i class="bi bi-person-gear"></i> Mon profil
         </a>

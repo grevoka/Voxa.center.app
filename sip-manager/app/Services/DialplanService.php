@@ -37,13 +37,94 @@ class DialplanService
                 ->orderBy('name')
                 ->get();
 
-            foreach ($flows as $flow) {
-                if (!$flow->trunk) continue;
+            // Group flows by inbound_context to combine filtered + default in same context
+            $byContext = $flows->groupBy('inbound_context');
 
-                // Sync the trunk inbound endpoint context in Asterisk Realtime DB
-                $this->syncTrunkContext($flow);
+            foreach ($byContext as $ctx => $contextFlows) {
+                $hasFilters = $contextFlows->contains(fn ($f) => !empty($f->caller_id_filter) || !empty($f->did_filter));
 
-                $content .= $flow->toDialplan() . "\n\n";
+                if (!$hasFilters) {
+                    // No filters — output each flow normally
+                    foreach ($contextFlows as $flow) {
+                        if (!$flow->trunk) continue;
+                        $this->syncTrunkContext($flow);
+                        $content .= $flow->toDialplan() . "\n\n";
+                    }
+                } else {
+                    // Build combined context with routing logic
+                    $firstFlow = $contextFlows->first();
+                    if ($firstFlow->trunk) $this->syncTrunkContext($firstFlow);
+
+                    $filtered = $contextFlows->filter(fn ($f) => !empty($f->caller_id_filter) || !empty($f->did_filter));
+                    $default = $contextFlows->filter(fn ($f) => empty($f->caller_id_filter) && empty($f->did_filter));
+
+                    $content .= "[{$ctx}]\n";
+                    $content .= "; Auto-generated: combined context with Caller ID / DID filters\n";
+                    $content .= "exten => _X.,1,NoOp(=== Inbound [{$ctx}] from \${CALLERID(num)} to \${EXTEN} ===)\n";
+                    $content .= " same => n,Set(CDR(direction)=inbound)\n";
+
+                    // Each filtered flow: build condition and Goto sub-context
+                    foreach ($filtered as $flow) {
+                        $subCtx = $ctx . '-flow-' . $flow->id;
+                        $cidFilters = $flow->caller_id_filter ?? [];
+                        $didFilters = $flow->did_filter ?? [];
+
+                        // If both DID and CID filters: match DID first, then CID within sub-context
+                        // If only DID: match DID
+                        // If only CID: match CID
+                        if (!empty($didFilters)) {
+                            foreach ($didFilters as $did) {
+                                $did = trim($did);
+                                if (empty($did)) continue;
+                                // Match EXTEN (the called number / DID)
+                                // Also check with/without country prefix
+                                $content .= " same => n,GotoIf(\$[\"\${EXTEN}\" = \"{$did}\"]?{$subCtx},\${EXTEN},1)\n";
+                                // Try stripping leading 0 and matching +33 variant, or vice versa
+                                if (str_starts_with($did, '0')) {
+                                    $intl = '+33' . substr($did, 1);
+                                    $content .= " same => n,GotoIf(\$[\"\${EXTEN}\" = \"{$intl}\"]?{$subCtx},\${EXTEN},1)\n";
+                                    $content .= " same => n,GotoIf(\$[\"\${EXTEN}\" = \"0033" . substr($did, 1) . "\"]?{$subCtx},\${EXTEN},1)\n";
+                                }
+                            }
+                        } elseif (!empty($cidFilters)) {
+                            foreach ($cidFilters as $pattern) {
+                                $pattern = trim($pattern);
+                                if (empty($pattern)) continue;
+                                if (str_contains($pattern, '*')) {
+                                    $prefix = rtrim($pattern, '*');
+                                    $len = strlen($prefix);
+                                    $content .= " same => n,GotoIf(\$[\"\${CALLERID(num):0:{$len}}\" = \"{$prefix}\"]?{$subCtx},\${EXTEN},1)\n";
+                                } else {
+                                    $content .= " same => n,GotoIf(\$[\"\${CALLERID(num)}\" = \"{$pattern}\"]?{$subCtx},\${EXTEN},1)\n";
+                                }
+                            }
+                        }
+                    }
+
+                    // Default flow (no filter)
+                    if ($default->isNotEmpty()) {
+                        $defFlow = $default->first();
+                        $defSubCtx = $ctx . '-default';
+                        $content .= " same => n,Goto({$defSubCtx},\${EXTEN},1)\n";
+                        $origCtx = $defFlow->inbound_context;
+                        $defFlow->inbound_context = $defSubCtx;
+                        $content .= "\n" . $defFlow->toDialplan() . "\n\n";
+                        $defFlow->inbound_context = $origCtx;
+                    } else {
+                        $content .= " same => n,Hangup()\n";
+                    }
+
+                    $content .= "\nexten => _+X.,1,Goto({$ctx},\${EXTEN:1},1)\n";
+                    $content .= "exten => s,1,Goto({$ctx},0000,1)\n\n";
+
+                    // Generate sub-contexts for filtered flows
+                    foreach ($filtered as $flow) {
+                        $origCtx = $flow->inbound_context;
+                        $flow->inbound_context = $ctx . '-flow-' . $flow->id;
+                        $content .= $flow->toDialplan() . "\n\n";
+                        $flow->inbound_context = $origCtx;
+                    }
+                }
             }
 
             // Conference rooms — separate context included from from-internal

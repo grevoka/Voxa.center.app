@@ -20,11 +20,20 @@ class WebPhoneController extends Controller
         $turnPass = base64_encode(hash_hmac('sha1', $turnUser, $turnSecret, true));
         $host = request()->getHost();
 
+        // Get available Caller IDs for this user
+        $callerIds = $user->availableCallerIds()->map(fn ($c) => [
+            'id' => $c->id,
+            'number' => $c->number,
+            'label' => $c->label,
+            'trunk' => $c->trunk?->name,
+        ]);
+
         return response()->json([
             'extension'  => $line->extension,
             'password'   => $line->decrypted_secret,
             'name'       => $line->name,
             'caller_id'  => $line->caller_id ?? $line->extension,
+            'caller_ids' => $callerIds,
             'ws_uri'     => $this->getWsUri(),
             'realm'      => $host,
             'ice_servers' => [

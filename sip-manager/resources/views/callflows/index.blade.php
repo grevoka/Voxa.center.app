@@ -43,6 +43,22 @@
                                 @if($flow->description)
                                     <small style="color:var(--text-secondary);">{{ Str::limit($flow->description, 50) }}</small>
                                 @endif
+                                @if(!empty($flow->did_filter))
+                                    <div class="d-flex gap-1 mt-1 flex-wrap">
+                                        <i class="bi bi-telephone-inbound" style="color:#29b6f6;font-size:0.6rem;" title="Numero appele"></i>
+                                        @foreach($flow->did_filter as $did)
+                                            <span style="font-size:0.6rem;background:#29b6f615;color:#29b6f6;border-radius:3px;padding:0 4px;font-family:'JetBrains Mono',monospace;">{{ $did }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                @if(!empty($flow->caller_id_filter))
+                                    <div class="d-flex gap-1 mt-1 flex-wrap">
+                                        <i class="bi bi-funnel" style="color:#bc6ff1;font-size:0.6rem;" title="Caller ID appelant"></i>
+                                        @foreach($flow->caller_id_filter as $cid)
+                                            <span style="font-size:0.6rem;background:#bc6ff115;color:#bc6ff1;border-radius:3px;padding:0 4px;font-family:'JetBrains Mono',monospace;">{{ $cid }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 <span class="trunk-type sip">{{ $flow->trunk->name ?? '—' }}</span>

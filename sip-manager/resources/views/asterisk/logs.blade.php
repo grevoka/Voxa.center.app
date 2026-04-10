@@ -39,7 +39,7 @@
             <div class="d-flex align-items-center gap-2 mb-2">
                 <code style="color:var(--warning);font-size:0.8rem;" id="cmdLabel"></code>
             </div>
-            <pre id="cmdResult" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:0.75rem;overflow-x:auto;white-space:pre;margin:0;max-height:300px;overflow-y:auto;"></pre>
+            <pre id="cmdResult" style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:1rem;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:0.75rem;overflow-x:auto;white-space:pre;margin:0;max-height:300px;overflow-y:auto;"></pre>
         </div>
     </div>
 
@@ -65,7 +65,7 @@
                 <i class="bi bi-exclamation-triangle me-2"></i>Fichier de log Asterisk introuvable — Asterisk n'est peut-etre pas demarre.
             </div>
         @else
-            <pre id="logArea" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:0.72rem;overflow-x:auto;white-space:pre;margin:0;max-height:500px;overflow-y:auto;">@foreach($lines as $line)
+            <pre id="logArea" style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:1rem;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:0.72rem;overflow-x:auto;white-space:pre;margin:0;max-height:500px;overflow-y:auto;">@foreach($lines as $line)
 {{ $line }}
 @endforeach</pre>
         @endif

@@ -10,15 +10,18 @@ class CallFlow extends Model
     protected $fillable = [
         'name', 'description', 'trunk_id', 'inbound_context',
         'steps', 'positions', 'enabled', 'record_calls',
-        'record_optout', 'record_optout_key', 'priority', 'created_by',
+        'record_optout', 'record_optout_key', 'caller_id_filter',
+        'did_filter', 'priority', 'created_by',
     ];
 
     protected $casts = [
-        'steps'          => 'array',
-        'positions'      => 'array',
-        'enabled'        => 'boolean',
-        'record_calls'   => 'boolean',
-        'record_optout'  => 'boolean',
+        'steps'            => 'array',
+        'positions'        => 'array',
+        'caller_id_filter' => 'array',
+        'did_filter'       => 'array',
+        'enabled'          => 'boolean',
+        'record_calls'     => 'boolean',
+        'record_optout'    => 'boolean',
     ];
 
     public function trunk(): BelongsTo
@@ -194,7 +197,6 @@ class CallFlow extends Model
 
         // Ensure hangup label at the end (target for GotoIf after successful Dial)
         $lines[] = " same => n(hangup),Hangup()";
-
 
         // Also add catch-all patterns
         $lines[] = "";

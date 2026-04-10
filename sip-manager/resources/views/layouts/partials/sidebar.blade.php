@@ -30,6 +30,10 @@
                     <i class="bi bi-headset"></i> Operateurs
                     <span class="nav-badge">{{ \App\Models\User::where('role', 'operator')->count() }}</span>
                 </a>
+                <a class="nav-item-custom {{ request()->routeIs('caller-ids.*') ? 'active' : '' }}" href="{{ route('caller-ids.index') }}">
+                    <i class="bi bi-person-vcard-fill"></i> Caller ID
+                    <span class="nav-badge">{{ \App\Models\CallerId::where('is_active', true)->count() }}</span>
+                </a>
             </div>
         </div>
 
@@ -108,6 +112,9 @@
                 <a class="nav-item-custom {{ request()->routeIs('logs.*') ? 'active' : '' }}" href="{{ route('logs.index') }}">
                     <i class="bi bi-journal-text"></i> Journal d'appels
                     <span class="nav-badge">{{ \App\Models\CallLog::count() }}</span>
+                </a>
+                <a class="nav-item-custom {{ request()->routeIs('recordings.*') ? 'active' : '' }}" href="{{ route('recordings.index') }}">
+                    <i class="bi bi-mic-fill"></i> Enregistrements
                 </a>
                 <a class="nav-item-custom {{ request()->routeIs('activity.*') ? 'active' : '' }}" href="{{ route('activity.index') }}">
                     <i class="bi bi-clock-history"></i> Logs systeme

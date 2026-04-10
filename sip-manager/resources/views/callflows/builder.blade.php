@@ -22,6 +22,11 @@
         border-right: 1px solid var(--border);
         overflow: hidden;
         min-width: 0;
+        min-height: 0;
+    }
+    .panel:first-child .panel-body {
+        overflow-y: auto;
+        min-height: 0;
     }
     .panel:last-child { border-right: none; }
     .panel-head {
@@ -136,6 +141,7 @@
         border-bottom: 1px solid var(--border);
         display: flex; align-items: center; gap: .75rem;
         font-weight: 700; font-size: .9rem;
+        color: #e2e4eb;
     }
     .tpl-modal-body {
         flex: 1; overflow-y: auto; padding: 1rem 1.25rem;
@@ -152,8 +158,8 @@
     .tpl-card:hover, .tpl-card.selected { border-color: var(--accent); background: var(--surface-3); }
     .tpl-card.selected { box-shadow: 0 0 0 2px var(--accent); }
     .tpl-card .tpl-icon { font-size: 1rem; margin-bottom: .2rem; color: var(--accent); }
-    .tpl-card h6 { margin: 0 0 .15rem; font-size: .75rem; font-weight: 700; }
-    .tpl-card p { margin: 0; font-size: .65rem; color: var(--text-secondary); line-height: 1.3; }
+    .tpl-card h6 { margin: 0 0 .15rem; font-size: .75rem; font-weight: 700; color: #e2e4eb; }
+    .tpl-card p { margin: 0; font-size: .65rem; color: #8b949e; line-height: 1.3; }
     .tpl-card .tpl-badge {
         display: inline-block; font-size: .6rem; padding: 1px 6px;
         border-radius: 4px; background: var(--accent); color: #000;
@@ -179,10 +185,10 @@
     }
     .wiz-step h5 {
         font-size: .85rem; font-weight: 700; margin: 0 0 .75rem;
-        color: var(--text-primary);
+        color: #e2e4eb;
     }
     .wiz-step .wiz-subtitle {
-        font-size: .72rem; color: var(--text-secondary); margin-bottom: 1rem;
+        font-size: .72rem; color: #8b949e; margin-bottom: 1rem;
     }
     .wiz-check-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: .4rem;
@@ -663,6 +669,8 @@
         <input type="hidden" name="record_calls" id="hidRecord">
         <input type="hidden" name="record_optout" id="hidOptout">
         <input type="hidden" name="record_optout_key" id="hidOptoutKey">
+        <input type="hidden" name="caller_id_filter" id="hidCallerIdFilter">
+        <input type="hidden" name="did_filter" id="hidDidFilter">
         <input type="hidden" name="positions" id="hidPositions">
         <input type="hidden" name="queue_members" id="hidQueueMembers">
     </form>
@@ -671,7 +679,22 @@
         {{-- LEFT: palette + config --}}
         <div class="panel">
             <div class="panel-head"><i class="bi bi-plus-circle"></i> Blocs</div>
-            <div class="panel-body" style="padding:.6rem;">
+            {{-- DID + CID filters (hidden fields synced from fullscreen panel) --}}
+            <div style="display:none;">
+                <select id="cfgDidFilter">
+                    <option value="">Par defaut</option>
+                    @foreach($callerIds ?? [] as $cid)
+                        <option value="{{ $cid->number }}" {{ in_array($cid->number, old('did_filter', $callflow->did_filter ?? [])) ? 'selected' : '' }}>{{ $cid->number }}</option>
+                    @endforeach
+                </select>
+                <select id="cfgCallerIdFilter">
+                    <option value="">Par defaut</option>
+                    @foreach($callerIds ?? [] as $cid)
+                        <option value="{{ $cid->number }}" {{ in_array($cid->number, old('caller_id_filter', $callflow->caller_id_filter ?? [])) ? 'selected' : '' }}>{{ $cid->number }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="panel-body" style="padding:.6rem;overflow-y:auto;">
                 <div class="pal-grid">
                     <div class="pal-item" onclick="addNode('answer')">
                         <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre
@@ -715,7 +738,7 @@
                     <i class="bi bi-sliders me-1"></i> Configuration
                     <i class="bi bi-chevron-down ms-auto" style="font-size:.6rem;"></i>
                 </div>
-                <div id="cfgPanel">
+                <div id="cfgPanel" style="max-height:calc(100vh - 500px);overflow-y:auto;">
                     <div class="cfg-section">
                         <label>Nom</label>
                         <input type="text" class="form-control form-control-sm" id="cfgName"
@@ -904,6 +927,34 @@
                                     </option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="cfg-section">
+                            <label style="color:#29b6f6;"><i class="bi bi-telephone-inbound me-1"></i>Numero appele (DID)</label>
+                            <select class="form-select form-select-sm fs-cfg-sync" data-target="cfgDidFilter" id="fsDid"
+                                style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+                                <option value="">Par defaut (tous les numeros du trunk)</option>
+                                @foreach($callerIds ?? [] as $cid)
+                                    <option value="{{ $cid->number }}"
+                                        {{ in_array($cid->number, old('did_filter', $callflow->did_filter ?? [])) ? 'selected' : '' }}>
+                                        {{ $cid->label }} — {{ $cid->number }}{{ $cid->trunk ? ' ('.$cid->trunk->name.')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small style="color:var(--text-secondary);font-size:0.62rem;">Declenche ce scenario uniquement pour ce numero appele.</small>
+                        </div>
+                        <div class="cfg-section">
+                            <label style="color:#bc6ff1;"><i class="bi bi-funnel me-1"></i>Caller ID appelant</label>
+                            <select class="form-select form-select-sm fs-cfg-sync" data-target="cfgCallerIdFilter" id="fsCid"
+                                style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+                                <option value="">Par defaut (tous les appelants)</option>
+                                @foreach($callerIds ?? [] as $cid)
+                                    <option value="{{ $cid->number }}"
+                                        {{ in_array($cid->number, old('caller_id_filter', $callflow->caller_id_filter ?? [])) ? 'selected' : '' }}>
+                                        {{ $cid->label }} — {{ $cid->number }}{{ $cid->trunk ? ' ('.$cid->trunk->name.')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small style="color:var(--text-secondary);font-size:0.62rem;">Filtre par numero de l'appelant entrant.</small>
                         </div>
                         <div class="cfg-section">
                             <label>Contexte</label>
@@ -2278,6 +2329,12 @@ document.getElementById('btnSave').addEventListener('click', () => {
     document.getElementById('hidRecord').value = document.getElementById('cfgRecord').checked ? '1' : '0';
     document.getElementById('hidOptout').value = document.getElementById('cfgOptout').checked ? '1' : '0';
     document.getElementById('hidOptoutKey').value = document.getElementById('cfgOptoutKey').value;
+    // Caller ID filter: textarea lines → JSON array
+    // Read from fullscreen selects (fsDid/fsCid) which are the visible ones
+    var didVal = (document.getElementById('fsDid') || document.getElementById('cfgDidFilter')).value.trim();
+    document.getElementById('hidDidFilter').value = didVal ? JSON.stringify([didVal]) : JSON.stringify([]);
+    var cidVal = (document.getElementById('fsCid') || document.getElementById('cfgCallerIdFilter')).value.trim();
+    document.getElementById('hidCallerIdFilter').value = cidVal ? JSON.stringify([cidVal]) : JSON.stringify([]);
     document.getElementById('flowForm').submit();
 });
 

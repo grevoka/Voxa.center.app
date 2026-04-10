@@ -34,6 +34,17 @@
             <button class="dp-btn" onclick="phoneDial('0')">0</button>
             <button class="dp-btn" onclick="phoneDial('#')">#</button>
         </div>
+        {{-- Missed calls --}}
+        <div id="phoneMissed" style="display:none;margin-top:0.4rem;margin-bottom:0.3rem;">
+            <div style="font-size:0.62rem;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;">Appels manques</div>
+            <div id="phoneMissedList" style="max-height:80px;overflow-y:auto;"></div>
+        </div>
+        {{-- Caller ID selector (toggle buttons) --}}
+        <div id="phoneCidSelector" style="display:none;margin-top:0.4rem;margin-bottom:0.3rem;">
+            <div style="font-size:0.62rem;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;">Numero sortant</div>
+            <div id="phoneCidBtns" style="display:flex;flex-wrap:wrap;gap:3px;"></div>
+            <input type="hidden" id="phoneCidSelect" value="">
+        </div>
         <div class="d-flex gap-2 mt-2">
             <button id="phoneCallBtn" onclick="phoneCall()" style="flex:1;background:var(--success);color:#fff;border:none;border-radius:8px;padding:0.45rem;font-size:0.82rem;font-weight:600;cursor:pointer;">
                 <i class="bi bi-telephone-fill me-1"></i>Appeler
@@ -97,11 +108,61 @@
 .dp-btn:hover { background: var(--accent-dim); border-color: var(--accent-mid); }
 .dp-btn:active { transform: scale(0.95); }
 .dp-btn small { font-size: 0.45rem; color: var(--text-secondary); font-weight: 400; letter-spacing: 1px; }
+.cid-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+}
+.cid-btn:hover { border-color: var(--accent-mid); color: var(--text-primary); }
+.cid-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.missed-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: rgba(248,81,73,0.08);
+    border: 1px solid rgba(248,81,73,0.2);
+    margin-bottom: 2px;
+    font-size: 0.7rem;
+}
+.missed-item .missed-num { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text-primary); flex:1; }
+.missed-item .missed-time { font-size:0.6rem; color:var(--text-secondary); }
+.missed-item .missed-call-btn {
+    background: var(--success);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    width: 22px;
+    height: 22px;
+    font-size: 0.6rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.missed-item .missed-call-btn:hover { opacity: 0.85; }
+.missed-item .missed-dismiss {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.6rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
 </style>
 
 <script>
 JsSIP.debug.enable('JsSIP:*');
-var _phone = null, _session = null, _timer = null, _seconds = 0, _iceServers = null;
+var _phone = null, _session = null, _timer = null, _seconds = 0, _iceServers = null, _callerIds = [], _defaultCallerId = null, _missedCalls = [];
 
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
@@ -145,6 +206,9 @@ function phoneToggleConnect() {
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(cfg => {
             _iceServers = cfg.ice_servers || [{urls: 'stun:stun.l.google.com:19302'}];
+            _defaultCallerId = cfg.caller_id;
+            _callerIds = cfg.caller_ids || [];
+            phonePopulateCallerIds();
             var socket = new JsSIP.WebSocketInterface(cfg.ws_uri);
             _phone = new JsSIP.UA({
                 sockets: [socket],
@@ -165,14 +229,56 @@ function phoneToggleConnect() {
         .catch(function(e) { console.error('Softphone config error:', e); phoneSetStatus('offline', 'Erreur: ' + e.message); });
 }
 
+function phonePopulateCallerIds() {
+    var container = document.getElementById('phoneCidSelector');
+    var btnsDiv = document.getElementById('phoneCidBtns');
+    btnsDiv.innerHTML = '';
+    if (_callerIds.length === 0) return;
+
+    // Default button
+    var defBtn = document.createElement('button');
+    defBtn.className = 'cid-btn active';
+    defBtn.dataset.value = '';
+    defBtn.innerHTML = '<i class="bi bi-phone" style="font-size:0.6rem;"></i> Par defaut';
+    defBtn.onclick = function() { cidSelect('', this); };
+    btnsDiv.appendChild(defBtn);
+
+    // Caller ID buttons
+    _callerIds.forEach(function(c) {
+        var btn = document.createElement('button');
+        btn.className = 'cid-btn';
+        btn.dataset.value = c.number;
+        btn.innerHTML = c.label;
+        btn.title = c.number + (c.trunk ? ' (' + c.trunk + ')' : '');
+        btn.onclick = function() { cidSelect(c.number, this); };
+        btnsDiv.appendChild(btn);
+    });
+
+    container.style.display = 'block';
+}
+
+function cidSelect(value, btn) {
+    document.getElementById('phoneCidSelect').value = value;
+    document.querySelectorAll('.cid-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+}
+
 function phoneCall() {
     if (!_phone || !_phone.isRegistered()) return;
     var num = document.getElementById('phoneInput').value.trim();
     if (!num) return;
 
+    var selectedCid = document.getElementById('phoneCidSelect').value;
+    var extraHeaders = [];
+    if (selectedCid) {
+        extraHeaders.push('P-Asserted-Identity: <sip:' + selectedCid + '@{{ request()->getHost() }}>');
+        extraHeaders.push('X-Voxa-CallerID: ' + selectedCid);
+    }
+
     var opts = {
         mediaConstraints: {audio: true, video: false},
-        pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]}
+        pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]},
+        extraHeaders: extraHeaders
     };
     _session = _phone.call('sip:' + num + '@' + '{{ request()->getHost() }}', opts);
     phoneBindSession(_session, num);
@@ -206,10 +312,67 @@ function phoneReject() {
 function phoneOnIncoming(session) {
     _session = session;
     var caller = session.remote_identity.uri.user || 'Inconnu';
+    session._voxaCaller = caller;
+    session._voxaAnswered = false;
     document.getElementById('phoneIncomingNumber').textContent = caller;
     document.getElementById('phoneIncoming').style.display = 'block';
     document.getElementById('phoneDialpad').style.display = 'none';
     phoneBindSession(session, caller);
+
+    session.on('confirmed', function() { session._voxaAnswered = true; });
+    session.on('failed', function(e) {
+        if (!session._voxaAnswered && caller && caller !== 'Inconnu') {
+            phoneMissedAdd(caller);
+        }
+    });
+    session.on('ended', function() {
+        if (!session._voxaAnswered && caller && caller !== 'Inconnu') {
+            phoneMissedAdd(caller);
+        }
+    });
+}
+
+function phoneMissedAdd(number) {
+    // Avoid duplicates
+    if (_missedCalls.find(function(m) { return m.number === number; })) return;
+    _missedCalls.unshift({ number: number, time: new Date() });
+    if (_missedCalls.length > 5) _missedCalls.pop();
+    phoneMissedRender();
+}
+
+function phoneMissedRender() {
+    var container = document.getElementById('phoneMissed');
+    var list = document.getElementById('phoneMissedList');
+    if (_missedCalls.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = 'block';
+    list.innerHTML = '';
+    _missedCalls.forEach(function(m, i) {
+        var h = m.time.getHours(), min = m.time.getMinutes();
+        var timeStr = (h < 10 ? '0' : '') + h + ':' + (min < 10 ? '0' : '') + min;
+        var div = document.createElement('div');
+        div.className = 'missed-item';
+        div.innerHTML = '<i class="bi bi-telephone-x" style="color:#f85149;font-size:0.65rem;"></i>' +
+            '<span class="missed-num">' + m.number + '</span>' +
+            '<span class="missed-time">' + timeStr + '</span>' +
+            '<button class="missed-call-btn" title="Rappeler" onclick="phoneCallback(\'' + m.number + '\',' + i + ')"><i class="bi bi-telephone-fill"></i></button>' +
+            '<button class="missed-dismiss" title="Effacer" onclick="phoneMissedDismiss(' + i + ')"><i class="bi bi-x-lg"></i></button>';
+        list.appendChild(div);
+    });
+}
+
+function phoneCallback(number, index) {
+    document.getElementById('phoneInput').value = number;
+    _missedCalls.splice(index, 1);
+    phoneMissedRender();
+    phoneCall();
+}
+
+function phoneMissedDismiss(index) {
+    _missedCalls.splice(index, 1);
+    phoneMissedRender();
 }
 
 function phoneAttachStream(pc) {

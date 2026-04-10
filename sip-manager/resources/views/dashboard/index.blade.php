@@ -65,41 +65,119 @@
 
     {{-- Stats du jour --}}
     <div class="row g-3 mb-4">
-        <div class="col-6 col-lg-2">
+        <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:var(--text-primary);">{{ $todayStats['total'] }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Appels aujourd'hui</div>
             </div>
         </div>
-        <div class="col-6 col-lg-2">
+        <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#29b6f6;">{{ $todayStats['answered'] }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Repondus</div>
             </div>
         </div>
-        <div class="col-6 col-lg-2">
+        <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#f85149;">{{ $todayStats['missed'] }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Manques</div>
             </div>
         </div>
-        <div class="col-6 col-lg-2">
+        <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#58a6ff;">{{ $todayStats['inbound'] }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Entrants</div>
             </div>
         </div>
-        <div class="col-6 col-lg-2">
+        <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#d29922;">{{ $todayStats['outbound'] }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Sortants</div>
             </div>
         </div>
-        <div class="col-6 col-lg-2">
+        <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 @php $rate = $todayStats['total'] > 0 ? round(($todayStats['answered'] / $todayStats['total']) * 100) : 0; @endphp
                 <div style="font-size:1.4rem;font-weight:800;color:{{ $rate >= 80 ? '#29b6f6' : ($rate >= 50 ? '#d29922' : '#f85149') }};">{{ $rate }}%</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Taux reponse</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg">
+            <div class="stat-card" style="text-align:center;padding:1rem;">
+                <div style="font-size:1.4rem;font-weight:800;color:var(--text-primary);font-family:'JetBrains Mono',monospace;">{{ gmdate('i:s', $todayStats['avg_duration']) }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Duree moyenne</div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Stats par poste : Manqués + Durées --}}
+    <div class="row g-3 mb-4">
+        {{-- Appels manqués par poste --}}
+        <div class="col-lg-6">
+            <div class="data-table" style="padding:0;">
+                <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
+                    <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
+                        <i class="bi bi-telephone-x-fill me-1" style="color:#f85149;"></i> Appels manques par poste
+                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">aujourd'hui</span>
+                    </h6>
+                </div>
+                @if(count($missedByExt) > 0)
+                <div style="padding:0.75rem 1rem;">
+                    @foreach($missedByExt as $m)
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="codec-tag" style="min-width:50px;text-align:center;">{{ $m['ext'] }}</span>
+                        <span style="font-size:0.72rem;font-weight:600;min-width:70px;">{{ $m['name'] }}</span>
+                        <div style="flex:1;height:20px;background:var(--surface);border-radius:4px;overflow:hidden;position:relative;">
+                            @php $maxMissed = max(array_column($missedByExt, 'missed')); $pct = $maxMissed > 0 ? ($m['missed'] / $maxMissed) * 100 : 0; @endphp
+                            <div style="height:100%;width:{{ $pct }}%;background:linear-gradient(90deg,rgba(248,81,73,0.3),rgba(248,81,73,0.6));border-radius:4px;transition:width .3s;"></div>
+                            <span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:0.7rem;font-weight:700;color:#f85149;">{{ $m['missed'] }}</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="px-3 py-3 text-center" style="color:var(--text-secondary);font-size:0.82rem;">
+                    <i class="bi bi-check-circle me-1" style="color:var(--success);"></i>Aucun appel manque aujourd'hui
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Durée par poste --}}
+        <div class="col-lg-6">
+            <div class="data-table" style="padding:0;">
+                <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
+                    <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
+                        <i class="bi bi-clock-fill me-1" style="color:#d29922;"></i> Temps d'appel par poste
+                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">aujourd'hui</span>
+                    </h6>
+                    <div style="font-size:0.68rem;color:var(--text-secondary);">
+                        Moy: <span style="font-weight:700;color:var(--text-primary);">{{ gmdate('i:s', $todayStats['avg_duration']) }}</span>
+                        &middot; Total: <span style="font-weight:700;color:var(--text-primary);">{{ gmdate('H:i:s', $todayStats['total_duration']) }}</span>
+                    </div>
+                </div>
+                @if(count($durationByExt) > 0)
+                <table class="table mb-0">
+                    <thead>
+                        <tr><th>Poste</th><th>Operateur</th><th>Appels</th><th>Total</th><th>Moyenne</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach($durationByExt as $d)
+                        <tr>
+                            <td><span class="codec-tag">{{ $d['ext'] }}</span></td>
+                            <td style="font-size:0.78rem;font-weight:600;">{{ $d['name'] }}</td>
+                            <td style="font-weight:600;">{{ $d['calls'] }}</td>
+                            <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">{{ gmdate('H:i:s', $d['total_sec']) }}</td>
+                            <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--text-secondary);">{{ gmdate('i:s', $d['avg_sec']) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                <div class="px-3 py-3 text-center" style="color:var(--text-secondary);font-size:0.82rem;">
+                    Aucun appel repondu aujourd'hui
+                </div>
+                @endif
             </div>
         </div>
     </div>
