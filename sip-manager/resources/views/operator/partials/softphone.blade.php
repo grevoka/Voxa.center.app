@@ -184,6 +184,10 @@ function phoneHangup() {
 }
 
 function phoneAnswer() {
+    // Pre-warm the audio element with user gesture context
+    var audio = document.getElementById('phoneRemoteAudio');
+    audio.play().catch(function(){});
+
     if (_session) {
         _session.answer({
             mediaConstraints: {audio: true, video: false},
@@ -228,20 +232,71 @@ function phoneBindSession(session, number) {
     });
 
     session.on('peerconnection', function(e) {
-        e.peerconnection.ontrack = function(ev) {
+        var pc = e.peerconnection;
+        console.log('PeerConnection created');
+
+        // Modern browsers
+        pc.ontrack = function(ev) {
+            console.log('ontrack fired', ev.streams);
             var audio = document.getElementById('phoneRemoteAudio');
             audio.srcObject = ev.streams[0];
-            audio.play().catch(function(err) { console.warn('Audio play blocked:', err); });
+            // Retry play multiple times to work around autoplay blocking
+            function tryPlay() {
+                audio.play().then(function() {
+                    console.log('Audio playing!');
+                }).catch(function(err) {
+                    console.warn('Audio play retry...', err.message);
+                    setTimeout(tryPlay, 500);
+                });
+            }
+            tryPlay();
             startVuMeter(ev.streams[0], 'vuRemote');
         };
+
+        // Legacy fallback
+        pc.onaddstream = function(ev) {
+            console.log('onaddstream fired', ev.stream);
+            var audio = document.getElementById('phoneRemoteAudio');
+            if (!audio.srcObject || !audio.srcObject.active) {
+                audio.srcObject = ev.stream;
+            }
+        };
+
         // Monitor local audio
         navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
             startVuMeter(stream, 'vuLocal');
         }).catch(function() {});
+
         // Log ICE state
-        e.peerconnection.oniceconnectionstatechange = function() {
-            console.log('ICE state:', e.peerconnection.iceConnectionState);
+        pc.oniceconnectionstatechange = function() {
+            console.log('ICE state:', pc.iceConnectionState);
         };
+
+        // Log connection state
+        pc.onconnectionstatechange = function() {
+            console.log('Connection state:', pc.connectionState);
+        };
+    });
+
+    // Also try to catch remote stream after confirmed
+    session.on('confirmed', function() {
+        try {
+            var pc = session.connection;
+            if (pc) {
+                var receivers = pc.getReceivers();
+                console.log('Receivers after confirmed:', receivers.length);
+                if (receivers.length > 0 && receivers[0].track) {
+                    var stream = new MediaStream([receivers[0].track]);
+                    var audio = document.getElementById('phoneRemoteAudio');
+                    if (!audio.srcObject) {
+                        console.log('Attaching remote stream from receivers');
+                        audio.srcObject = stream;
+                        audio.play().catch(function(err) { console.warn('Audio play blocked:', err); });
+                        startVuMeter(stream, 'vuRemote');
+                    }
+                }
+            }
+        } catch(err) { console.warn('Remote stream attach error:', err); }
     });
 
     session.on('ended', function() { phoneResetUI(); stopVuMeter(); });
