@@ -110,7 +110,11 @@ EOSQL
             from_domain VARCHAR(40),
             trust_id_inbound VARCHAR(3),
             device_state_busy_at INT DEFAULT 1,
-            language VARCHAR(10) DEFAULT 'fr'
+            language VARCHAR(10) DEFAULT 'fr',
+            mailboxes VARCHAR(200),
+            rtcp_mux VARCHAR(3),
+            use_avpf VARCHAR(3),
+            media_use_received_transport VARCHAR(3)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
         CREATE TABLE IF NOT EXISTS ps_auths (
@@ -277,7 +281,10 @@ mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
         trust_id_inbound VARCHAR(3),
         device_state_busy_at INT DEFAULT 1,
         language VARCHAR(10) DEFAULT 'fr',
-        mailboxes VARCHAR(200)
+        mailboxes VARCHAR(200),
+        rtcp_mux VARCHAR(3),
+        use_avpf VARCHAR(3),
+        media_use_received_transport VARCHAR(3)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
     -- Add mailboxes column if missing (for existing installs)

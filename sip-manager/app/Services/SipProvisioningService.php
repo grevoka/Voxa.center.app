@@ -38,6 +38,9 @@ class SipProvisioningService
                     'media_encryption' => $isWebRTC ? 'dtls'
                         : ($line->protocol === 'SIP/TLS' ? 'sdes' : 'no'),
                     'ice_support'              => $isWebRTC ? 'yes' : 'no',
+                    'rtcp_mux'                 => $isWebRTC ? 'yes' : null,
+                    'use_avpf'                 => $isWebRTC ? 'yes' : null,
+                    'media_use_received_transport' => $isWebRTC ? 'yes' : null,
                     'dtls_auto_generate_cert'  => $isWebRTC ? 'yes' : null,
                     'dtls_verify'              => $isWebRTC ? 'no' : null,
                     'dtls_setup'               => $isWebRTC ? 'actpass' : null,
@@ -108,6 +111,7 @@ class SipProvisioningService
                         'transport'       => $trunk->getTransportKey(),
                         'aors'            => $id,
                         'auth'            => $authId,
+                        'outbound_auth'   => $authId,
                         'context'         => $trunk->context,
                         'disallow'        => 'all',
                         'allow'           => $codecs,

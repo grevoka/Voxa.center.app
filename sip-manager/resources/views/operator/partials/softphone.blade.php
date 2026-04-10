@@ -212,6 +212,18 @@ function phoneOnIncoming(session) {
     phoneBindSession(session, caller);
 }
 
+function phoneAttachStream(pc) {
+    var audio = document.getElementById('phoneRemoteAudio');
+    var receivers = pc.getReceivers();
+    if (receivers.length > 0 && receivers[0].track) {
+        var stream = new MediaStream([receivers[0].track]);
+        console.log('Attaching remote stream, track:', receivers[0].track.kind, receivers[0].track.readyState);
+        audio.srcObject = stream;
+        audio.play().catch(function(err) { console.warn('Audio play retry needed:', err.message); });
+        startVuMeter(stream, 'vuRemote');
+    }
+}
+
 function phoneBindSession(session, number) {
     document.getElementById('phoneCallBtn').style.display = 'none';
     document.getElementById('phoneHangupBtn').style.display = 'block';
@@ -229,74 +241,62 @@ function phoneBindSession(session, number) {
             document.getElementById('phoneCallTimer').textContent =
                 (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
         }, 1000);
+        // Always (re)attach stream on confirmed
+        try {
+            if (session.connection) phoneAttachStream(session.connection);
+        } catch(err) { console.warn('Stream attach on confirmed:', err); }
     });
 
     session.on('peerconnection', function(e) {
         var pc = e.peerconnection;
         console.log('PeerConnection created');
 
-        // Modern browsers
         pc.ontrack = function(ev) {
-            console.log('ontrack fired', ev.streams);
+            console.log('ontrack fired, streams:', ev.streams.length, 'track:', ev.track.kind);
             var audio = document.getElementById('phoneRemoteAudio');
-            audio.srcObject = ev.streams[0];
-            // Retry play multiple times to work around autoplay blocking
-            function tryPlay() {
-                audio.play().then(function() {
-                    console.log('Audio playing!');
-                }).catch(function(err) {
-                    console.warn('Audio play retry...', err.message);
-                    setTimeout(tryPlay, 500);
-                });
-            }
-            tryPlay();
-            startVuMeter(ev.streams[0], 'vuRemote');
+            audio.srcObject = ev.streams[0] || new MediaStream([ev.track]);
+            audio.play().catch(function(err) {
+                console.warn('Audio play blocked, retrying...', err.message);
+                setTimeout(function() { audio.play().catch(function(){}); }, 500);
+            });
+            startVuMeter(audio.srcObject, 'vuRemote');
         };
 
-        // Legacy fallback
         pc.onaddstream = function(ev) {
-            console.log('onaddstream fired', ev.stream);
+            console.log('onaddstream fired');
             var audio = document.getElementById('phoneRemoteAudio');
-            if (!audio.srcObject || !audio.srcObject.active) {
-                audio.srcObject = ev.stream;
-            }
+            audio.srcObject = ev.stream;
+            audio.play().catch(function(){});
         };
 
-        // Monitor local audio
         navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
             startVuMeter(stream, 'vuLocal');
         }).catch(function() {});
 
-        // Log ICE state
         pc.oniceconnectionstatechange = function() {
             console.log('ICE state:', pc.iceConnectionState);
+            // Re-attach stream when ICE connects (covers early media + confirmed)
+            if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+                phoneAttachStream(pc);
+            }
         };
 
-        // Log connection state
         pc.onconnectionstatechange = function() {
             console.log('Connection state:', pc.connectionState);
         };
     });
 
-    // Also try to catch remote stream after confirmed
-    session.on('confirmed', function() {
-        try {
-            var pc = session.connection;
-            if (pc) {
-                var receivers = pc.getReceivers();
-                console.log('Receivers after confirmed:', receivers.length);
-                if (receivers.length > 0 && receivers[0].track) {
-                    var stream = new MediaStream([receivers[0].track]);
-                    var audio = document.getElementById('phoneRemoteAudio');
-                    if (!audio.srcObject) {
-                        console.log('Attaching remote stream from receivers');
-                        audio.srcObject = stream;
-                        audio.play().catch(function(err) { console.warn('Audio play blocked:', err); });
-                        startVuMeter(stream, 'vuRemote');
-                    }
-                }
-            }
-        } catch(err) { console.warn('Remote stream attach error:', err); }
+    // Handle early media (183 progress) for outbound calls
+    session.on('progress', function(e) {
+        console.log('Progress:', e.response?.status_code);
+        if (e.response?.status_code === 183) {
+            phoneSetStatus('busy', 'Sonnerie...');
+        }
+    });
+
+    // Ignore duplicate 183 SDP errors gracefully
+    session.on('peerconnection:setremotedescriptionfailed', function(e) {
+        console.warn('setRemoteDescription failed (ignored):', e.error?.message);
     });
 
     session.on('ended', function() { phoneResetUI(); stopVuMeter(); });

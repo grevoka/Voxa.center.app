@@ -188,7 +188,66 @@ else
 fi
 
 # ══════════════════════════════════════
-# Phase 3 : Build & lancement Docker
+# Phase 3 : Asterisk natif (compilation)
+# ══════════════════════════════════════
+if command -v asterisk &>/dev/null; then
+    log "Asterisk deja installe: $(asterisk -V)"
+else
+    log "Installation d'Asterisk 20 depuis les sources..."
+
+    # Build dependencies
+    if [ "$OS" = "debian" ]; then
+        apt-get install -yqq build-essential wget libssl-dev libncurses5-dev libnewt-dev \
+            libxml2-dev linux-headers-$(uname -r) libsqlite3-dev uuid-dev libjansson-dev \
+            libsrtp2-dev libcurl4-openssl-dev libedit-dev unixodbc-dev odbc-mariadb \
+            sox mpg123 ffmpeg > /dev/null
+    fi
+
+    AST_VERSION="20.13.0"
+    cd /usr/src
+    if [ ! -d "asterisk-${AST_VERSION}" ]; then
+        wget -q "https://downloads.asterisk.org/pub/telephony/asterisk/asterisk-${AST_VERSION}.tar.gz"
+        tar xzf "asterisk-${AST_VERSION}.tar.gz"
+        rm -f "asterisk-${AST_VERSION}.tar.gz"
+    fi
+    cd "asterisk-${AST_VERSION}"
+
+    # Install pjproject bundled + compile
+    contrib/scripts/install_prereq install > /dev/null 2>&1 || true
+    ./configure --with-jansson-bundled --with-pjproject-bundled > /dev/null 2>&1
+    make menuselect.makeopts
+    menuselect/menuselect --enable codec_opus menuselect.makeopts 2>/dev/null || true
+    make -j$(nproc) > /dev/null 2>&1
+    make install > /dev/null 2>&1
+    make samples > /dev/null 2>&1
+
+    log "Asterisk compile et installe."
+fi
+
+# ── Systemd service for Asterisk ──
+if [ ! -f /etc/systemd/system/asterisk.service ]; then
+    cat > /etc/systemd/system/asterisk.service << 'ASTSERVICE'
+[Unit]
+Description=Asterisk PBX
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/asterisk -f -U root -G root
+ExecReload=/usr/sbin/asterisk -rx "core reload"
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+ASTSERVICE
+    systemctl daemon-reload
+    systemctl enable asterisk
+    log "Service systemd asterisk cree."
+fi
+
+# ══════════════════════════════════════
+# Phase 3b : Build & lancement Docker (Laravel + MariaDB)
 # ══════════════════════════════════════
 log "Build de l'image Docker (peut prendre quelques minutes)..."
 cd "$INSTALL_DIR"
@@ -215,6 +274,38 @@ for i in $(seq 1 60); do
 done
 
 # ══════════════════════════════════════
+# Phase 3c : ODBC (Asterisk natif → MariaDB dans Docker)
+# ══════════════════════════════════════
+log "Configuration ODBC pour Asterisk Realtime..."
+
+ODBC_LIB=$(find /usr/lib -name 'libmaodbc.so' 2>/dev/null | head -1)
+ODBC_SETUP=$(find /usr/lib -name 'libodbcmyS.so' 2>/dev/null | head -1)
+[ -z "$ODBC_LIB" ] && ODBC_LIB="/usr/lib/odbc/libmaodbc.so"
+
+cat > /etc/odbcinst.ini << ODBCEOF
+[MariaDB]
+Description = MariaDB ODBC Connector
+Driver      = ${ODBC_LIB}
+UsageCount  = 1
+ODBCEOF
+
+# DB password from container .env
+DB_PASS=$(docker exec sip-manager grep '^DB_PASSWORD=' /var/www/html/.env | cut -d= -f2)
+cat > /etc/odbc.ini << ODBCEOF
+[asterisk-connector]
+Description = Asterisk Realtime
+Driver      = MariaDB
+Server      = 127.0.0.1
+Port        = 3306
+Database    = asterisk_rt
+User        = root
+Password    = ${DB_PASS}
+Option      = 3
+ODBCEOF
+
+log "ODBC configure."
+
+# ══════════════════════════════════════
 # Phase 4 : Configuration Nginx (reverse proxy + HTTPS)
 # ══════════════════════════════════════
 log "Configuration du vhost Nginx..."
@@ -225,19 +316,31 @@ server {
     listen 80;
     server_name ${HOSTNAME};
 
+    # WebSocket proxy → Asterisk natif (port 8088)
+    location /ws {
+        proxy_pass http://127.0.0.1:8088;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+
+    # Application Laravel → Docker container
     location / {
         proxy_pass http://127.0.0.1:${DOCKER_PORT};
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_redirect http:// https://;
         proxy_read_timeout 300;
         proxy_connect_timeout 300;
-
-        # WebSocket support
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
     }
 
     client_max_body_size 50M;
@@ -273,8 +376,6 @@ certbot --nginx -d "$HOSTNAME" --email "$LE_EMAIL" --agree-tos --non-interactive
 # ══════════════════════════════════════
 log "Configuration de Fail2ban pour la protection SIP..."
 
-mkdir -p /var/log/asterisk
-
 cat > /etc/fail2ban/filter.d/asterisk-sip.conf << 'F2BFILTER'
 [Definition]
 failregex = NOTICE.* Request .* failed for '<HOST>(:\d+)?' .* - No matching endpoint found
@@ -298,17 +399,9 @@ logpath  = /var/log/asterisk/messages
 maxretry = 5
 findtime = 300
 bantime  = 600
-action   = iptables-allports[name=asterisk-sip, chain=DOCKER-USER]
+action   = iptables-allports[name=asterisk-sip]
 ignoreip = 127.0.0.1/8 91.121.128.0/23
 F2BJAIL
-
-# Cron to sync Asterisk logs from container
-cat > /etc/cron.d/asterisk-log-sync << CRONEOF
-* * * * * root docker exec sip-manager tail -50000 /var/log/asterisk/messages > /var/log/asterisk/messages 2>/dev/null
-CRONEOF
-
-# Initial sync
-docker exec sip-manager cat /var/log/asterisk/messages > /var/log/asterisk/messages 2>/dev/null || true
 
 systemctl restart fail2ban 2>/dev/null || true
 log "Fail2ban configure."
@@ -331,5 +424,11 @@ echo ""
 echo -e "  Commandes utiles:"
 echo -e "    docker compose -f ${INSTALL_DIR}/docker-compose.yml logs -f"
 echo -e "    docker exec -it sip-manager bash"
+echo -e "    asterisk -rvvv"
 echo -e "    fail2ban-client status asterisk-sip"
+echo ""
+echo -e "  Architecture:"
+echo -e "    Asterisk PBX:  natif sur la VM (systemd)"
+echo -e "    Laravel + DB:  Docker container (sip-manager)"
+echo -e "    Nginx:         /ws → Asterisk:8088, / → Docker:${DOCKER_PORT}"
 echo ""
