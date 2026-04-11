@@ -428,10 +428,56 @@
         left: 50%;
         transform: translateX(-50%);
     }
+    .btn-tts-preview {
+        margin-top: 4px;
+        padding: 3px 10px;
+        font-size: .7rem;
+        font-weight: 600;
+        border: 1px solid #3fb950;
+        background: #3fb95015;
+        color: #3fb950;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all .15s;
+    }
+    .btn-tts-preview:hover { background: #3fb95030; }
+    .btn-tts-preview:disabled { opacity: .5; cursor: wait; }
+
+    .port-branch {
+        position: absolute;
+        bottom: -7px;
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        background: #bc6ff1;
+        border: 2px solid #0d1117;
+        cursor: crosshair;
+        z-index: 5;
+        transition: transform .15s, box-shadow .15s;
+    }
+    .port-branch:hover { transform: scale(1.5); box-shadow: 0 0 8px rgba(188,111,241,.6); }
+    .port-branch-label {
+        position: absolute;
+        bottom: -20px;
+        font-size: .55rem;
+        font-weight: 800;
+        color: #bc6ff1;
+        text-align: center;
+        width: 20px;
+        margin-left: -3px;
+        pointer-events: none;
+    }
     .port-in {
         top: -7px;
         left: 50%;
         transform: translateX(-50%);
+    }
+    /* Invisible larger hit area around port-in for easier drop */
+    .port-in::after {
+        content: '';
+        position: absolute;
+        top: -10px; left: -10px;
+        width: 34px; height: 34px;
+        border-radius: 50%;
     }
     .port-out:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(41,182,246,.6); }
     .port-in:hover { transform: translateX(-50%) scale(1.6); box-shadow: 0 0 8px rgba(41,182,246,.6); }
@@ -473,6 +519,8 @@
     .nc-playback .node-icon   { background: #58a6ff25; color: #58a6ff; }
     .nc-moh .node-header      { background: #f0883e15; }
     .nc-moh .node-icon        { background: #f0883e25; color: #f0883e; }
+    .nc-ai .node-header       { background: #10b98115; }
+    .nc-ai .node-icon         { background: #10b98125; color: #10b981; }
     .nc-hangup .node-header   { background: #f8514915; }
     .nc-hangup .node-icon     { background: #f8514925; color: #f85149; }
     .nc-announcement .node-header { background: #d2992215; }
@@ -725,6 +773,9 @@
                     </div>
                     <div class="pal-item" onclick="addNode('time_condition')">
                         <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> Horaires
+                    </div>
+                    <div class="pal-item" onclick="addNode('ai_agent')">
+                        <div class="pal-icon" style="background:#10b98125;color:#10b981;"><i class="bi bi-robot"></i></div> Agent IA
                     </div>
                     <div class="pal-item" onclick="addNode('goto')">
                         <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto
@@ -1170,6 +1221,7 @@ const TYPES = {
     goto:         { label:'Goto',              icon:'bi-arrow-right-circle',color:'goto' },
     ivr:          { label:'Menu vocal',        icon:'bi-grid-3x3-gap',      color:'ivr' },
     time_condition:{ label:'Horaires',         icon:'bi-clock-history',     color:'time' },
+    ai_agent:     { label:'Agent IA',          icon:'bi-robot',             color:'ai' },
     hangup:       { label:'Raccrocher',        icon:'bi-telephone-x',       color:'hangup' },
 };
 const DEFAULTS = {
@@ -1184,6 +1236,7 @@ const DEFAULTS = {
     goto:         { target_context:'default' },
     ivr:          { sound:'custom/menu', timeout:5, options: { '1': '', '2': '', '3': '' } },
     time_condition: { time_start:'09:00', time_end:'18:00', days:'mon-fri', closed_sound:'custom/ferme', closed_action:'voicemail', closed_target:'1000' },
+    ai_agent:     { ai_prompt:'Tu es un assistant telephonique professionnel pour notre entreprise. Reponds en francais de maniere concise et utile.', ai_voice:'alloy' },
     hangup:       {},
 };
 const QUEUES = @json($queues);
@@ -1269,24 +1322,53 @@ const TEMPLATES = @json($templates ?? []);
 
 function loadSteps(steps, savedPositions) {
     nodes = [];
-    nextId = 1;
     selectedId = null;
     const startX = 400, startY = 60, gapY = 140;
+
+    // Map old nodeId → new nodeId for branch reconnection
+    const idMap = {};
+
     steps.forEach((s, i) => {
-        const nId = nextId++;
-        const pos = savedPositions && savedPositions[nId];
+        // Use saved _nodeId if available, otherwise auto-increment
+        const savedNodeId = s._nodeId || null;
+        const nId = savedNodeId || (i + 1);
+        if (nId >= nextId) nextId = nId + 1;
+
+        const pos = savedPositions && (savedPositions[nId] || savedPositions[i + 1]);
         const n = {
             id: nId,
             type: s.type,
-            x: pos ? pos.x : startX,
-            y: pos ? pos.y : (startY + 120 + i * gapY),
+            x: pos ? pos.x : startX + (i % 3) * 250,
+            y: pos ? pos.y : (startY + 120 + Math.floor(i / 3) * gapY),
             data: Object.assign({}, s),
             next: null
         };
         delete n.data.type;
+        delete n.data._nodeId;
+
+        // Restore branches
+        if ((s.type === 'ivr' || s.type === 'time_condition') && s.branch_targets) {
+            n.branches = Object.assign({}, s.branch_targets);
+            delete n.data.branch_targets;
+        }
         nodes.push(n);
+        if (savedNodeId) idMap[savedNodeId] = nId;
     });
-    for (let i = 0; i < nodes.length - 1; i++) nodes[i].next = nodes[i+1].id;
+
+    // Rebuild linear chain (next) for non-branching nodes
+    // Follow original order: each node links to the next, unless it's IVR/time_condition
+    for (let i = 0; i < nodes.length - 1; i++) {
+        if (nodes[i].type !== 'ivr' && nodes[i].type !== 'time_condition') {
+            // Only link to next if next node is not already a branch target of something
+            const nextNode = nodes[i + 1];
+            const isBranchTarget = nodes.some(n => n.branches && Object.values(n.branches).includes(nextNode.id));
+            if (!isBranchTarget) {
+                nodes[i].next = nextNode.id;
+            }
+        }
+    }
+
+    if (nextId <= nodes.length) nextId = nodes.length + 1;
     render();
 }
 
@@ -1403,6 +1485,7 @@ function wizStepDesc(s) {
         case 'voicemail': return 'Boite ' + (s.mailbox || '1000');
         case 'goto': return 'Vers ' + (s.target_context || 'default');
         case 'ivr': return 'Touches ' + Object.keys(s.options || {}).join(', ');
+        case 'ai_agent': return 'Agent IA (' + (s.ai_voice || 'alloy') + ')';
         case 'time_condition': return (s.time_start||'09:00') + '-' + (s.time_end||'18:00') + ' ' + (s.days||'lun-ven');
         default: return '';
     }
@@ -1585,11 +1668,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!WIZ_EDIT_MODE) {
         openTplModal();
     } else {
-        // After a successful save, re-open fullscreen so user stays in context
-        const hasSuccess = {{ session('success') ? 'true' : 'false' }};
-        if (hasSuccess) {
-            requestAnimationFrame(() => { openFullscreen(); });
-        }
+        // Edit mode: always open fullscreen cartography directly
+        requestAnimationFrame(() => { openFullscreen(); });
     }
 });
 
@@ -1674,7 +1754,53 @@ function mkNode(n){
     pIn.dataset.dir = 'in';
     el.appendChild(pIn);
 
-    if (n.type !== 'hangup') {
+    if (n.type === 'ivr') {
+        // IVR: one port per option key only (no default out)
+        const keys = Object.keys(n.data.options || {});
+        if (!n.branches) n.branches = {};
+        n.next = null; // IVR has no linear "next", only branches
+        const total = keys.length;
+        keys.forEach((key, i) => {
+            const bp = document.createElement('div');
+            bp.className = 'port port-branch';
+            bp.dataset.owner = n.id;
+            bp.dataset.dir = 'branch';
+            bp.dataset.key = key;
+            bp.style.left = total === 1 ? '50%' : Math.round(((i + 1) / (total + 1)) * 100) + '%';
+            bp.addEventListener('mousedown', onPortDown);
+            el.appendChild(bp);
+            const lbl = document.createElement('div');
+            lbl.className = 'port-branch-label';
+            lbl.style.left = bp.style.left;
+            lbl.textContent = key;
+            el.appendChild(lbl);
+        });
+    } else if (n.type === 'time_condition') {
+        // Time condition: 2 branches only — open (green) + closed (red)
+        if (!n.branches) n.branches = {};
+        n.next = null; // No linear "next", only branches
+        const branchDefs = [
+            { key: 'open', label: 'Ouvert', color: '#3fb950' },
+            { key: 'closed', label: 'Ferme', color: '#f85149' }
+        ];
+        branchDefs.forEach((bd, i) => {
+            const bp = document.createElement('div');
+            bp.className = 'port port-branch';
+            bp.style.background = bd.color;
+            bp.dataset.owner = n.id;
+            bp.dataset.dir = 'branch';
+            bp.dataset.key = bd.key;
+            bp.style.left = Math.round(((i + 1) / 3) * 100) + '%';
+            bp.addEventListener('mousedown', onPortDown);
+            el.appendChild(bp);
+            const lbl = document.createElement('div');
+            lbl.className = 'port-branch-label';
+            lbl.style.left = bp.style.left;
+            lbl.style.color = bd.color;
+            lbl.textContent = bd.label;
+            el.appendChild(lbl);
+        });
+    } else if (n.type !== 'hangup') {
         const pOut = document.createElement('div');
         pOut.className = 'port port-out';
         pOut.dataset.owner = n.id;
@@ -1704,7 +1830,8 @@ function nodeDetail(n){
         case 'announcement': return n.data.sound||'custom/welcome';
         case 'moh':       return `${n.data.moh_class||'default'} (${n.data.duration||10}s)`;
         case 'goto':      return `→ ${n.data.target_context||'default'}`;
-        case 'ivr':       return `Menu: ${Object.keys(n.data.options||{}).join(', ')}`;
+        case 'ivr':       return `Menu: ${Object.keys(n.data.options||{}).join(', ')} (x${n.data.max_loops||3})`;
+        case 'ai_agent':  return `<span style="color:#10b981;">OpenAI</span> ${(n.data.ai_voice||'alloy')}`;
         case 'time_condition': return `${n.data.time_start||'09:00'}-${n.data.time_end||'18:00'} ${n.data.days||'mon-fri'}`;
         case 'hangup':    return 'Fin';
         default: return '';
@@ -1721,12 +1848,28 @@ function startPortPos(){
     const h = el ? el.offsetHeight : 52;
     return { x: 400 + w / 2, y: 30 + h };
 }
-function nodePortPos(id, dir){
+function nodePortPos(id, dir, branchKey){
     const n = nodes.find(x => x.id === id);
     if (!n) return {x:0,y:0};
     const el = canvasInner.querySelector(`[data-id="${id}"]`);
     const w = el ? el.offsetWidth : 220;
     const h = el ? el.offsetHeight : 70;
+    if (branchKey !== undefined && (n.type === 'ivr' || n.type === 'time_condition')) {
+        // Find the branch port position
+        const port = el?.querySelector(`.port-branch[data-key="${branchKey}"]`);
+        if (port) {
+            const pctLeft = parseFloat(port.style.left) / 100;
+            return { x: n.x + w * pctLeft, y: n.y + h };
+        }
+    }
+    if (dir === 'out' && n.type === 'ivr') {
+        // Default out port is at the rightmost position
+        const port = el?.querySelector('.port-out');
+        if (port) {
+            const pctLeft = parseFloat(port.style.left) / 100;
+            return { x: n.x + w * pctLeft, y: n.y + h };
+        }
+    }
     return {
         x: n.x + w / 2,
         y: dir === 'in' ? n.y : n.y + h
@@ -1753,9 +1896,20 @@ function drawEdges(){
     }
 
     nodes.forEach(n => {
-        if (n.next !== null) {
+        if (n.next !== null && n.type !== 'ivr' && n.type !== 'time_condition') {
             const target = nodes.find(x => x.id === n.next);
             if (target) drawCurve(svg, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
+        }
+        // IVR / time_condition branches
+        if ((n.type === 'ivr' || n.type === 'time_condition') && n.branches) {
+            Object.keys(n.branches).forEach(key => {
+                const targetId = n.branches[key];
+                const target = nodes.find(x => x.id === targetId);
+                if (!target) return;
+                let color = '#bc6ff1'; // IVR default
+                if (n.type === 'time_condition') color = key === 'open' ? '#3fb950' : '#f85149';
+                drawCurve(svg, nodePortPos(n.id, 'branch', key), nodePortPos(target.id, 'in'), false, color);
+            });
         }
     });
 
@@ -1764,17 +1918,26 @@ function drawEdges(){
     }
 }
 
-function drawCurve(svg, a, b, temp){
+function drawCurve(svg, a, b, temp, color){
     const dx = b.x - a.x, dy = b.y - a.y;
-    // Control point offset for bezier — adapts to distance
-    const cp = Math.max(40, Math.min(Math.abs(dy) * 0.5, 150));
-    const d = `M${a.x},${a.y} C${a.x},${a.y + cp} ${b.x},${b.y - cp} ${b.x},${b.y}`;
+    const absDx = Math.abs(dx), absDy = Math.abs(dy);
+    let d;
+    if (absDy > absDx * 0.3) {
+        // Mostly vertical: smooth S-curve
+        const cp = Math.max(50, Math.min(absDy * 0.45, 180));
+        d = `M${a.x},${a.y} C${a.x},${a.y + cp} ${b.x},${b.y - cp} ${b.x},${b.y}`;
+    } else {
+        // Mostly horizontal: use wider control points
+        const cp = Math.max(60, absDx * 0.3);
+        d = `M${a.x},${a.y} C${a.x},${a.y + cp} ${b.x},${b.y - cp} ${b.x},${b.y}`;
+    }
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d', d);
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', temp ? '#f0883e' : '#29b6f6');
-    path.setAttribute('stroke-width', temp ? '3' : '2');
-    path.setAttribute('stroke-opacity', temp ? '0.6' : '0.8');
+    path.setAttribute('stroke', temp ? '#f0883e' : (color || '#29b6f6'));
+    path.setAttribute('stroke-width', temp ? '3' : '2.5');
+    path.setAttribute('stroke-opacity', temp ? '0.6' : '0.85');
+    path.setAttribute('stroke-linecap', 'round');
     svg.appendChild(path);
 }
 
@@ -1786,11 +1949,12 @@ let wiring = null;
 function onPortDown(e){
     e.stopPropagation();
     e.preventDefault();
-    const port = e.target.closest('.port');
+    const port = e.target.closest('.port, .port-branch');
     const ownerId = port.dataset.owner;
     const nId = ownerId === startId ? startId : parseInt(ownerId);
-    const pos = (nId === startId) ? startPortPos() : nodePortPos(nId, 'out');
-    wiring = { fromId: nId, from: pos, mx: pos.x, my: pos.y };
+    const branchKey = port.dataset.key || null;
+    const pos = (nId === startId) ? startPortPos() : nodePortPos(nId, branchKey ? 'branch' : 'out', branchKey);
+    wiring = { fromId: nId, from: pos, mx: pos.x, my: pos.y, branchKey: branchKey };
     document.addEventListener('mousemove', onWireMove);
     document.addEventListener('mouseup', onWireUp);
 }
@@ -1809,18 +1973,33 @@ function onWireUp(e){
     document.removeEventListener('mouseup', onWireUp);
     if (!wiring) return;
 
-    // find target port-in under cursor
-    const elUnder = document.elementFromPoint(e.clientX, e.clientY);
-    const port = elUnder?.closest?.('.port-in');
-    if (port) {
-        const targetId = parseInt(port.dataset.owner);
-        if (!isNaN(targetId) && targetId !== wiring.fromId) {
-            if (wiring.fromId === startId) {
-                setStartNext(targetId);
-            } else {
-                const src = nodes.find(x => x.id === wiring.fromId);
-                if (src) src.next = targetId;
+    // Find nearest port-in to cursor (works in all modes)
+    let targetId = null;
+    const allPorts = canvasInner.querySelectorAll('.port-in');
+    let minDist = 40;
+    allPorts.forEach(p => {
+        const rect = p.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.sqrt(Math.pow(e.clientX - cx, 2) + Math.pow(e.clientY - cy, 2));
+        if (dist < minDist) {
+            minDist = dist;
+            targetId = parseInt(p.dataset.owner);
+        }
+    });
+
+    if (targetId !== null && !isNaN(targetId) && targetId !== wiring.fromId) {
+        if (wiring.fromId === startId) {
+            setStartNext(targetId);
+        } else if (wiring.branchKey) {
+            const src = nodes.find(x => x.id === wiring.fromId);
+            if (src) {
+                if (!src.branches) src.branches = {};
+                src.branches[wiring.branchKey] = targetId;
             }
+        } else {
+            const src = nodes.find(x => x.id === wiring.fromId);
+            if (src) src.next = targetId;
         }
     }
 
@@ -2117,10 +2296,12 @@ function renderProps(){
             </select>`);
             break;
         case 'playback':
-            h += cfgF('Fichier', audioSelect(n.id, 'sound', n.data.sound||'hello-world', 'sound'));
+            h += cfgF('Texte TTS', ttsField(n.id, n.data.tts_text, n.data.tts_voice));
+            h += cfgF('Ou fichier audio', audioSelect(n.id, 'sound', n.data.sound||'hello-world', 'sound'));
             break;
         case 'announcement':
-            h += cfgF('Fichier', audioSelect(n.id, 'sound', n.data.sound||'custom/welcome', 'sound'));
+            h += cfgF('Texte TTS', ttsField(n.id, n.data.tts_text, n.data.tts_voice));
+            h += cfgF('Ou fichier audio', audioSelect(n.id, 'sound', n.data.sound||'custom/welcome', 'sound'));
             break;
         case 'moh':
             {
@@ -2139,15 +2320,28 @@ function renderProps(){
             h += cfgF('Contexte', `<input type="text" class="form-control form-control-sm" value="${n.data.target_context||'default'}" onchange="setProp(${n.id},'target_context',this.value)">`);
             break;
         case 'ivr':
-            h += cfgF('Fichier audio', audioSelect(n.id, 'sound', n.data.sound||'custom/menu', 'sound'));
+            h += cfgF('Message vocal (TTS)', ttsField(n.id, n.data.tts_text, n.data.tts_voice));
+            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.3rem;margin-bottom:.4rem;">Synthese vocale Piper. Laissez vide pour utiliser un fichier audio.</small>`;
+            h += cfgF('Ou fichier audio', audioSelect(n.id, 'sound', n.data.sound||'custom/menu', 'sound'));
             h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||5}" min="1" max="30" onchange="setProp(${n.id},'timeout',+this.value)">`);
-            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Options (touche → destination)</label>`;
+            h += cfgF('Repetitions', `<input type="number" class="form-control form-control-sm" value="${n.data.max_loops||3}" min="1" max="10" onchange="setProp(${n.id},'max_loops',+this.value)">`);
+            h += `<small style="color:var(--text-secondary);font-size:.62rem;display:block;margin-top:-0.6rem;margin-bottom:.5rem;">Nombre de fois que le message est rejoue si pas de reponse</small>`;
+            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Branches IVR</label>`;
             const opts = n.data.options || {};
+            const branches = n.branches || {};
             Object.keys(opts).forEach(key => {
-                h += `<div class="member-item" style="gap:.3rem;">
-                    <span class="ext-badge" style="min-width:22px;text-align:center;">${key}</span>
-                    <input type="text" class="form-control form-control-sm" value="${opts[key]}" placeholder="ex: 100 ou queue-support"
-                           style="flex:1;" onchange="setIvrOpt(${n.id},'${key}',this.value)">
+                // Find target block name
+                const targetId = branches[key];
+                const targetNode = targetId ? nodes.find(x => x.id === targetId) : null;
+                const targetLabel = targetNode ? (TYPES[targetNode.type]?.label || targetNode.type) : '';
+                const linkedTag = targetNode
+                    ? `<span style="font-size:.6rem;background:#bc6ff120;color:#bc6ff1;border-radius:4px;padding:1px 5px;white-space:nowrap;">→ ${targetLabel}</span>`
+                    : `<span style="font-size:.6rem;color:var(--text-secondary);font-style:italic;">non relie</span>`;
+                h += `<div class="member-item" style="gap:.3rem;align-items:center;">
+                    <span class="ext-badge" style="min-width:22px;text-align:center;background:#bc6ff1;color:#fff;">${key}</span>
+                    ${linkedTag}
+                    <input type="text" class="form-control form-control-sm" value="${opts[key]}" placeholder="destination"
+                           style="flex:1;font-size:.75rem;" onchange="setIvrOpt(${n.id},'${key}',this.value)">
                     <button class="wiz-tl-remove" onclick="removeIvrOpt(${n.id},'${key}')" style="width:18px;height:18px;font-size:.5rem;"><i class="bi bi-x"></i></button>
                 </div>`;
             });
@@ -2166,15 +2360,46 @@ function renderProps(){
                 <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Lun — Dim (tous)</option>
                 <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sam — Dim</option>
             </select>`);
-            h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
-            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Si ferme</label>`;
-            h += cfgF('Action', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'closed_action',this.value)">
-                <option value="voicemail" ${(n.data.closed_action||'voicemail')==='voicemail'?'selected':''}>Messagerie</option>
-                <option value="playback" ${(n.data.closed_action)==='playback'?'selected':''}>Annonce + raccrocher</option>
-                <option value="hangup" ${(n.data.closed_action)==='hangup'?'selected':''}>Raccrocher</option>
+            {
+                h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
+                h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Branches</label>`;
+                const tcBranches = n.branches || {};
+                const tcDefs = [{key:'open',label:'Ouvert',color:'#3fb950',icon:'bi-sun'},{key:'closed',label:'Ferme',color:'#f85149',icon:'bi-moon'}];
+                tcDefs.forEach(bd => {
+                    const tgt = tcBranches[bd.key] ? nodes.find(x => x.id === tcBranches[bd.key]) : null;
+                    const tgtLabel = tgt ? (TYPES[tgt.type]?.label || tgt.type) : 'non relie';
+                    h += `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;padding:.3rem .5rem;border-radius:6px;border:1px solid ${bd.color}30;background:${bd.color}08;">
+                        <i class="bi ${bd.icon}" style="color:${bd.color};font-size:.75rem;"></i>
+                        <span style="font-weight:700;font-size:.75rem;color:${bd.color};">${bd.label}</span>
+                        <span style="font-size:.7rem;color:var(--text-secondary);">→</span>
+                        <span style="font-size:.72rem;font-weight:600;">${tgtLabel}</span>
+                    </div>`;
+                });
+            }
+            break;
+        case 'ai_agent':
+            h += cfgF('Instructions (prompt)', `<textarea class="form-control form-control-sm" rows="4" placeholder="Tu es un assistant telephonique..."
+                style="font-size:.75rem;" onchange="setProp(${n.id},'ai_prompt',this.value)">${n.data.ai_prompt||''}</textarea>`);
+            h += cfgF('Voix OpenAI', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'ai_voice',this.value)">
+                <option value="coral" ${(n.data.ai_voice||'coral')==='coral'?'selected':''}>Coral (femme)</option>
+                <option value="alloy" ${n.data.ai_voice==='alloy'?'selected':''}>Alloy (neutre)</option>
+                <option value="ash" ${n.data.ai_voice==='ash'?'selected':''}>Ash (homme)</option>
+                <option value="ballad" ${n.data.ai_voice==='ballad'?'selected':''}>Ballad (doux)</option>
+                <option value="echo" ${n.data.ai_voice==='echo'?'selected':''}>Echo (homme)</option>
+                <option value="sage" ${n.data.ai_voice==='sage'?'selected':''}>Sage (calme)</option>
+                <option value="shimmer" ${n.data.ai_voice==='shimmer'?'selected':''}>Shimmer (femme)</option>
+                <option value="verse" ${n.data.ai_voice==='verse'?'selected':''}>Verse (expressif)</option>
             </select>`);
-            h += cfgF('Annonce fermeture', audioSelect(n.id, 'closed_sound', n.data.closed_sound||'custom/ferme', 'sound'));
-            h += cfgF('Cible (boite/ext)', `<input type="text" class="form-control form-control-sm" value="${n.data.closed_target||'1000'}" onchange="setProp(${n.id},'closed_target',this.value)" placeholder="ex: 1000">`);
+            h += cfgF('Contexte / Informations', `<textarea class="form-control form-control-sm" rows="3" placeholder="Horaires: lun-ven 9h-18h&#10;Adresse: 12 rue de Paris&#10;Services: hebergement, domaines..."
+                style="font-size:.72rem;" onchange="setProp(${n.id},'ai_context',this.value)">${n.data.ai_context||''}</textarea>`);
+            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.5rem;margin-bottom:.4rem;">Informations que l'IA utilisera pour repondre. Vous pouvez aussi deposer des fichiers .txt/.md dans storage/app/ai-context/</small>`;
+            h += `<div style="margin-top:.5rem;padding:.5rem;background:#10b98110;border:1px solid #10b98130;border-radius:8px;">
+                <div style="font-size:.7rem;font-weight:700;color:#10b981;margin-bottom:.3rem;"><i class="bi bi-shield-check me-1"></i>Cadrage automatique</div>
+                <div style="font-size:.65rem;color:var(--text-secondary);line-height:1.4;">
+                    L'IA refuse les sujets hors cadre (politique, personnel...) et ne revele pas qu'elle est une IA.
+                    Les fichiers de contexte dans storage/app/ai-context/ sont charges automatiquement (RAG).
+                </div>
+            </div>`;
             break;
         case 'hangup':
             h += `<p style="color:var(--text-secondary);font-size:.8rem;">Termine l'appel.</p>`;
@@ -2220,6 +2445,68 @@ function setProp(id, prop, val){
     renderProps();
 }
 
+// ════════════════════════════════════════
+// TTS PREVIEW
+// ════════════════════════════════════════
+function ttsField(nodeId, text, voice) {
+    return `<textarea class="form-control form-control-sm" rows="2" placeholder="Texte a synthetiser..."
+        style="font-size:.75rem;" onchange="setProp(${nodeId},'tts_text',this.value)">${text||''}</textarea>
+        <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
+            <select class="form-select form-select-sm" style="font-size:.7rem;flex:1;" onchange="setProp(${nodeId},'tts_voice',this.value)">
+                <option value="siwis" ${(voice||'siwis')==='siwis'?'selected':''}>Femme (Siwis)</option>
+                <option value="upmc" ${voice==='upmc'?'selected':''}>Homme (UPMC)</option>
+                <option value="mls" ${voice==='mls'?'selected':''}>Femme 2 (MLS)</option>
+            </select>
+            <button id="ttsBtn_${nodeId}" class="btn-tts-preview" onclick="ttsPreview(${nodeId})"><i class="bi bi-play-fill me-1"></i>Ecouter</button>
+        </div>`;
+}
+
+let _ttsAudio = null;
+function ttsPreview(nodeId) {
+    const n = nodes.find(x => x.id === nodeId);
+    if (!n || !n.data.tts_text || !n.data.tts_text.trim()) {
+        alert('Saisissez un texte dans le champ TTS.');
+        return;
+    }
+    // Stop any playing audio
+    if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; }
+
+    // Update button state
+    const btn = document.getElementById('ttsBtn_' + nodeId);
+    if (btn) { btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generation...'; btn.disabled = true; }
+
+    fetch('{{ route("tts.preview") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'audio/wav'
+        },
+        body: JSON.stringify({ text: n.data.tts_text, voice: n.data.tts_voice || 'siwis' })
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Erreur ' + r.status);
+        return r.blob();
+    })
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        _ttsAudio = new Audio(url);
+        _ttsAudio.play();
+        if (btn) {
+            btn.innerHTML = '<i class="bi bi-stop-fill me-1"></i>Arreter';
+            btn.disabled = false;
+            btn.onclick = function() { _ttsAudio.pause(); _ttsAudio = null; btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId); }; };
+        }
+        _ttsAudio.onended = function() {
+            if (btn) { btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId); }; }
+        };
+    })
+    .catch(err => {
+        console.error('TTS preview error:', err);
+        if (btn) { btn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Erreur'; btn.disabled = false; setTimeout(() => { btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId); }; }, 2000); }
+    });
+}
+
 function setIvrOpt(id, key, val) {
     const n = nodes.find(x => x.id === id);
     if (!n) return;
@@ -2228,14 +2515,23 @@ function setIvrOpt(id, key, val) {
     render();
 }
 function addIvrOpt(id, btn) {
-    const input = btn.parentElement.querySelector('.ivr-key-input');
-    const key = (input ? input.value.trim() : '');
+    // Read all possible input locations (normal + fullscreen panels)
+    const inputs = document.querySelectorAll('.ivr-key-input[data-node="' + id + '"]');
+    let key = '';
+    inputs.forEach(function(inp) { if (inp.value.trim()) key = inp.value.trim(); });
+    if (!key) {
+        // Fallback: try the input next to the button
+        const input = btn.parentElement.querySelector('.ivr-key-input');
+        key = input ? input.value.trim() : '';
+    }
     if (!key) return;
     const n = nodes.find(x => x.id === id);
     if (!n) return;
     if (!n.data.options) n.data.options = {};
+    if (n.data.options[key] !== undefined) return; // already exists
     n.data.options[key] = '';
     render();
+    selectNode(id);
     renderProps();
 }
 function removeIvrOpt(id, key) {
@@ -2298,16 +2594,56 @@ function refreshDialplan(){
 // BUILD STEPS (walk the graph in order)
 // ════════════════════════════════════════
 function buildSteps(){
+    // Collect ALL nodes reachable from start, following next + branches
     const ordered = [];
-    let currentId = getStartNext();
     const visited = new Set();
-    while (currentId !== null && !visited.has(currentId)) {
+    const queue = [];
+
+    // Start with the first linked node
+    const startNext = getStartNext();
+    if (startNext !== null) queue.push(startNext);
+
+    // BFS: follow next and branches
+    while (queue.length > 0) {
+        const currentId = queue.shift();
+        if (visited.has(currentId)) continue;
         visited.add(currentId);
+
         const n = nodes.find(x => x.id === currentId);
-        if (!n) break;
-        ordered.push(Object.assign({ type: n.type }, n.data));
-        currentId = n.next;
+        if (!n) continue;
+
+        const step = Object.assign({ type: n.type, _nodeId: n.id }, n.data);
+
+        // Include branch targets for IVR/time_condition
+        if ((n.type === 'ivr' || n.type === 'time_condition') && n.branches) {
+            step.branch_targets = {};
+            Object.keys(n.branches).forEach(key => {
+                step.branch_targets[key] = n.branches[key];
+                // Add branch targets to processing queue
+                if (!visited.has(n.branches[key])) queue.push(n.branches[key]);
+            });
+        }
+
+        ordered.push(step);
+
+        // Follow linear next
+        if (n.next !== null && !visited.has(n.next)) {
+            queue.push(n.next);
+        }
     }
+
+    // Also add orphan nodes (not connected but present on canvas)
+    nodes.forEach(n => {
+        if (!visited.has(n.id)) {
+            const step = Object.assign({ type: n.type, _nodeId: n.id }, n.data);
+            if ((n.type === 'ivr' || n.type === 'time_condition') && n.branches) {
+                step.branch_targets = {};
+                Object.keys(n.branches).forEach(key => { step.branch_targets[key] = n.branches[key]; });
+            }
+            ordered.push(step);
+        }
+    });
+
     return ordered;
 }
 

@@ -138,6 +138,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::put('settings/smtp', [SettingController::class, 'updateSmtp'])->name('settings.smtp.update');
+        Route::put('settings/ai', [SettingController::class, 'updateAi'])->name('settings.ai.update');
         Route::post('settings/smtp/test', [SettingController::class, 'testSmtp'])->name('settings.smtp.test');
 
         // Fichiers audio
@@ -181,6 +182,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('caller-ids/groups', [CallerIdController::class, 'storeGroup'])->name('caller-ids.groups.store');
         Route::put('caller-ids/groups/{group}', [CallerIdController::class, 'updateGroup'])->name('caller-ids.groups.update');
         Route::delete('caller-ids/groups/{group}', [CallerIdController::class, 'destroyGroup'])->name('caller-ids.groups.destroy');
+
+        // TTS Preview
+        Route::post('tts/preview', [\App\Http\Controllers\TtsController::class, 'preview'])->name('tts.preview');
+
+        // AI History
+        Route::get('ai-history', [\App\Http\Controllers\AiHistoryController::class, 'index'])->name('ai-history.index');
+        Route::get('ai-history/{conversation}', [\App\Http\Controllers\AiHistoryController::class, 'show'])->name('ai-history.show');
+
+        // AI Context (RAG documents)
+        Route::get('ai-context', [\App\Http\Controllers\AiContextController::class, 'index'])->name('ai-context.index');
+        Route::post('ai-context/upload', [\App\Http\Controllers\AiContextController::class, 'upload'])->name('ai-context.upload');
+        Route::post('ai-context', [\App\Http\Controllers\AiContextController::class, 'store'])->name('ai-context.store');
+        Route::get('ai-context/{filename}/edit', [\App\Http\Controllers\AiContextController::class, 'edit'])->name('ai-context.edit');
+        Route::put('ai-context/{filename}', [\App\Http\Controllers\AiContextController::class, 'update'])->name('ai-context.update');
+        Route::delete('ai-context/{filename}', [\App\Http\Controllers\AiContextController::class, 'destroy'])->name('ai-context.destroy');
 
         // Codecs (page statique depuis config)
         Route::view('codecs', 'codecs.index')->name('codecs.index');

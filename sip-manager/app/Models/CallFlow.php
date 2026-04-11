@@ -73,7 +73,9 @@ class CallFlow extends Model
         // Call recording via MixMonitor
         $recordInserted = false;
 
-        foreach ($this->steps as $step) {
+        $ivrExtensions = []; // IVR sub-extensions to add at end
+
+        foreach ($this->steps as $stepIndex => $step) {
             $type = $step['type'] ?? '';
 
             switch ($type) {
@@ -91,8 +93,15 @@ class CallFlow extends Model
                     break;
 
                 case 'playback':
-                    $sound = $step['sound'] ?? 'hello-world';
-                    $lines[] = " same => n,Playback({$sound})";
+                    $ttsText = $step['tts_text'] ?? '';
+                    if (!empty($ttsText)) {
+                        $voice = $step['tts_voice'] ?? 'siwis';
+                        $voiceMap = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
+                        $lines[] = " same => n,AGI(piper-tts.sh,\"" . addslashes($ttsText) . "\"," . ($voiceMap[$voice] ?? $voiceMap['siwis']) . ")";
+                    } else {
+                        $sound = $step['sound'] ?? 'hello-world';
+                        $lines[] = " same => n,Playback({$sound})";
+                    }
                     break;
 
                 case 'queue':
@@ -153,19 +162,177 @@ class CallFlow extends Model
                     break;
 
                 case 'announcement':
-                    $sound = $step['sound'] ?? 'custom/welcome';
-                    $lines[] = " same => n,Playback({$sound})";
+                    $ttsText = $step['tts_text'] ?? '';
+                    if (!empty($ttsText)) {
+                        $voice = $step['tts_voice'] ?? 'siwis';
+                        $voiceMap = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
+                        $lines[] = " same => n,AGI(piper-tts.sh,\"" . addslashes($ttsText) . "\"," . ($voiceMap[$voice] ?? $voiceMap['siwis']) . ")";
+                    } else {
+                        $sound = $step['sound'] ?? 'custom/welcome';
+                        $lines[] = " same => n,Playback({$sound})";
+                    }
+                    break;
+
+                case 'ivr':
+                    $sound = $step['sound'] ?? 'custom/menu';
+                    $ttsText = $step['tts_text'] ?? '';
+                    $timeout = $step['timeout'] ?? 5;
+                    $maxLoops = $step['max_loops'] ?? 3;
+                    $options = $step['options'] ?? [];
+                    $branchTargets = $step['branch_targets'] ?? [];
+                    $ivrLabel = 'ivr_' . $stepIndex;
+
+                    // Loop: set counter, save extension for Goto, play message, wait for DTMF
+                    $lines[] = " same => n,Set(IVR_LOOPS=0)";
+                    $lines[] = " same => n,Set(IVR_EXTEN=\${EXTEN})";
+                    $lines[] = " same => n({$ivrLabel}),Set(IVR_LOOPS=\$[\${IVR_LOOPS}+1])";
+                    $lines[] = " same => n,GotoIf(\$[\${IVR_LOOPS} > {$maxLoops}]?{$ivrLabel}_end)";
+                    if (!empty($ttsText)) {
+                        // Pre-generate TTS audio file for use with Background()
+                        $voice = $step['tts_voice'] ?? 'siwis';
+                        $voiceMap = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
+                        $voiceModel = $voiceMap[$voice] ?? $voiceMap['siwis'];
+                        $ttsHash = md5("{$voiceModel}:{$ttsText}");
+                        $ttsFile = "tts/{$ttsHash}";
+
+                        // Generate the file on disk if not exists
+                        $sndDir = '/var/lib/asterisk/sounds/tts';
+                        $cacheDir = '/var/spool/asterisk/tts_cache';
+                        if (!file_exists("{$sndDir}/{$ttsHash}.sln")) {
+                            @mkdir($sndDir, 0755, true);
+                            @mkdir($cacheDir, 0755, true);
+                            $wavTmp = "{$cacheDir}/{$ttsHash}.wav";
+                            $piperBin = '/opt/piper/piper/piper';
+                            $modelPath = "/opt/piper/models/{$voiceModel}.onnx";
+                            $proc = proc_open([$piperBin, '--model', $modelPath, '--output_file', $wavTmp],
+                                [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+                            if (is_resource($proc)) {
+                                fwrite($pipes[0], $ttsText); fclose($pipes[0]); fclose($pipes[1]); fclose($pipes[2]);
+                                proc_close($proc);
+                                exec("sox {$wavTmp} -r 8000 -c 1 -e signed-integer -b 16 {$sndDir}/{$ttsHash}.sln 2>/dev/null");
+                                @unlink($wavTmp);
+                            }
+                        }
+                        $lines[] = " same => n,Background({$ttsFile})";
+                    } else {
+                        $lines[] = " same => n,Background({$sound})";
+                    }
+                    // Set CHANNEL(dtmf_features) and digit timeout for single-digit IVR
+                    $lines[] = " same => n,Set(TIMEOUT(digit)=1)";
+                    $lines[] = " same => n,WaitExten({$timeout})";
+
+                    // Generate IVR option extensions (DTMF keys)
+                    foreach ($options as $key => $dest) {
+                        $ivrLines = [];
+                        $ivrLines[] = "exten => {$key},1,NoOp(IVR touche {$key})";
+
+                        // Check if this key has a branch target (visual connection to a block)
+                        $targetNodeId = $branchTargets[$key] ?? null;
+                        $targetStep = null;
+                        if ($targetNodeId) {
+                            foreach ($this->steps as $s) {
+                                if (($s['_nodeId'] ?? null) == $targetNodeId) {
+                                    $targetStep = $s;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($targetStep) {
+                            // Generate inline dialplan for the target block
+                            $targetType = $targetStep['type'] ?? '';
+                            switch ($targetType) {
+                                case 'ring':
+                                    $exts = $targetStep['extensions'] ?? [];
+                                    $to = $targetStep['timeout'] ?? 25;
+                                    if (!empty($exts)) {
+                                        $targets = implode('&', array_map(fn($e) => "PJSIP/{$e}", $exts));
+                                        $ivrLines[] = " same => n,Dial({$targets},{$to},tTm(default))";
+                                    }
+                                    break;
+                                case 'queue':
+                                    $ivrLines[] = " same => n,Queue(" . ($targetStep['queue_name'] ?? 'default') . ",tT,,,60)";
+                                    break;
+                                case 'voicemail':
+                                    $ivrLines[] = " same => n,VoiceMail(" . ($targetStep['mailbox'] ?? '1000') . "@default," . ($targetStep['vm_type'] ?? 'u') . ")";
+                                    break;
+                                case 'forward':
+                                    $fwdDest = $targetStep['destination'] ?? '';
+                                    if ($fwdDest) {
+                                        $fwdType = $targetStep['dest_type'] ?? 'extension';
+                                        if ($fwdType === 'extension') {
+                                            $ivrLines[] = " same => n,Dial(PJSIP/{$fwdDest}," . ($targetStep['timeout'] ?? 20) . ",tTm(default))";
+                                        } else {
+                                            $trunk = \App\Models\Trunk::where('status', 'online')->first();
+                                            $trunkId = $trunk ? $trunk->getAsteriskEndpointId() : 'trunk';
+                                            $ivrLines[] = " same => n,Dial(PJSIP/{$fwdDest}@{$trunkId}," . ($targetStep['timeout'] ?? 20) . ",tTm(default))";
+                                        }
+                                    }
+                                    break;
+                                case 'ai_agent':
+                                    $aiP = $targetStep['ai_prompt'] ?? 'Assistant telephonique';
+                                    $aiC = $targetStep['ai_context'] ?? '';
+                                    if (!empty($aiC)) $aiP .= "\n\nINFORMATIONS COMPLEMENTAIRES:\n" . $aiC;
+                                    $aiV = $targetStep['ai_voice'] ?? 'coral';
+                                    $ivrLines[] = " same => n,AudioSocket(\${UNIQUEID},127.0.0.1:9092)";
+                                    break;
+                                case 'playback':
+                                case 'announcement':
+                                    $tts = $targetStep['tts_text'] ?? '';
+                                    if (!empty($tts)) {
+                                        $v = $targetStep['tts_voice'] ?? 'siwis';
+                                        $vm = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
+                                        $ivrLines[] = " same => n,AGI(piper-tts.sh,\"" . addslashes($tts) . "\"," . ($vm[$v] ?? $vm['siwis']) . ")";
+                                    } else {
+                                        $ivrLines[] = " same => n,Playback(" . ($targetStep['sound'] ?? 'hello-world') . ")";
+                                    }
+                                    break;
+                                case 'hangup':
+                                    break;
+                            }
+                        } elseif (!empty($dest)) {
+                            // Legacy: text destination
+                            if (preg_match('/^\d{3,}$/', $dest)) {
+                                $ivrLines[] = " same => n,Dial(PJSIP/{$dest},25,tTm(default))";
+                            } elseif (str_starts_with($dest, 'queue-') || str_starts_with($dest, 'q-')) {
+                                $ivrLines[] = " same => n,Queue({$dest},tT,,,60)";
+                            } else {
+                                $ivrLines[] = " same => n,Dial(PJSIP/{$dest},25,tTm(default))";
+                            }
+                        }
+                        $ivrLines[] = " same => n,Hangup()";
+                        $ivrExtensions[] = implode("\n", $ivrLines);
+                    }
+
+                    // Invalid key → play error + replay menu (use saved extension)
+                    $ivrExtensions[] = "exten => i,1,Playback(custom/invalid)\n same => n,Goto({$ctx},\${IVR_EXTEN},{$ivrLabel})";
+                    // Timeout → loop back
+                    $ivrExtensions[] = "exten => t,1,Goto({$ctx},\${IVR_EXTEN},{$ivrLabel})";
+
+                    // End of loops (no valid input after max retries) → goodbye
+                    $lines[] = " same => n({$ivrLabel}_end),NoOp(IVR max retries reached)";
+                    $lines[] = " same => n,Playback(custom/goodbye)";
+                    break;
+
+                case 'ai_agent':
+                    $aiPrompt = $step['ai_prompt'] ?? 'Tu es un assistant telephonique professionnel. Reponds en francais.';
+                    $aiContext = $step['ai_context'] ?? '';
+                    if (!empty($aiContext)) {
+                        $aiPrompt .= "\n\nINFORMATIONS COMPLEMENTAIRES:\n" . $aiContext;
+                    }
+                    $aiPrompt = addslashes($aiPrompt);
+                    $aiVoice = $step['ai_voice'] ?? 'coral';
+                    $lines[] = " same => n,NoOp(=== OpenAI Realtime Agent ===)";
+                    $lines[] = " same => n,Set(AI_UUID=\${SHELL(cat /proc/sys/kernel/random/uuid)})";
+                    $lines[] = " same => n,AudioSocket(\${AI_UUID},127.0.0.1:9092)";
                     break;
 
                 case 'time_condition':
                     $timeStart = $step['time_start'] ?? '09:00';
                     $timeEnd   = $step['time_end'] ?? '18:00';
                     $days      = $step['days'] ?? 'mon-fri';
-                    $closedAction = $step['closed_action'] ?? 'voicemail';
-                    $closedSound  = $step['closed_sound'] ?? '';
-                    $closedTarget = $step['closed_target'] ?? '1000';
+                    $branchTargets = $step['branch_targets'] ?? [];
 
-                    // Map day ranges to Asterisk format
                     $dayMap = [
                         'mon-fri' => 'mon-fri',
                         'mon-sat' => 'mon-sat',
@@ -174,29 +341,49 @@ class CallFlow extends Model
                     ];
                     $astDays = $dayMap[$days] ?? $days;
 
-                    $closedLabel = 'closed_' . preg_replace('/[^a-z0-9]/', '', strtolower($this->name));
+                    $tcLabel = 'tc_' . $stepIndex;
 
                     $lines[] = " same => n,NoOp(Horaires: {$timeStart}-{$timeEnd} {$astDays})";
-                    $lines[] = " same => n,GotoIfTime({$timeStart}-{$timeEnd},{$astDays},*,*?open_{$closedLabel})";
+                    $lines[] = " same => n,GotoIfTime({$timeStart}-{$timeEnd},{$astDays},*,*?{$tcLabel}_open)";
 
-                    // Closed branch
-                    if ($closedSound) {
-                        $lines[] = " same => n,Answer()";
-                        $lines[] = " same => n,Playback({$closedSound})";
+                    // Closed branch: if branch_targets has 'closed', the visual branch handles it
+                    // Otherwise fallback to legacy inline behavior
+                    if (empty($branchTargets)) {
+                        $closedAction = $step['closed_action'] ?? 'voicemail';
+                        $closedSound  = $step['closed_sound'] ?? '';
+                        $closedTarget = $step['closed_target'] ?? '1000';
+                        if ($closedSound) {
+                            $lines[] = " same => n,Answer()";
+                            $lines[] = " same => n,Playback({$closedSound})";
+                        }
+                        if ($closedAction === 'voicemail') {
+                            $lines[] = " same => n,VoiceMail({$closedTarget}@default,u)";
+                        }
+                        $lines[] = " same => n,Hangup()";
+                        // Open: continue to next steps
+                        $lines[] = " same => n({$tcLabel}_open),NoOp(Ouvert — on continue)";
+                    } else {
+                        // Closed: handled by visual branch → just hangup here (the branch node will handle)
+                        $lines[] = " same => n,NoOp(Ferme — branche vers bloc suivant)";
+                        $lines[] = " same => n,Hangup()";
+                        // Open: continue to next steps
+                        $lines[] = " same => n({$tcLabel}_open),NoOp(Ouvert — on continue)";
                     }
-                    if ($closedAction === 'voicemail') {
-                        $lines[] = " same => n,VoiceMail({$closedTarget}@default,u)";
-                    }
-                    $lines[] = " same => n,Hangup()";
-
-                    // Open branch — continue with next steps
-                    $lines[] = " same => n(open_{$closedLabel}),NoOp(Ouvert — on continue)";
                     break;
             }
         }
 
         // Ensure hangup label at the end (target for GotoIf after successful Dial)
         $lines[] = " same => n(hangup),Hangup()";
+
+        // IVR sub-extensions (DTMF options)
+        if (!empty($ivrExtensions)) {
+            $lines[] = "";
+            $lines[] = "; IVR options";
+            foreach ($ivrExtensions as $ivrExt) {
+                $lines[] = $ivrExt;
+            }
+        }
 
         // Also add catch-all patterns
         $lines[] = "";

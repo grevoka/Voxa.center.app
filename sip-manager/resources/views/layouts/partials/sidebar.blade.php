@@ -122,6 +122,21 @@
             </div>
         </div>
 
+        <div class="nav-group" data-group="ai">
+            <div class="nav-group-title">
+                <span>Intelligence Artificielle</span>
+                <i class="bi bi-chevron-down nav-chevron"></i>
+            </div>
+            <div class="nav-group-items">
+                <a class="nav-item-custom {{ request()->routeIs('ai-history.*') ? 'active' : '' }}" href="{{ route('ai-history.index') }}">
+                    <i class="bi bi-chat-text"></i> Conversations
+                </a>
+                <a class="nav-item-custom {{ request()->routeIs('ai-context.*') ? 'active' : '' }}" href="{{ route('ai-context.index') }}">
+                    <i class="bi bi-book"></i> Base de connaissances
+                </a>
+            </div>
+        </div>
+
         <div class="nav-group" data-group="config">
             <div class="nav-group-title">
                 <span>Configuration</span>

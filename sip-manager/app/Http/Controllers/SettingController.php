@@ -87,6 +87,31 @@ class SettingController extends Controller
         }
     }
 
+    public function updateAi(Request $request)
+    {
+        $fields = $request->validate([
+            'openai_model'         => 'required|string|max:100',
+            'openai_voice'         => 'required|string|max:50',
+            'openai_vad_threshold' => 'required|numeric|min:0.1|max:1.0',
+            'openai_silence_ms'    => 'required|integer|min:200|max:5000',
+            'openai_max_turns'     => 'required|integer|min:1|max:100',
+            'openai_temperature'   => 'required|numeric|min:0|max:2',
+            'piper_default_voice'  => 'required|string|max:100',
+            'openai_budget_max'    => 'required|numeric|min:0',
+            'openai_budget_period' => 'required|in:day,week,month',
+            'openai_max_duration_call' => 'required|integer|min:30|max:3600',
+            'openai_max_duration_day'  => 'required|integer|min:60|max:86400',
+        ]);
+
+        foreach ($fields as $key => $value) {
+            $type = is_numeric($value) && !is_string($value + 0) ? 'string' : (is_int($value) ? 'int' : 'string');
+            SipSetting::set($key, $value, 'ai', $type);
+        }
+
+        ActivityLog::log('Config AI sauvegardee', 'Parametres OpenAI/TTS mis a jour', 'info');
+        return back()->with('success', 'Configuration AI sauvegardee.');
+    }
+
     private function applySmtpConfig(): void
     {
         $encryption = SipSetting::get('smtp_encryption', 'tls');
