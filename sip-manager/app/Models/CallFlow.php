@@ -272,9 +272,14 @@ class CallFlow extends Model
                                 case 'ai_agent':
                                     $aiP = $targetStep['ai_prompt'] ?? 'Assistant telephonique';
                                     $aiC = $targetStep['ai_context'] ?? '';
+                                    $aiR = $targetStep['ai_rag_folder'] ?? '';
                                     if (!empty($aiC)) $aiP .= "\n\nINFORMATIONS COMPLEMENTAIRES:\n" . $aiC;
                                     $aiV = $targetStep['ai_voice'] ?? 'coral';
-                                    $ivrLines[] = " same => n,AudioSocket(\${UNIQUEID},127.0.0.1:9092)";
+                                    $pSafe = str_replace(["\n","\r"], ['\\n',''], addslashes($aiP));
+                                    $ivrLines[] = " same => n,System(echo '{$pSafe}' > /tmp/ai_prompt_\${UNIQUEID}.txt)";
+                                    $ivrLines[] = " same => n,System(echo '{$aiV}' > /tmp/ai_voice_\${UNIQUEID}.txt)";
+                                    $ivrLines[] = " same => n,System(echo '{$aiR}' > /tmp/ai_rag_\${UNIQUEID}.txt)";
+                                    $ivrLines[] = " same => n,AudioSocket(\${UUID()},127.0.0.1:9092)";
                                     break;
                                 case 'playback':
                                 case 'announcement':
@@ -317,14 +322,20 @@ class CallFlow extends Model
                 case 'ai_agent':
                     $aiPrompt = $step['ai_prompt'] ?? 'Tu es un assistant telephonique professionnel. Reponds en francais.';
                     $aiContext = $step['ai_context'] ?? '';
+                    $aiRagFolder = $step['ai_rag_folder'] ?? '';
                     if (!empty($aiContext)) {
                         $aiPrompt .= "\n\nINFORMATIONS COMPLEMENTAIRES:\n" . $aiContext;
                     }
-                    $aiPrompt = addslashes($aiPrompt);
                     $aiVoice = $step['ai_voice'] ?? 'coral';
+                    // Write prompt to temp file so AudioSocket server can read it
                     $lines[] = " same => n,NoOp(=== OpenAI Realtime Agent ===)";
-                    $lines[] = " same => n,Set(AI_UUID=\${SHELL(cat /proc/sys/kernel/random/uuid)})";
-                    $lines[] = " same => n,AudioSocket(\${AI_UUID},127.0.0.1:9092)";
+                    $lines[] = " same => n,Set(AI_RAG={$aiRagFolder})";
+                    $promptSafe = str_replace(["\n", "\r"], ['\n', ''], addslashes($aiPrompt));
+                    $lines[] = " same => n,System(echo '{$promptSafe}' > /tmp/ai_prompt_\${UNIQUEID}.txt)";
+                    $lines[] = " same => n,System(echo '{$aiVoice}' > /tmp/ai_voice_\${UNIQUEID}.txt)";
+                    $lines[] = " same => n,System(echo '{$aiRagFolder}' > /tmp/ai_rag_\${UNIQUEID}.txt)";
+                    $lines[] = " same => n,AudioSocket(\${UUID()},127.0.0.1:9092)";
+                    $lines[] = " same => n,System(rm -f /tmp/ai_prompt_\${UNIQUEID}.txt /tmp/ai_voice_\${UNIQUEID}.txt /tmp/ai_rag_\${UNIQUEID}.txt)";
                     break;
 
                 case 'time_condition':

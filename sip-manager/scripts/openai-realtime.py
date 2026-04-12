@@ -8,7 +8,7 @@ from datetime import datetime
 
 SOUND_DIR = Path('/var/lib/asterisk/sounds/tts')
 CACHE_DIR = Path('/var/spool/asterisk/tts_cache')
-CONTEXT_DIR = Path('/var/www/html/storage/app/ai-context')
+CONTEXT_DIR = Path('/var/www/html/storage/app/private/ai-context')
 
 def get_db_connection():
     try:

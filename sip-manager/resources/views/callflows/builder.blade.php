@@ -2390,9 +2390,26 @@ function renderProps(){
                 <option value="shimmer" ${n.data.ai_voice==='shimmer'?'selected':''}>Shimmer (femme)</option>
                 <option value="verse" ${n.data.ai_voice==='verse'?'selected':''}>Verse (expressif)</option>
             </select>`);
-            h += cfgF('Contexte / Informations', `<textarea class="form-control form-control-sm" rows="3" placeholder="Horaires: lun-ven 9h-18h&#10;Adresse: 12 rue de Paris&#10;Services: hebergement, domaines..."
+            h += cfgF('Dossier RAG', `<select class="form-select form-select-sm" id="ragFolder_${n.id}" onchange="setProp(${n.id},'ai_rag_folder',this.value)">
+                <option value="" ${!n.data.ai_rag_folder?'selected':''}>General (tous les docs)</option>
+            </select>`);
+            // Load folders dynamically
+            setTimeout(() => {
+                fetch('/api/ai-context/folders').then(r=>r.json()).then(folders => {
+                    const sel = document.getElementById('ragFolder_'+n.id);
+                    if (!sel) return;
+                    folders.forEach(f => {
+                        const opt = document.createElement('option');
+                        opt.value = f.name;
+                        opt.textContent = f.name + ' (' + f.files + ' docs)';
+                        if (n.data.ai_rag_folder === f.name) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                });
+            }, 0);
+            h += cfgF('Contexte supplementaire', `<textarea class="form-control form-control-sm" rows="3" placeholder="Infos additionnelles..."
                 style="font-size:.72rem;" onchange="setProp(${n.id},'ai_context',this.value)">${n.data.ai_context||''}</textarea>`);
-            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.5rem;margin-bottom:.4rem;">Informations que l'IA utilisera pour repondre. Vous pouvez aussi deposer des fichiers .txt/.md dans storage/app/ai-context/</small>`;
+            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.5rem;margin-bottom:.4rem;">Le dossier RAG + ce texte seront fournis a l'IA comme base de connaissances.</small>`;
             h += `<div style="margin-top:.5rem;padding:.5rem;background:#10b98110;border:1px solid #10b98130;border-radius:8px;">
                 <div style="font-size:.7rem;font-weight:700;color:#10b981;margin-bottom:.3rem;"><i class="bi bi-shield-check me-1"></i>Cadrage automatique</div>
                 <div style="font-size:.65rem;color:var(--text-secondary);line-height:1.4;">

@@ -194,9 +194,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('ai-context', [\App\Http\Controllers\AiContextController::class, 'index'])->name('ai-context.index');
         Route::post('ai-context/upload', [\App\Http\Controllers\AiContextController::class, 'upload'])->name('ai-context.upload');
         Route::post('ai-context', [\App\Http\Controllers\AiContextController::class, 'store'])->name('ai-context.store');
-        Route::get('ai-context/{filename}/edit', [\App\Http\Controllers\AiContextController::class, 'edit'])->name('ai-context.edit');
-        Route::put('ai-context/{filename}', [\App\Http\Controllers\AiContextController::class, 'update'])->name('ai-context.update');
-        Route::delete('ai-context/{filename}', [\App\Http\Controllers\AiContextController::class, 'destroy'])->name('ai-context.destroy');
+        Route::post('ai-context/folders', [\App\Http\Controllers\AiContextController::class, 'storeFolder'])->name('ai-context.folders.store');
+        Route::delete('ai-context/folders/{folder}', [\App\Http\Controllers\AiContextController::class, 'destroyFolder'])->name('ai-context.folders.destroy');
+        Route::get('ai-context/{filename}/edit', [\App\Http\Controllers\AiContextController::class, 'edit'])->name('ai-context.edit')->where('filename', '.*');
+        Route::put('ai-context/{filename}', [\App\Http\Controllers\AiContextController::class, 'update'])->name('ai-context.update')->where('filename', '.*');
+        Route::delete('ai-context/{filename}', [\App\Http\Controllers\AiContextController::class, 'destroy'])->name('ai-context.destroy')->where('filename', '.*');
+        Route::get('api/ai-context/folders', [\App\Http\Controllers\AiContextController::class, 'apiFolders'])->name('ai-context.api.folders');
 
         // Codecs (page statique depuis config)
         Route::view('codecs', 'codecs.index')->name('codecs.index');

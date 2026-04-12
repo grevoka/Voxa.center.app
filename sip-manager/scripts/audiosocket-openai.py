@@ -29,7 +29,7 @@ AUDIOSOCKET_KIND_SILENCE = 0x02
 AUDIOSOCKET_KIND_HANGUP = 0x00
 AUDIOSOCKET_KIND_ERROR = 0xff
 
-CONTEXT_DIR = Path('/var/www/html/storage/app/ai-context')
+CONTEXT_DIR = Path('/var/www/html/storage/app/private/ai-context')
 
 def get_config():
     """Load config from .env and sip_settings DB."""
@@ -79,12 +79,19 @@ def get_config():
 
     return config
 
-def load_context():
-    """Load RAG context files."""
+def load_context(rag_folder=''):
+    """Load RAG context files from general + specific folder."""
     parts = []
+    # Always load general (root) docs
     if CONTEXT_DIR.exists():
         for f in sorted(CONTEXT_DIR.glob('*.txt')) + sorted(CONTEXT_DIR.glob('*.md')):
             parts.append(f'--- {f.stem} ---\n{f.read_text(encoding="utf-8", errors="ignore").strip()}')
+    # Load folder-specific docs
+    if rag_folder:
+        folder_path = CONTEXT_DIR / rag_folder
+        if folder_path.exists():
+            for f in sorted(folder_path.glob('*.txt')) + sorted(folder_path.glob('*.md')):
+                parts.append(f'--- {rag_folder}/{f.stem} ---\n{f.read_text(encoding="utf-8", errors="ignore").strip()}')
     return '\n\n'.join(parts)
 
 def build_prompt(user_prompt, context=''):
@@ -190,7 +197,32 @@ async def handle_call(reader, writer, config):
     url = f"wss://api.openai.com/v1/realtime?model={config['model']}"
     headers = {'Authorization': f"Bearer {config['api_key']}", 'OpenAI-Beta': 'realtime=v1'}
 
-    context = load_context()
+    # Try to load call-specific config from temp files
+    import glob as globmod
+    config_files = sorted(globmod.glob('/tmp/ai_prompt_*.txt'), key=os.path.getmtime, reverse=True)
+    if config_files:
+        try:
+            uid = config_files[0].replace('/tmp/ai_prompt_', '').replace('.txt', '')
+            prompt_file = f'/tmp/ai_prompt_{uid}.txt'
+            voice_file = f'/tmp/ai_voice_{uid}.txt'
+            rag_file = f'/tmp/ai_rag_{uid}.txt'
+            if os.path.exists(prompt_file):
+                prompt = open(prompt_file).read().strip().replace('\\n', '\n')
+            if os.path.exists(voice_file):
+                voice = open(voice_file).read().strip() or voice
+            if os.path.exists(rag_file):
+                rag_folder = open(rag_file).read().strip()
+                if rag_folder:
+                    config['rag_folder'] = rag_folder
+            # Clean up
+            for f in [prompt_file, voice_file, rag_file]:
+                try: os.unlink(f)
+                except: pass
+            print(f'[CALL] Loaded config from {uid}, RAG: {config.get("rag_folder", "general")}')
+        except Exception as e:
+            print(f'[WARN] Config load: {e}', file=sys.stderr)
+
+    context = load_context(config.get('rag_folder', ''))
     system_prompt = build_prompt(prompt, context)
 
     try:
