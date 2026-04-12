@@ -6,7 +6,7 @@
 @section('content')
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">Files d'attente</h5>
+            <h5 style="font-weight:700; margin:0;">{{ __("ui.queues") }}</h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Gerez les files d'attente pour vos appels entrants</p>
         </div>
         <a href="{{ route('queues.create') }}" class="btn btn-accent">
@@ -27,13 +27,13 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Nom</th>
+                        <th>{{ __("ui.name") }}</th>
                         <th>Strategie</th>
                         <th>Membres</th>
                         <th>Timeout</th>
                         <th>Musique</th>
                         <th>Statut</th>
-                        <th>Actions</th>
+                        <th>{{ __("ui.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody>

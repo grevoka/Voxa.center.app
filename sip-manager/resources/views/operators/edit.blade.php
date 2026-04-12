@@ -15,7 +15,7 @@
                 <div class="stat-card">
                     <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">Informations</h6>
                     <div class="mb-3">
-                        <label class="form-label">Nom</label>
+                        <label class="form-label">{{ __("ui.name") }}</label>
                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $operator->name) }}" required>
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
@@ -26,7 +26,7 @@
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
-                            <label class="form-label">Nouveau mot de passe <span style="font-size:0.7rem;color:var(--text-secondary);">(laisser vide)</span></label>
+                            <label class="form-label">{{ __("ui.create") }} mot de passe <span style="font-size:0.7rem;color:var(--text-secondary);">(laisser vide)</span></label>
                             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror">
                             @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>

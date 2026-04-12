@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Logs systeme')
-@section('page-title', 'Logs systeme')
+@section('title', __('ui.system_logs'))
+@section('page-title', __('ui.system_logs'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Logs systeme</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Journal d'activite de Voxa Center</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.system_logs") }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.system_logs') }} de Voxa Center</p>
         </div>
     </div>
 

@@ -4,7 +4,7 @@
     <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="d-flex align-items-center gap-2">
             <div id="phoneStatus" style="width:8px;height:8px;border-radius:50%;background:var(--text-secondary);"></div>
-            <span id="phoneStatusText" style="font-size:0.7rem;color:var(--text-secondary);">Deconnecte</span>
+            <span id="phoneStatusText" style="font-size:0.7rem;color:var(--text-secondary);">{{ __("ui.phone_disconnected") }}</span>
         </div>
         <button id="phoneToggle" onclick="phoneToggleConnect()" class="btn-icon" style="width:24px;height:24px;font-size:0.65rem;" title="Connecter">
             <i class="bi bi-power"></i>
@@ -36,12 +36,12 @@
         </div>
         {{-- Missed calls --}}
         <div id="phoneMissed" style="display:none;margin-top:0.4rem;margin-bottom:0.3rem;">
-            <div style="font-size:0.62rem;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;">Appels manques</div>
+            <div style="font-size:0.62rem;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;">{{ __("ui.phone_missed") }}</div>
             <div id="phoneMissedList" style="max-height:80px;overflow-y:auto;"></div>
         </div>
         {{-- Caller ID selector (toggle buttons) --}}
         <div id="phoneCidSelector" style="display:none;margin-top:0.4rem;margin-bottom:0.3rem;">
-            <div style="font-size:0.62rem;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;">Numero sortant</div>
+            <div style="font-size:0.62rem;color:var(--text-secondary);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;">{{ __("ui.phone_outgoing_number") }}</div>
             <div id="phoneCidBtns" style="display:flex;flex-wrap:wrap;gap:3px;"></div>
             <input type="hidden" id="phoneCidSelect" value="">
         </div>
@@ -57,7 +57,7 @@
 
     {{-- Incoming call --}}
     <div id="phoneIncoming" style="display:none;text-align:center;">
-        <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.3rem;">Appel entrant</div>
+        <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.3rem;">{{ __("ui.phone_incoming") }}</div>
         <div id="phoneIncomingNumber" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;"></div>
         <div class="d-flex gap-2">
             <button onclick="phoneAnswer()" style="flex:1;background:var(--success);color:#fff;border:none;border-radius:8px;padding:0.45rem;font-size:0.82rem;font-weight:600;cursor:pointer;">

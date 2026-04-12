@@ -27,6 +27,22 @@ use App\Http\Controllers\ProfileController;
 use App\Services\AsteriskAmiService;
 use Illuminate\Support\Facades\Route;
 
+// Language switch — stores in DB for logged-in users, cookie for guests
+Route::get('lang/{locale}', function (string $locale) {
+    if (!in_array($locale, ['fr', 'en'])) return redirect()->back();
+
+    session(['locale' => $locale]);
+
+    // Save to user preference if logged in
+    if (auth()->check()) {
+        $user = auth()->user();
+        $user->locale = $locale;
+        $user->save();
+    }
+
+    return redirect()->back();
+})->name('lang.switch');
+
 // Installation wizard (no auth required)
 Route::get('install', [InstallController::class, 'index'])->name('install.index');
 Route::post('install/requirements', [InstallController::class, 'requirements'])->name('install.requirements');

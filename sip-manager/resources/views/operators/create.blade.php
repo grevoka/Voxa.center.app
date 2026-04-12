@@ -15,7 +15,7 @@
                 <div class="stat-card">
                     <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">Informations</h6>
                     <div class="mb-3">
-                        <label class="form-label">Nom</label>
+                        <label class="form-label">{{ __("ui.name") }}</label>
                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>

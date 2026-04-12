@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Messagerie vocale')
-@section('page-title', 'Messagerie vocale')
+@section('title', __('ui.voicemail'))
+@section('page-title', __('ui.voicemail'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">Messagerie vocale</h5>
+            <h5 style="font-weight:700; margin:0;">{{ __("ui.voicemail") }}</h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Ecoutez et gerez les messages vocaux</p>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -80,7 +80,7 @@
                             <th>Duree</th>
                             <th>Statut</th>
                             <th style="width:200px;">Ecouter</th>
-                            <th style="width:60px;">Actions</th>
+                            <th style="width:60px;">{{ __("ui.actions") }}</th>
                         </tr>
                     </thead>
                     <tbody>

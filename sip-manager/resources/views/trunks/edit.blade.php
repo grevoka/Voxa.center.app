@@ -73,7 +73,7 @@
                             <input type="password" name="secret" class="form-control">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Codecs</label>
+                            <label class="form-label">{{ __("ui.codecs") }}</label>
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach($codecs as $key => $codec)
                                     <label class="codec-tag codec-check" style="cursor:pointer;">

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Asterisk Logs')
-@section('page-title', 'Asterisk Logs')
+@section('title', __('ui.asterisk_console'))
+@section('page-title', __('ui.asterisk_console'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Asterisk — Console</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Logs en temps reel et commandes CLI</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __('ui.asterisk_console') }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.asterisk_console') }}</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-custom" onclick="refreshLogs()" id="refreshBtn">

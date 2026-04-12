@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Lignes SIP')
+@section('title', __('ui.lines'))
 @section('page-title', 'Lignes telephoniques')
 
 @section('content')
@@ -19,11 +19,11 @@
             <thead>
                 <tr>
                     <th>Extension</th>
-                    <th>Nom</th>
+                    <th>{{ __("ui.name") }}</th>
                     <th>Email</th>
                     <th>Protocole</th>
                     <th>Statut</th>
-                    <th>Actions</th>
+                    <th>{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
             <tbody>

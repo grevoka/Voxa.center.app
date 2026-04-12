@@ -6,7 +6,7 @@
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Nouveau contexte d'appel</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.create") }} contexte d'appel</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Definir une regle de routage</p>
         </div>
         <a href="{{ route('contexts.index') }}" class="btn btn-outline-custom">
@@ -31,9 +31,9 @@
                 <div class="col-md-4">
                     <label class="form-label">Direction *</label>
                     <select name="direction" class="form-select @error('direction') is-invalid @enderror" id="directionSelect" required>
-                        <option value="inbound" {{ old('direction') === 'inbound' ? 'selected' : '' }}>Entrant</option>
-                        <option value="outbound" {{ old('direction') === 'outbound' ? 'selected' : '' }}>Sortant</option>
-                        <option value="internal" {{ old('direction', 'internal') === 'internal' ? 'selected' : '' }}>Interne</option>
+                        <option value="inbound" {{ old('direction') === 'inbound' ? 'selected' : '' }}>{{ __("ui.inbound") }}</option>
+                        <option value="outbound" {{ old('direction') === 'outbound' ? 'selected' : '' }}>{{ __("ui.outbound") }}</option>
+                        <option value="internal" {{ old('direction', 'internal') === 'internal' ? 'selected' : '' }}>{{ __("ui.internal") }}</option>
                     </select>
                     @error('direction') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>

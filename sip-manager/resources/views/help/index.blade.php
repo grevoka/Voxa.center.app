@@ -23,9 +23,9 @@
                 <nav class="doc-toc">
                     <a href="#transfers">Transferts d'appels</a>
                     <a href="#conferences">Salles de conference</a>
-                    <a href="#voicemail">Messagerie vocale</a>
+                    <a href="#voicemail">{{ __("ui.voicemail") }}</a>
                     <a href="#recording">Enregistrement d'appels</a>
-                    <a href="#queues">Files d'attente</a>
+                    <a href="#queues">{{ __("ui.queues") }}</a>
                     <a href="#pickup">Interception d'appels</a>
                     <a href="#codes">Resume des codes</a>
                 </nav>
@@ -213,7 +213,7 @@
                         <i class="bi bi-voicemail"></i>
                     </div>
                     <div>
-                        <h5 class="doc-title">Messagerie vocale</h5>
+                        <h5 class="doc-title">{{ __("ui.voicemail") }}</h5>
                         <p class="doc-subtitle">Consulter et gerer vos messages</p>
                     </div>
                 </div>
@@ -255,7 +255,7 @@
                                     <tr><td><kbd>2</kbd></td><td>Changer le dossier (anciens messages, messages sauvegardes...)</td></tr>
                                     <tr><td><kbd>3</kbd></td><td>Options avancees</td></tr>
                                     <tr><td><kbd>0</kbd></td><td>Options de la messagerie (modifier l'annonce, le mot de passe...)</td></tr>
-                                    <tr><td><kbd>*</kbd></td><td>Aide</td></tr>
+                                    <tr><td><kbd>*</kbd></td><td>{{ __("ui.help") }}</td></tr>
                                     <tr><td><kbd>#</kbd></td><td>Quitter</td></tr>
                                 </tbody>
                             </table>
@@ -360,7 +360,7 @@
                         <i class="bi bi-people-fill"></i>
                     </div>
                     <div>
-                        <h5 class="doc-title">Files d'attente</h5>
+                        <h5 class="doc-title">{{ __("ui.queues") }}</h5>
                         <p class="doc-subtitle">Distribution des appels aux agents</p>
                     </div>
                 </div>

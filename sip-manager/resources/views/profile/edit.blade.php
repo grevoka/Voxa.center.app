@@ -6,7 +6,7 @@
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Mon profil</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.profile") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Modifier vos informations et votre mot de passe</p>
         </div>
     </div>
@@ -20,7 +20,7 @@
                     @csrf
                     @method('PATCH')
                     <div class="mb-3">
-                        <label class="form-label">Nom</label>
+                        <label class="form-label">{{ __("ui.name") }}</label>
                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                                value="{{ old('name', auth()->user()->name) }}" required>
                         @error('name')
@@ -60,7 +60,7 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Nouveau mot de passe</label>
+                        <label class="form-label">{{ __("ui.create") }} mot de passe</label>
                         <input type="password" name="password" class="form-control @error('password', 'updatePassword') is-invalid @enderror" required>
                         @error('password', 'updatePassword')
                             <div class="invalid-feedback">{{ $message }}</div>

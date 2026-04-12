@@ -46,7 +46,7 @@
                                    value="{{ old('email', $line->email) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Nouveau mot de passe SIP <small>(laisser vide pour ne pas changer)</small></label>
+                            <label class="form-label">{{ __("ui.create") }} mot de passe SIP <small>(laisser vide pour ne pas changer)</small></label>
                             <input type="password" name="secret" class="form-control @error('secret') is-invalid @enderror"
                                    placeholder="Min. 8 caracteres">
                             @error('secret')
@@ -83,7 +83,7 @@
                                    value="{{ old('max_contacts', $line->max_contacts) }}" min="1" max="10">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Codecs</label>
+                            <label class="form-label">{{ __("ui.codecs") }}</label>
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach($codecs as $key => $codec)
                                     <label class="codec-tag codec-check" style="cursor:pointer;">

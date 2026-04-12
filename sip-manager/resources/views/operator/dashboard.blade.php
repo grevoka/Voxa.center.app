@@ -114,7 +114,7 @@
         <div class="col-lg-4">
             @if($queues->count())
             <div class="stat-card" style="padding:1.25rem;">
-                <h6 style="font-weight:700;font-size:0.88rem;margin-bottom:0.75rem;"><i class="bi bi-people me-2" style="color:var(--purple);"></i>Files d'attente</h6>
+                <h6 style="font-weight:700;font-size:0.88rem;margin-bottom:0.75rem;"><i class="bi bi-people me-2" style="color:var(--purple);"></i>{{ __("ui.queues") }}</h6>
                 @foreach($queues as $queue)
                 <div style="padding:0.5rem 0;{{ !$loop->last ? 'border-bottom:1px solid var(--border);' : '' }}" class="d-flex align-items-center justify-content-between">
                     <div>

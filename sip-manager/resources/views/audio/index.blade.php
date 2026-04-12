@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Fichiers audio')
-@section('page-title', 'Fichiers audio')
+@section('title', __('ui.audio_files'))
+@section('page-title', __('ui.audio_files'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Fichiers audio</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.audio_files") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Annonces, messages d'accueil et musiques d'attente</p>
         </div>
         <button class="btn btn-accent" onclick="document.getElementById('uploadModal').style.display='flex'">
@@ -20,7 +20,7 @@
             <div class="audio-stat"><div class="audio-stat-val">{{ $sounds->count() }}</div><div class="audio-stat-lbl">Annonces / Sons</div></div>
         </div>
         <div class="col-md-3">
-            <div class="audio-stat"><div class="audio-stat-val" style="color:var(--accent);">{{ $moh->count() }}</div><div class="audio-stat-lbl">Musiques d'attente</div></div>
+            <div class="audio-stat"><div class="audio-stat-val" style="color:var(--accent);">{{ $moh->count() }}</div><div class="audio-stat-lbl">{{ __("ui.music_on_hold") }}</div></div>
         </div>
         <div class="col-md-3">
             <div class="audio-stat"><div class="audio-stat-val">{{ $mohClasses->count() }}</div><div class="audio-stat-lbl">Classes MOH</div></div>
@@ -50,12 +50,12 @@
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Nom</th>
+                    <th>{{ __("ui.name") }}</th>
                     <th>Fichier original</th>
                     <th>Reference Asterisk</th>
                     <th>Duree</th>
                     <th>Taille</th>
-                    <th style="width:120px;">Actions</th>
+                    <th style="width:120px;">{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,12 +91,12 @@
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Nom</th>
+                    <th>{{ __("ui.name") }}</th>
                     <th>Classe MOH</th>
                     <th>Fichier original</th>
                     <th>Duree</th>
                     <th>Taille</th>
-                    <th style="width:120px;">Actions</th>
+                    <th style="width:120px;">{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
             <tbody>

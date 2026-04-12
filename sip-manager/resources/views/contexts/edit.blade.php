@@ -31,9 +31,9 @@
                 <div class="col-md-4">
                     <label class="form-label">Direction *</label>
                     <select name="direction" class="form-select" id="directionSelect" required>
-                        <option value="inbound" {{ old('direction', $context->direction) === 'inbound' ? 'selected' : '' }}>Entrant</option>
-                        <option value="outbound" {{ old('direction', $context->direction) === 'outbound' ? 'selected' : '' }}>Sortant</option>
-                        <option value="internal" {{ old('direction', $context->direction) === 'internal' ? 'selected' : '' }}>Interne</option>
+                        <option value="inbound" {{ old('direction', $context->direction) === 'inbound' ? 'selected' : '' }}>{{ __("ui.inbound") }}</option>
+                        <option value="outbound" {{ old('direction', $context->direction) === 'outbound' ? 'selected' : '' }}>{{ __("ui.outbound") }}</option>
+                        <option value="internal" {{ old('direction', $context->direction) === 'internal' ? 'selected' : '' }}>{{ __("ui.internal") }}</option>
                     </select>
                 </div>
 

@@ -24,13 +24,13 @@
             <thead>
                 <tr>
                     <th>Priorite</th>
-                    <th>Nom</th>
+                    <th>{{ __("ui.name") }}</th>
                     <th>Direction</th>
                     <th>Pattern</th>
                     <th>Destination</th>
                     <th>Repondeur</th>
                     <th>Statut</th>
-                    <th>Actions</th>
+                    <th>{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,11 +47,11 @@
                         </td>
                         <td>
                             @if($ctx->direction === 'inbound')
-                                <span class="direction-badge inbound"><i class="bi bi-telephone-inbound-fill me-1"></i>Entrant</span>
+                                <span class="direction-badge inbound"><i class="bi bi-telephone-inbound-fill me-1"></i>{{ __("ui.inbound") }}</span>
                             @elseif($ctx->direction === 'outbound')
-                                <span class="direction-badge outbound"><i class="bi bi-telephone-outbound-fill me-1"></i>Sortant</span>
+                                <span class="direction-badge outbound"><i class="bi bi-telephone-outbound-fill me-1"></i>{{ __("ui.outbound") }}</span>
                             @else
-                                <span class="direction-badge internal"><i class="bi bi-telephone-fill me-1"></i>Interne</span>
+                                <span class="direction-badge internal"><i class="bi bi-telephone-fill me-1"></i>{{ __("ui.internal") }}</span>
                             @endif
                         </td>
                         <td><code style="color:var(--accent);font-size:0.8rem;">{{ $ctx->dial_pattern ?: '_X.' }}</code></td>

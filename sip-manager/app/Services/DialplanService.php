@@ -28,6 +28,14 @@ class DialplanService
             // Build full dialplan from CallContexts (includes outbound routes)
             $content = CallContext::generateFullDialplan();
 
+            // Add utility extensions to from-internal
+            $content .= "\n; === UTILITY EXTENSIONS ===\n";
+            $content .= "; Echo test (600) + AI test (601)\n";
+            $content .= "exten => 600,1,Answer()\n";
+            $content .= " same => n,Playback(demo-echotest)\n";
+            $content .= " same => n,Echo()\n";
+            $content .= " same => n,Hangup()\n\n";
+
             $content .= "\n" . $this->marker . "\n";
             $content .= "; Ne pas editer — gere par le Call Flow Builder\n\n";
 
@@ -351,6 +359,12 @@ clearglobalvars = no
 
 [from-internal]
 include => conf-rooms
+; Echo test
+exten => 600,1,Answer()
+ same => n,Playback(demo-echotest)
+ same => n,Echo()
+ same => n,Hangup()
+
 exten => _X.,1,NoOp(Appel interne vers ${EXTEN})
  same => n,Dial(PJSIP/${EXTEN},30,tT)
  same => n,Hangup()

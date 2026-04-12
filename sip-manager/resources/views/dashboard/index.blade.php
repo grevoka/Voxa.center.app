@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Tableau de bord')
-@section('page-title', 'Tableau de bord')
+@section('title', __('ui.dashboard'))
+@section('page-title', __('ui.dashboard'))
 
 @section('content')
     {{-- Stats rapides --}}
@@ -12,7 +12,7 @@
                     <div class="stat-icon"><i class="bi bi-telephone-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['lines_online'] }}/{{ $stats['lines_total'] }}</div>
-                <div class="stat-label">Lignes actives</div>
+                <div class="stat-label">{{ __("ui.active_lines") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -21,7 +21,7 @@
                     <div class="stat-icon" style="background:#58a6ff20;color:#58a6ff;"><i class="bi bi-diagram-3-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['trunks_online'] }}/{{ $stats['trunks_total'] }}</div>
-                <div class="stat-label">Trunks connectes</div>
+                <div class="stat-label">{{ __("ui.connected_trunks") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -30,7 +30,7 @@
                     <div class="stat-icon" style="background:#d2992220;color:#d29922;"><i class="bi bi-clock-history"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['active_calls'] }}</div>
-                <div class="stat-label">Appels en cours</div>
+                <div class="stat-label">{{ __("ui.active_calls") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -39,7 +39,7 @@
                     <div class="stat-icon" style="background:#f8514920;color:#f85149;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['errors'] }}</div>
-                <div class="stat-label">Erreurs</div>
+                <div class="stat-label">{{ __("ui.errors") }}</div>
             </div>
         </div>
     </div>
@@ -49,11 +49,11 @@
         <div class="col-12">
             <div class="data-table" style="padding:1.25rem;">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-graph-up me-2" style="color:var(--accent);"></i>Trafic des appels — 7 derniers jours</h6>
+                    <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-graph-up me-2" style="color:var(--accent);"></i>{{ __('ui.call_traffic') }}</h6>
                     <div class="d-flex align-items-center gap-3" style="font-size:0.72rem;">
-                        <span><span style="display:inline-block;width:10px;height:3px;background:#58a6ff;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Entrants</span>
-                        <span><span style="display:inline-block;width:10px;height:3px;background:#29b6f6;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Sortants</span>
-                        <span><span style="display:inline-block;width:10px;height:3px;background:#f85149;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>Manques</span>
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#58a6ff;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>{{ __("ui.inbound") }}</span>
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#29b6f6;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>{{ __("ui.outbound") }}</span>
+                        <span><span style="display:inline-block;width:10px;height:3px;background:#f85149;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>{{ __("ui.missed") }}</span>
                     </div>
                 </div>
                 <div style="position:relative;height:240px;">
@@ -68,44 +68,44 @@
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:var(--text-primary);">{{ $todayStats['total'] }}</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Appels aujourd'hui</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.calls_today") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#29b6f6;">{{ $todayStats['answered'] }}</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Repondus</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.answered") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#f85149;">{{ $todayStats['missed'] }}</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Manques</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.missed") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#58a6ff;">{{ $todayStats['inbound'] }}</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Entrants</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.inbound") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:#d29922;">{{ $todayStats['outbound'] }}</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Sortants</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.outbound") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 @php $rate = $todayStats['total'] > 0 ? round(($todayStats['answered'] / $todayStats['total']) * 100) : 0; @endphp
                 <div style="font-size:1.4rem;font-weight:800;color:{{ $rate >= 80 ? '#29b6f6' : ($rate >= 50 ? '#d29922' : '#f85149') }};">{{ $rate }}%</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Taux reponse</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.response_rate") }}</div>
             </div>
         </div>
         <div class="col-6 col-lg">
             <div class="stat-card" style="text-align:center;padding:1rem;">
                 <div style="font-size:1.4rem;font-weight:800;color:var(--text-primary);font-family:'JetBrains Mono',monospace;">{{ gmdate('i:s', $todayStats['avg_duration']) }}</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Duree moyenne</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.avg_duration") }}</div>
             </div>
         </div>
     </div>
@@ -117,8 +117,8 @@
             <div class="data-table" style="padding:0;">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
                     <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
-                        <i class="bi bi-telephone-x-fill me-1" style="color:#f85149;"></i> Appels manques par poste
-                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">aujourd'hui</span>
+                        <i class="bi bi-telephone-x-fill me-1" style="color:#f85149;"></i> {{ __('ui.missed_by_ext') }}
+                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">{{ __('ui.today') }}</span>
                     </h6>
                 </div>
                 @if(count($missedByExt) > 0)
@@ -137,7 +137,7 @@
                 </div>
                 @else
                 <div class="px-3 py-3 text-center" style="color:var(--text-secondary);font-size:0.82rem;">
-                    <i class="bi bi-check-circle me-1" style="color:var(--success);"></i>Aucun appel manque aujourd'hui
+                    <i class="bi bi-check-circle me-1" style="color:var(--success);"></i>{{ __('ui.no_missed_calls') }} {{ __('ui.today') }}
                 </div>
                 @endif
             </div>
@@ -148,8 +148,8 @@
             <div class="data-table" style="padding:0;">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
                     <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
-                        <i class="bi bi-clock-fill me-1" style="color:#d29922;"></i> Temps d'appel par poste
-                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">aujourd'hui</span>
+                        <i class="bi bi-clock-fill me-1" style="color:#d29922;"></i> {{ __('ui.time_by_ext') }}
+                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">{{ __('ui.today') }}</span>
                     </h6>
                     <div style="font-size:0.68rem;color:var(--text-secondary);">
                         Moy: <span style="font-weight:700;color:var(--text-primary);">{{ gmdate('i:s', $todayStats['avg_duration']) }}</span>
@@ -159,7 +159,7 @@
                 @if(count($durationByExt) > 0)
                 <table class="table mb-0">
                     <thead>
-                        <tr><th>Poste</th><th>Operateur</th><th>Appels</th><th>Total</th><th>Moyenne</th></tr>
+                        <tr><th>{{ __("ui.lines") }}</th><th>{{ __("ui.operators") }}</th><th>{{ __("ui.calls_today") }}</th><th>{{ __("ui.total") }}</th><th>{{ __("ui.average") }}</th></tr>
                     </thead>
                     <tbody>
                         @foreach($durationByExt as $d)
@@ -175,7 +175,7 @@
                 </table>
                 @else
                 <div class="px-3 py-3 text-center" style="color:var(--text-secondary);font-size:0.82rem;">
-                    Aucun appel repondu aujourd'hui
+                    {{ __('ui.no_answered_calls') }} {{ __('ui.today') }}
                 </div>
                 @endif
             </div>
@@ -185,42 +185,42 @@
     {{-- Raccourcis --}}
     <div class="row g-3 mb-4">
         <div class="col-12">
-            <h6 class="mb-3" style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);"><i class="bi bi-lightning-fill me-1"></i>Acces rapide</h6>
+            <h6 class="mb-3" style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);"><i class="bi bi-lightning-fill me-1"></i>{{ __("ui.quick_access") }}</h6>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('lines.index') }}" class="shortcut-card">
                 <div class="shortcut-icon"><i class="bi bi-telephone-fill"></i></div>
-                <span>Lignes SIP</span>
+                <span>{{ __('ui.lines') }}</span>
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('trunks.index') }}" class="shortcut-card">
                 <div class="shortcut-icon" style="background:#58a6ff20;color:#58a6ff;"><i class="bi bi-diagram-3-fill"></i></div>
-                <span>Trunks</span>
+                <span>{{ __('ui.trunks') }}</span>
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('callflows.index') }}" class="shortcut-card">
                 <div class="shortcut-icon" style="background:#ab7df620;color:#ab7df6;"><i class="bi bi-signpost-split-fill"></i></div>
-                <span>Scenarios</span>
+                <span>{{ __('ui.scenarios') }}</span>
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('queues.index') }}" class="shortcut-card">
                 <div class="shortcut-icon" style="background:#d2992220;color:#d29922;"><i class="bi bi-people-fill"></i></div>
-                <span>Files d'attente</span>
+                <span>{{ __('ui.queues') }}</span>
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('logs.index') }}" class="shortcut-card">
                 <div class="shortcut-icon" style="background:#f0883e20;color:#f0883e;"><i class="bi bi-journal-text"></i></div>
-                <span>Journal</span>
+                <span>{{ __('ui.call_log') }}</span>
             </a>
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{{ route('moh.index') }}" class="shortcut-card">
                 <div class="shortcut-icon" style="background:#29b6f620;color:#29b6f6;"><i class="bi bi-music-note-beamed"></i></div>
-                <span>Musiques</span>
+                <span>{{ __('ui.music_on_hold') }}</span>
             </a>
         </div>
     </div>
@@ -229,19 +229,19 @@
     @if($recentCalls->count())
     <div class="data-table mb-4">
         <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
-            <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-journal-text me-2" style="color:var(--accent);"></i>Derniers appels</h6>
-            <a href="{{ route('logs.index') }}" style="font-size:0.72rem;color:var(--accent);text-decoration:none;">Voir tout <i class="bi bi-arrow-right"></i></a>
+            <h6 class="mb-0" style="font-size:0.9rem;font-weight:700;"><i class="bi bi-journal-text me-2" style="color:var(--accent);"></i>{{ __("ui.recent_calls") }}</h6>
+            <a href="{{ route('logs.index') }}" style="font-size:0.72rem;color:var(--accent);text-decoration:none;">{{ __('ui.view_all') }} <i class="bi bi-arrow-right"></i></a>
         </div>
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Direction</th>
-                    <th>Appelant</th>
-                    <th>Destination</th>
-                    <th>Trunk</th>
-                    <th>Duree</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.date") }}</th>
+                    <th>{{ __("ui.direction") }}</th>
+                    <th>{{ __("ui.caller") }}</th>
+                    <th>{{ __("ui.destination") }}</th>
+                    <th>{{ __("ui.trunks") }}</th>
+                    <th>{{ __("ui.duration") }}</th>
+                    <th>{{ __("ui.status") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -295,10 +295,10 @@
             <thead>
                 <tr>
                     <th>Canal</th>
-                    <th>Appelant</th>
-                    <th>Destination</th>
-                    <th>Duree</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.caller") }}</th>
+                    <th>{{ __("ui.destination") }}</th>
+                    <th>{{ __("ui.duration") }}</th>
+                    <th>{{ __("ui.status") }}</th>
                 </tr>
             </thead>
             <tbody>

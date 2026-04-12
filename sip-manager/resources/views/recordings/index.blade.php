@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Enregistrements')
-@section('page-title', 'Enregistrements')
+@section('title', __('ui.recordings'))
+@section('page-title', __('ui.recordings'))
 
 @section('content')
     <div class="section-header d-flex align-items-center justify-content-between">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Enregistrements</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Conversations enregistrees par operateur</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.recordings") }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __("ui.recordings") }}</p>
         </div>
     </div>
 
@@ -26,18 +26,18 @@
             <label style="font-size:0.68rem;color:var(--text-secondary);display:block;">Direction</label>
             <select name="direction" class="form-control form-control-sm" style="min-width:120px;">
                 <option value="">Toutes</option>
-                <option value="inbound" {{ request('direction') == 'inbound' ? 'selected' : '' }}>Entrant</option>
-                <option value="outbound" {{ request('direction') == 'outbound' ? 'selected' : '' }}>Sortant</option>
-                <option value="internal" {{ request('direction') == 'internal' ? 'selected' : '' }}>Interne</option>
+                <option value="inbound" {{ request('direction') == 'inbound' ? 'selected' : '' }}>{{ __("ui.inbound") }}</option>
+                <option value="outbound" {{ request('direction') == 'outbound' ? 'selected' : '' }}>{{ __("ui.outbound") }}</option>
+                <option value="internal" {{ request('direction') == 'internal' ? 'selected' : '' }}>{{ __("ui.internal") }}</option>
             </select>
         </div>
         <div>
             <label style="font-size:0.68rem;color:var(--text-secondary);display:block;">Recherche</label>
             <input type="text" name="search" class="form-control form-control-sm" placeholder="Numero..." value="{{ request('search') }}" style="min-width:150px;">
         </div>
-        <button type="submit" class="btn btn-accent btn-sm"><i class="bi bi-funnel me-1"></i>Filtrer</button>
+        <button type="submit" class="btn btn-accent btn-sm"><i class="bi bi-funnel me-1"></i>{{ __("ui.filter") }}</button>
         @if(request()->hasAny(['operator','direction','search']))
-            <a href="{{ route('recordings.index') }}" class="btn btn-sm" style="background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);">Reinitialiser</a>
+            <a href="{{ route('recordings.index') }}" class="btn btn-sm" style="background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);">{{ __("ui.reset") }}</a>
         @endif
     </form>
 
@@ -53,7 +53,7 @@
                     <th>Destination</th>
                     <th>Duree</th>
                     <th>Statut</th>
-                    <th style="width:250px;">Ecouter</th>
+                    <th style="width:250px;">{{ __("ui.listen") }}</th>
                 </tr>
             </thead>
             <tbody>

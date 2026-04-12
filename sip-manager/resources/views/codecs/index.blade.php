@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Codecs')
+@section('title', __('ui.codecs'))
 @section('page-title', 'Codecs audio')
 
 @section('content')

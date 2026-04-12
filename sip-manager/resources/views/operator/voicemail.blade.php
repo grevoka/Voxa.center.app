@@ -1,12 +1,12 @@
 @extends('layouts.operator')
 
-@section('title', 'Messagerie vocale')
-@section('page-title', 'Messagerie vocale')
+@section('title', __('ui.voicemail'))
+@section('page-title', __('ui.voicemail'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Messagerie vocale</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.voicemail") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Poste {{ $line->extension }} — {{ $line->name }}</p>
         </div>
     </div>
@@ -14,7 +14,7 @@
     <div class="data-table">
         <table class="table mb-0">
             <thead>
-                <tr><th>Dossier</th><th>Appelant</th><th>Date</th><th>Duree</th><th>Actions</th></tr>
+                <tr><th>Dossier</th><th>Appelant</th><th>Date</th><th>Duree</th><th>{{ __("ui.actions") }}</th></tr>
             </thead>
             <tbody>
                 @forelse($messages as $msg)

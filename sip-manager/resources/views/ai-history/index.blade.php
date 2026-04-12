@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Historique AI')
-@section('page-title', 'Historique AI')
+@section('title', __('ui.ai_history'))
+@section('page-title', __('ui.ai_history'))
 
 @section('content')
     <div class="section-header d-flex align-items-center justify-content-between">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Historique AI</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Conversations avec l'agent IA OpenAI</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.ai_history") }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __("ui.ai_conversations_title") }}</p>
         </div>
     </div>
 
@@ -16,25 +16,25 @@
         <div class="col-6 col-lg-3">
             <div class="stat-card" style="text-align:center;padding:0.75rem;">
                 <div style="font-size:1.3rem;font-weight:800;">{{ $totals['count'] }}</div>
-                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">Conversations</div>
+                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">{{ __('ui.ai_conversations') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card" style="text-align:center;padding:0.75rem;">
                 <div style="font-size:1.3rem;font-weight:800;font-family:'JetBrains Mono',monospace;">{{ gmdate('H:i:s', $totals['duration']) }}</div>
-                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">Duree totale</div>
+                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">{{ __('ui.duration') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card" style="text-align:center;padding:0.75rem;">
                 <div style="font-size:1.3rem;font-weight:800;color:#d29922;font-family:'JetBrains Mono',monospace;">${{ number_format($totals['cost'], 2) }}</div>
-                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">Cout total</div>
+                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">{{ __('ui.ai_cost') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card" style="text-align:center;padding:0.75rem;">
                 <div style="font-size:1.3rem;font-weight:800;color:#58a6ff;">{{ $totals['turns'] }}</div>
-                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">Echanges</div>
+                <div style="font-size:0.68rem;color:var(--text-secondary);text-transform:uppercase;">{{ __('ui.ai_turns') }}</div>
             </div>
         </div>
     </div>
@@ -46,14 +46,14 @@
             <input type="text" name="search" class="form-control form-control-sm" placeholder="Numero ou mot-cle..." value="{{ request('search') }}" style="min-width:180px;">
         </div>
         <div>
-            <label style="font-size:0.68rem;color:var(--text-secondary);">Modele</label>
+            <label style="font-size:0.68rem;color:var(--text-secondary);">{{ __('ui.ai_model') }}</label>
             <select name="model" class="form-control form-control-sm">
                 <option value="">Tous</option>
                 <option value="gpt-4o-realtime" {{ request('model') == 'gpt-4o-realtime' ? 'selected' : '' }}>GPT-4o</option>
                 <option value="mini" {{ request('model') == 'mini' ? 'selected' : '' }}>GPT-4o Mini</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-accent btn-sm"><i class="bi bi-funnel me-1"></i>Filtrer</button>
+        <button type="submit" class="btn btn-accent btn-sm"><i class="bi bi-funnel me-1"></i>{{ __("ui.filter") }}</button>
         @if(request()->hasAny(['search','model']))
             <a href="{{ route('ai-history.index') }}" class="btn btn-sm" style="background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);">Reset</a>
         @endif
@@ -66,13 +66,13 @@
                 <tr>
                     <th>Date</th>
                     <th>Appelant</th>
-                    <th>Modele</th>
-                    <th>Voix</th>
+                    <th>{{ __('ui.ai_model') }}</th>
+                    <th>{{ __('ui.ai_voice') }}</th>
                     <th>Duree</th>
-                    <th>Echanges</th>
-                    <th>Cout</th>
+                    <th>{{ __('ui.ai_turns') }}</th>
+                    <th>{{ __('ui.ai_cost') }}</th>
                     <th>Fin</th>
-                    <th style="width:60px;">Detail</th>
+                    <th style="width:60px;">{{ __('ui.edit') }}</th>
                 </tr>
             </thead>
             <tbody>

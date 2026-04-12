@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Routes sortantes')
-@section('page-title', 'Routes sortantes')
+@section('title', __('ui.outbound_routes'))
+@section('page-title', __('ui.outbound_routes'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Routes sortantes</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.outbound_routes") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gestion des regles d'appels sortants</p>
         </div>
         <div class="d-flex gap-2">
@@ -66,7 +66,7 @@
                     <th>CallerID</th>
                     <th style="width:50px;">Rec</th>
                     <th style="width:70px;">Statut</th>
-                    <th style="width:120px;">Actions</th>
+                    <th style="width:120px;">{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
             <tbody>

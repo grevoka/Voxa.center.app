@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Journal d\'appels')
-@section('page-title', 'Journal d\'appels')
+@section('title', __("ui.call_log")\')
+@section('page-title', __("ui.call_log")\')
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Journal d'appels</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Historique et CDR de tous les appels</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.call_log") }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.call_log') }}</p>
         </div>
     </div>
 
@@ -65,9 +65,9 @@
                 <label class="form-label">Direction</label>
                 <select name="direction" class="form-select">
                     <option value="">Toutes</option>
-                    <option value="inbound" {{ request('direction') === 'inbound' ? 'selected' : '' }}>Entrant</option>
-                    <option value="outbound" {{ request('direction') === 'outbound' ? 'selected' : '' }}>Sortant</option>
-                    <option value="internal" {{ request('direction') === 'internal' ? 'selected' : '' }}>Interne</option>
+                    <option value="inbound" {{ request('direction') === 'inbound' ? 'selected' : '' }}>{{ __("ui.inbound") }}</option>
+                    <option value="outbound" {{ request('direction') === 'outbound' ? 'selected' : '' }}>{{ __("ui.outbound") }}</option>
+                    <option value="internal" {{ request('direction') === 'internal' ? 'selected' : '' }}>{{ __("ui.internal") }}</option>
                 </select>
             </div>
             <div class="col-md-2">

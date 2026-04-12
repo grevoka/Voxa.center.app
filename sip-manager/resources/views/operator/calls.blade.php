@@ -6,7 +6,7 @@
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Journal d'appels</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.call_log") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Historique des appels du poste {{ $line->extension }}</p>
         </div>
     </div>
@@ -46,9 +46,9 @@
                     <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">{{ $call->started_at?->format('d/m/Y H:i:s') }}</td>
                     <td>
                         @if($call->src == $line->extension)
-                            <i class="bi bi-telephone-outbound-fill" style="color:var(--warning);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">Sortant</span>
+                            <i class="bi bi-telephone-outbound-fill" style="color:var(--warning);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">{{ __("ui.outbound") }}</span>
                         @else
-                            <i class="bi bi-telephone-inbound-fill" style="color:var(--info);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">Entrant</span>
+                            <i class="bi bi-telephone-inbound-fill" style="color:var(--info);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">{{ __("ui.inbound") }}</span>
                         @endif
                     </td>
                     <td style="font-size:0.82rem;">

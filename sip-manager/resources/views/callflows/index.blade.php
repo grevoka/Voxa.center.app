@@ -27,12 +27,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Nom</th>
+                        <th>{{ __("ui.name") }}</th>
                         <th>Trunk</th>
                         <th>Contexte</th>
                         <th>Etapes</th>
                         <th>Statut</th>
-                        <th>Actions</th>
+                        <th>{{ __("ui.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody>

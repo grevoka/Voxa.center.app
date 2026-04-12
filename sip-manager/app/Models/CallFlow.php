@@ -228,18 +228,39 @@ class CallFlow extends Model
 
                         // Check if this key has a branch target (visual connection to a block)
                         $targetNodeId = $branchTargets[$key] ?? null;
-                        $targetStep = null;
+
+                        // Follow the chain of blocks from the target
+                        $chainSteps = [];
                         if ($targetNodeId) {
-                            foreach ($this->steps as $s) {
-                                if (($s['_nodeId'] ?? null) == $targetNodeId) {
-                                    $targetStep = $s;
-                                    break;
+                            $visited = [];
+                            $currentNodeId = $targetNodeId;
+                            while ($currentNodeId && !in_array($currentNodeId, $visited)) {
+                                $visited[] = $currentNodeId;
+                                foreach ($this->steps as $s) {
+                                    if (($s['_nodeId'] ?? null) == $currentNodeId) {
+                                        $chainSteps[] = $s;
+                                        // Find next node in chain (linear next)
+                                        $idx = array_search($s, $this->steps);
+                                        $nextStep = $this->steps[$idx + 1] ?? null;
+                                        // Only follow if next step is not a branch target of another key
+                                        $isOtherTarget = false;
+                                        foreach ($branchTargets as $bk => $bt) {
+                                            if ($bk !== $key && $bt == ($nextStep['_nodeId'] ?? -1)) {
+                                                $isOtherTarget = true;
+                                            }
+                                        }
+                                        $currentNodeId = (!$isOtherTarget && $nextStep) ? ($nextStep['_nodeId'] ?? null) : null;
+                                        break;
+                                    }
                                 }
                             }
                         }
 
-                        if ($targetStep) {
-                            // Generate inline dialplan for the target block
+                        $targetStep = $chainSteps[0] ?? null;
+
+                        if (!empty($chainSteps)) {
+                            // Generate inline dialplan for each block in the chain
+                            foreach ($chainSteps as $targetStep) {
                             $targetType = $targetStep['type'] ?? '';
                             switch ($targetType) {
                                 case 'ring':
@@ -252,6 +273,9 @@ class CallFlow extends Model
                                     break;
                                 case 'queue':
                                     $ivrLines[] = " same => n,Queue(" . ($targetStep['queue_name'] ?? 'default') . ",tT,,,60)";
+                                    break;
+                                case 'moh':
+                                    $ivrLines[] = " same => n,MusicOnHold(" . ($targetStep['moh_class'] ?? 'default') . "," . ($targetStep['duration'] ?? 10) . ")";
                                     break;
                                 case 'voicemail':
                                     $ivrLines[] = " same => n,VoiceMail(" . ($targetStep['mailbox'] ?? '1000') . "@default," . ($targetStep['vm_type'] ?? 'u') . ")";
@@ -295,6 +319,7 @@ class CallFlow extends Model
                                 case 'hangup':
                                     break;
                             }
+                            } // end foreach chainSteps
                         } elseif (!empty($dest)) {
                             // Legacy: text destination
                             if (preg_match('/^\d{3,}$/', $dest)) {

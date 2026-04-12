@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Supervision en direct')
-@section('page-title', 'Supervision en direct')
+@section('title', __('ui.live'))
+@section('page-title', __('ui.live'))
 
 @section('content')
     <div class="section-header">
         <div>
             <h5 style="font-weight:700; margin:0;">
-                <span class="live-dot"></span> Supervision en direct
+                <span class="live-dot"></span> {{ __('ui.live') }}
             </h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">
-                Appels actifs, postes en ligne — rafraichi toutes les 3s
+                {{ __('ui.active_calls') }} — rafraichi toutes les 3s
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">

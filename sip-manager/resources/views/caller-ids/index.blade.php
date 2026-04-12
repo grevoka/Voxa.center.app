@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Caller ID')
-@section('page-title', 'Caller ID')
+@section('title', __('ui.caller_id'))
+@section('page-title', __('ui.caller_id'))
 
 @section('content')
     <div class="section-header d-flex align-items-center justify-content-between">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Numeros sortants</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.caller_id") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gerez les Caller ID presentes aux operateurs et les groupes d'acces</p>
         </div>
     </div>
@@ -32,7 +32,7 @@
                                    style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">
                         </div>
                         <div class="col-3">
-                            <label class="form-label" style="font-size:0.72rem;">Nom</label>
+                            <label class="form-label" style="font-size:0.72rem;">{{ __("ui.name") }}</label>
                             <input type="text" name="label" class="form-control form-control-sm" placeholder="Support client" required>
                         </div>
                         <div class="col-3">
@@ -53,7 +53,7 @@
                 {{-- Table --}}
                 <table class="table mb-0">
                     <thead>
-                        <tr><th>Numero</th><th>Nom</th><th>Trunk</th><th style="width:90px;">Actions</th></tr>
+                        <tr><th>Numero</th><th>{{ __("ui.name") }}</th><th>Trunk</th><th style="width:90px;">{{ __("ui.actions") }}</th></tr>
                     </thead>
                     <tbody>
                         @forelse($callerIds as $cid)
@@ -240,7 +240,7 @@
                     <input type="text" name="number" id="cidEditNumber" class="form-control form-control-sm" required style="font-family:'JetBrains Mono',monospace;">
                 </div>
                 <div class="mb-2">
-                    <label class="form-label" style="font-size:0.72rem;">Nom</label>
+                    <label class="form-label" style="font-size:0.72rem;">{{ __("ui.name") }}</label>
                     <input type="text" name="label" id="cidEditLabel" class="form-control form-control-sm" required>
                 </div>
                 <div class="mb-3">
@@ -267,7 +267,7 @@
             <form id="grpEditForm" method="POST">
                 @csrf @method('PUT')
                 <div class="mb-2">
-                    <label class="form-label" style="font-size:0.72rem;">Nom</label>
+                    <label class="form-label" style="font-size:0.72rem;">{{ __("ui.name") }}</label>
                     <input type="text" name="name" id="grpEditName" class="form-control form-control-sm" required>
                 </div>
                 <div class="mb-2">
@@ -289,7 +289,7 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" style="font-size:0.72rem;">Operateurs</label>
+                    <label class="form-label" style="font-size:0.72rem;">{{ __("ui.operators") }}</label>
                     <div id="grpEditUsers" style="max-height:120px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:0.3rem;">
                         @foreach($operators as $op)
                         <label class="d-flex align-items-center gap-2" style="font-size:0.78rem;padding:2px 4px;cursor:pointer;">

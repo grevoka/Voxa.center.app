@@ -699,7 +699,7 @@
             <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
         </div>
     </div>
-    <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">Creer</button>
+    <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">{{ __("ui.create") }}</button>
     <button type="button" class="btn-outline-custom" id="btnSaveTpl" style="display:none;">Template</button>
     @endif
 
@@ -791,7 +791,7 @@
                 </div>
                 <div id="cfgPanel" style="max-height:calc(100vh - 500px);overflow-y:auto;">
                     <div class="cfg-section">
-                        <label>Nom</label>
+                        <label>{{ __("ui.name") }}</label>
                         <input type="text" class="form-control form-control-sm" id="cfgName"
                                value="{{ old('name', $callflow->name ?? '') }}" required placeholder="accueil-principal">
                     </div>
@@ -957,7 +957,7 @@
                     </div>
                     <div id="fsCfgPanel">
                         <div class="cfg-section">
-                            <label>Nom</label>
+                            <label>{{ __("ui.name") }}</label>
                             <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgName"
                                    value="{{ old('name', $callflow->name ?? '') }}" placeholder="accueil-principal">
                         </div>
@@ -1051,7 +1051,7 @@
         <div class="tpl-modal">
             <div class="tpl-modal-head">
                 <i class="bi bi-magic"></i>
-                <span id="wizTitle">Nouveau scenario</span>
+                <span id="wizTitle">{{ __("ui.create") }} scenario</span>
                 <div class="wiz-steps-indicator" style="margin-left:auto;">
                     <div class="step-dot active" id="wizDot1"></div>
                     <div class="step-dot" id="wizDot2"></div>
@@ -1124,7 +1124,7 @@
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('voicemail')">
                                 <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div>
-                                <div class="wiz-feat-text"><h6>Messagerie vocale</h6><p>Redirige vers la boite vocale</p></div>
+                                <div class="wiz-feat-text"><h6>{{ __("ui.voicemail") }}</h6><p>Redirige vers la boite vocale</p></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('ivr')">
                                 <div class="wiz-feat-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div>
@@ -1567,7 +1567,7 @@ function wizBuildDynFields() {
     if (!hasQueue && !hasRing && !hasVoicemail) return;
 
     let html = '<hr style="border-color:var(--border); margin:.75rem 0;">';
-    html += '<div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.6rem;">Parametres</div>';
+    html += '<div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.6rem;">{{ __("ui.settings") }}</div>';
 
     if (hasQueue || hasRing) {
         html += `<div class="cfg-section">
@@ -2348,7 +2348,7 @@ function renderProps(){
             h += `<div style="margin-top:.4rem;display:flex;gap:.3rem;">
                 <input type="text" class="form-control form-control-sm ivr-key-input" data-node="${n.id}" placeholder="Touche" style="width:55px;">
                 <button class="btn-outline-custom" style="padding:2px 8px;font-size:.7rem;" onclick="addIvrOpt(${n.id}, this)">
-                    <i class="bi bi-plus me-1"></i>Ajouter</button>
+                    <i class="bi bi-plus me-1"></i>{{ __("ui.add") }}</button>
             </div>`;
             break;
         case 'time_condition':

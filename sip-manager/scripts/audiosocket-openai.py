@@ -271,6 +271,7 @@ async def handle_call(reader, writer, config):
             running = True
             response_audio = bytearray()
             playback_buffer = bytearray()
+            ai_speaking = False  # Track if AI is currently generating audio
 
             audio_sent = 0
 
@@ -336,8 +337,23 @@ async def handle_call(reader, writer, config):
                         data = json.loads(msg)
                         t = data['type']
 
-                        if t == 'response.audio.delta':
-                            # Decode, downsample, attenuate, add to playback buffer
+                        if t == 'input_audio_buffer.speech_started':
+                            # User is speaking — interrupt AI playback
+                            playback_buffer.clear()
+                            if ai_speaking:
+                                try:
+                                    await ws.send(json.dumps({'type': 'response.cancel'}))
+                                except Exception:
+                                    pass
+                                print(f'[CALL] User interrupted AI (cancelled)')
+                            else:
+                                print(f'[CALL] User speaking')
+
+                        elif t == 'input_audio_buffer.speech_stopped':
+                            pass  # Normal, VAD detected end of speech
+
+                        elif t == 'response.audio.delta':
+                            ai_speaking = True
                             audio_24k = base64.b64decode(data['delta'])
                             audio_8k = downsample_24k_to_8k(audio_24k)
                             raw = struct.unpack(f'<{len(audio_8k)//2}h', audio_8k)
@@ -345,6 +361,7 @@ async def handle_call(reader, writer, config):
                             playback_buffer.extend(audio_8k)
 
                         elif t == 'response.audio.done':
+                            ai_speaking = False
                             turn_count += 1
                             print(f'[CALL] AI spoke (turn {turn_count})')
 
@@ -367,10 +384,15 @@ async def handle_call(reader, writer, config):
                                     'time': round(time.time() - start_time, 1)})
 
                         elif t == 'error':
-                            print(f'[ERROR] OpenAI: {json.dumps(data)}', file=sys.stderr)
-                            hangup_reason = 'api_error'
-                            running = False
-                            break
+                            err_code = data.get('error', {}).get('code', '')
+                            if err_code in ('response_cancel_not_active', 'response_already_in_progress'):
+                                # Non-fatal errors — ignore
+                                print(f'[WARN] OpenAI: {err_code}')
+                            else:
+                                print(f'[ERROR] OpenAI: {json.dumps(data)}', file=sys.stderr)
+                                hangup_reason = 'api_error'
+                                running = False
+                                break
 
                     except asyncio.TimeoutError:
                         hangup_reason = 'timeout'

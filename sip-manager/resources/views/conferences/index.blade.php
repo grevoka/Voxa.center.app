@@ -63,7 +63,7 @@
                         <th>Max</th>
                         <th>Options</th>
                         <th>Statut</th>
-                        <th>Actions</th>
+                        <th>{{ __("ui.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Trunks SIP')
-@section('page-title', 'Trunks SIP')
+@section('title', __('ui.trunks'))
+@section('page-title', __('ui.trunks'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Trunks SIP</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.trunks") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gerer les connexions vers les operateurs</p>
         </div>
         <a href="{{ route('trunks.create') }}" class="btn btn-accent">
@@ -18,13 +18,13 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Nom</th>
+                    <th>{{ __("ui.name") }}</th>
                     <th>Type</th>
                     <th>Hote</th>
                     <th>Port</th>
-                    <th>Codecs</th>
+                    <th>{{ __("ui.codecs") }}</th>
                     <th>Statut</th>
-                    <th>Actions</th>
+                    <th>{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
             <tbody>

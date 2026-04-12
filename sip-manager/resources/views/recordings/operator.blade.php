@@ -1,6 +1,6 @@
 @extends('layouts.operator')
 
-@section('title', 'Mes enregistrements')
+@section('title', __('ui.recordings'))
 
 @section('content')
     <div class="section-header">

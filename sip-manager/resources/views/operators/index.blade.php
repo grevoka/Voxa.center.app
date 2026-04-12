@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Operateurs')
-@section('page-title', 'Operateurs')
+@section('title', __('ui.operators'))
+@section('page-title', __('ui.operators'))
 
 @section('content')
     <div class="section-header d-flex align-items-center justify-content-between">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Operateurs</h5>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.operators") }}</h5>
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Comptes operateurs associes aux lignes SIP</p>
         </div>
         <a href="{{ route('operators.create') }}" class="btn btn-accent">
@@ -17,7 +17,7 @@
     <div class="data-table">
         <table class="table mb-0">
             <thead>
-                <tr><th>Nom</th><th>Email</th><th>Poste</th><th>Extension</th><th>Actions</th></tr>
+                <tr><th>{{ __("ui.name") }}</th><th>Email</th><th>Poste</th><th>Extension</th><th>{{ __("ui.actions") }}</th></tr>
             </thead>
             <tbody>
                 @forelse($operators as $op)

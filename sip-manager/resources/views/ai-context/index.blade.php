@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Base de connaissances AI')
-@section('page-title', 'Base de connaissances AI')
+@section('title', __('ui.ai_knowledge_base'))
+@section('page-title', __('ui.ai_knowledge_base'))
 
 @section('content')
     <div class="section-header d-flex align-items-center justify-content-between">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Base de connaissances AI</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Organisez vos documents RAG par dossier pour cibler le contexte de chaque agent IA</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __("ui.ai_knowledge_base") }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.ai_ctx_desc') }}</p>
         </div>
     </div>
 
@@ -40,7 +40,7 @@
                     <div class="d-flex gap-2">
                         <input type="text" name="folder_name" class="form-control form-control-sm" placeholder="nom-du-dossier" required
                             style="font-family:'JetBrains Mono',monospace;" pattern="[a-zA-Z0-9_-]+">
-                        <button type="submit" class="btn btn-sm" style="background:#d29922;color:#fff;border:none;white-space:nowrap;">Creer</button>
+                        <button type="submit" class="btn btn-sm" style="background:#d29922;color:#fff;border:none;white-space:nowrap;">{{ __("ui.create") }}</button>
                     </div>
                 </form>
 
@@ -48,8 +48,8 @@
                 <a href="{{ route('ai-context.index') }}" class="d-flex align-items-center gap-2 px-3 py-2 {{ $currentFolder === '' ? 'active-folder' : '' }}"
                    style="text-decoration:none;color:inherit;border-bottom:1px solid var(--border);{{ $currentFolder === '' ? 'background:var(--accent-dim);' : '' }}">
                     <i class="bi bi-folder2-open" style="color:var(--accent);"></i>
-                    <span style="font-weight:600;font-size:0.82rem;">General</span>
-                    <span style="font-size:0.65rem;color:var(--text-secondary);margin-left:auto;">Partage par tous les agents</span>
+                    <span style="font-weight:600;font-size:0.82rem;">{{ __('ui.ai_general') }}</span>
+                    <span style="font-size:0.65rem;color:var(--text-secondary);margin-left:auto;">{{ __('ui.ai_shared_all') }}</span>
                 </a>
 
                 @foreach($folders as $f)
@@ -109,7 +109,7 @@
                 </div>
                 @empty
                 <div class="px-3 py-4 text-center" style="color:var(--text-secondary);font-size:0.82rem;">
-                    <i class="bi bi-file-earmark-plus me-1"></i>Aucun document dans ce dossier
+                    <i class="bi bi-file-earmark-plus me-1"></i>{{ __('ui.ai_ctx_no_docs') }}
                 </div>
                 @endforelse
             </div>
@@ -124,19 +124,19 @@
                 <form action="{{ route('ai-context.upload') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Dossier destination</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.ai_ctx_folder_dest') }}</label>
                         <select name="folder" class="form-select form-select-sm">
-                            <option value="" {{ $currentFolder === '' ? 'selected' : '' }}>General</option>
+                            <option value="" {{ $currentFolder === '' ? 'selected' : '' }}>{{ __('ui.ai_general') }}</option>
                             @foreach($folders as $f)
                                 <option value="{{ $f['name'] }}" {{ $currentFolder === $f['name'] ? 'selected' : '' }}>{{ $f['name'] }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Fichier</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.ai_ctx_file') }}</label>
                         <input type="file" name="file" class="form-control form-control-sm" accept=".txt,.md,.pdf" required>
                     </div>
-                    <button type="submit" class="btn btn-accent btn-sm w-100"><i class="bi bi-upload me-1"></i>Uploader</button>
+                    <button type="submit" class="btn btn-accent btn-sm w-100"><i class="bi bi-upload me-1"></i>{{ __("ui.upload") }}</button>
                     <small style="color:var(--text-secondary);font-size:0.62rem;">.txt, .md — Max 2 MB</small>
                 </form>
             </div>
@@ -150,18 +150,18 @@
                     <div class="mb-2">
                         <label class="form-label" style="font-size:0.72rem;">Dossier</label>
                         <select name="folder" class="form-select form-select-sm">
-                            <option value="" {{ $currentFolder === '' ? 'selected' : '' }}>General</option>
+                            <option value="" {{ $currentFolder === '' ? 'selected' : '' }}>{{ __('ui.ai_general') }}</option>
                             @foreach($folders as $f)
                                 <option value="{{ $f['name'] }}" {{ $currentFolder === $f['name'] ? 'selected' : '' }}>{{ $f['name'] }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Nom</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __("ui.name") }}</label>
                         <input type="text" name="filename" class="form-control form-control-sm" placeholder="tarifs" required style="font-family:'JetBrains Mono',monospace;">
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Contenu</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.ai_ctx_content') }}</label>
                         <textarea name="content" class="form-control form-control-sm" rows="8" required
                             placeholder="Horaires: Lun-Ven 9h-18h&#10;&#10;Services:&#10;- Hebergement web&#10;- Support technique"
                             style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;"></textarea>
@@ -177,7 +177,7 @@
                     <i class="bi bi-lightbulb me-1" style="color:#d29922;"></i>Comment ca marche
                 </h6>
                 <ul style="font-size:0.72rem;color:var(--text-secondary);margin:0;padding-left:1rem;line-height:1.6;">
-                    <li><b>General</b> : documents charges par tous les agents IA</li>
+                    <li><b>{{ __('ui.ai_general') }}</b> : documents charges par tous les agents IA</li>
                     <li><b>Dossiers</b> : contexte specifique a un bloc AI dans le scenario</li>
                     <li>Dans le builder, chaque bloc "Agent IA" peut choisir son dossier RAG</li>
                     <li>L'agent charge les docs du dossier + les docs generaux</li>
