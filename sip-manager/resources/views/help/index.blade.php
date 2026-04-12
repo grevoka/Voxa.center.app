@@ -1,7 +1,7 @@
 @extends(auth()->user()?->isOperator() || session('impersonate_admin_id') ? 'layouts.operator' : 'layouts.app')
 
-@section('title', 'Documentation')
-@section('page-title', 'Documentation utilisateur')
+@section('title', __('ui.documentation'))
+@section('page-title', __('ui.documentation'))
 
 @section('content')
     <div class="section-header">
@@ -384,7 +384,7 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Strategie</th>
+                                        <th>{{ __("ui.strategy") }}</th>
                                         <th>Description</th>
                                     </tr>
                                 </thead>

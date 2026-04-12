@@ -90,7 +90,7 @@
                     <thead>
                         <tr>
                             <th>IP / CIDR</th>
-                            <th>Label</th>
+                            <th>{{ __("ui.th_label") }}</th>
                             <th style="width:100px;">{{ __("ui.actions") }}</th>
                         </tr>
                     </thead>

@@ -18,7 +18,7 @@
                     </option>
                 @endforeach
                 @if($lines->isEmpty())
-                    <option disabled>Aucune ligne avec messagerie</option>
+                    <option disabled>{{ __('ui.no_voicemail') }}</option>
                 @endif
             </select>
         </div>
@@ -67,7 +67,7 @@
         @if(empty($messages))
             <div class="stat-card text-center" style="padding:3rem;">
                 <i class="bi bi-voicemail" style="font-size:3rem; color:var(--text-secondary); opacity:.3;"></i>
-                <p style="color:var(--text-secondary); margin-top:1rem;">Aucun message vocal pour le poste {{ $selectedExt }}.</p>
+                <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_voicemail_msg') }} pour le poste {{ $selectedExt }}.</p>
             </div>
         @else
             <div class="data-table">
@@ -75,10 +75,10 @@
                     <thead>
                         <tr>
                             <th style="width:50px;"></th>
-                            <th>Appelant</th>
-                            <th>Date</th>
-                            <th>Duree</th>
-                            <th>Statut</th>
+                            <th>{{ __("ui.caller") }}</th>
+                            <th>{{ __("ui.date") }}</th>
+                            <th>{{ __("ui.duration") }}</th>
+                            <th>{{ __("ui.status") }}</th>
                             <th style="width:200px;">Ecouter</th>
                             <th style="width:60px;">{{ __("ui.actions") }}</th>
                         </tr>

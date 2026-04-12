@@ -12,17 +12,17 @@
 
     @if(!$ext)
         <div class="data-table" style="padding:2rem;text-align:center;color:var(--text-secondary);">
-            <i class="bi bi-exclamation-triangle me-1"></i>Aucune ligne SIP associee a votre compte.
+            <i class="bi bi-exclamation-triangle me-1"></i>{{ __('ui.no_sip_line') }}.
         </div>
     @else
         <div class="data-table">
             <table class="table mb-0">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Direction</th>
-                        <th>Correspondant</th>
-                        <th>Duree</th>
+                        <th>{{ __("ui.date") }}</th>
+                        <th>{{ __("ui.direction") }}</th>
+                        <th>{{ __("ui.correspondent") }}</th>
+                        <th>{{ __("ui.duration") }}</th>
                         <th style="width:250px;">Ecouter</th>
                     </tr>
                 </thead>
@@ -65,7 +65,7 @@
                     </tr>
                     @empty
                     <tr><td colspan="5" class="text-center py-4" style="color:var(--text-secondary);">
-                        <i class="bi bi-mic-mute me-1"></i>Aucun enregistrement pour le moment
+                        <i class="bi bi-mic-mute me-1"></i>{{ __('ui.no_recordings_yet') }}
                     </td></tr>
                     @endforelse
                 </tbody>

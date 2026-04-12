@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', __('ui.codecs'))
-@section('page-title', 'Codecs audio')
+@section('page-title', __('ui.codecs'))
 
 @section('content')
     <div class="section-header">

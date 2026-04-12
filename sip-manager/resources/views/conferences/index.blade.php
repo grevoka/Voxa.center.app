@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Salles de conference')
-@section('page-title', 'Salles de conference')
+@section('title', __('ui.conferences'))
+@section('page-title', __('ui.conferences'))
 
 @section('content')
     <div class="section-header">
@@ -47,9 +47,9 @@
     @if($rooms->isEmpty())
         <div class="stat-card text-center" style="padding:3rem;">
             <i class="bi bi-camera-video" style="font-size:3rem; color:var(--text-secondary); opacity:.3;"></i>
-            <p style="color:var(--text-secondary); margin-top:1rem;">Aucune salle de conference configuree.</p>
+            <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_conferences') }}.</p>
             <a href="{{ route('conferences.create') }}" class="btn btn-accent mt-2">
-                <i class="bi bi-plus-lg me-1"></i> Creer une salle
+                <i class="bi bi-plus-lg me-1"></i> {{ __('ui.create_room') }}
             </a>
         </div>
     @else
@@ -57,12 +57,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Salle</th>
+                        <th>{{ __("ui.room") }}</th>
                         <th>Numero</th>
                         <th>PIN</th>
                         <th>Max</th>
                         <th>Options</th>
-                        <th>Statut</th>
+                        <th>{{ __("ui.status") }}</th>
                         <th>{{ __("ui.actions") }}</th>
                     </tr>
                 </thead>

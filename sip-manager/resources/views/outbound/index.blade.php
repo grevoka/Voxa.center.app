@@ -7,7 +7,7 @@
     <div class="section-header">
         <div>
             <h5 class="mb-1" style="font-weight:700;">{{ __("ui.outbound_routes") }}</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gestion des regles d'appels sortants</p>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.outbound_desc') }}</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('contexts.dialplan') }}" class="btn btn-outline-custom">
@@ -59,9 +59,9 @@
             <thead>
                 <tr>
                     <th style="width:60px;">Prio</th>
-                    <th>Route</th>
-                    <th>Pattern</th>
-                    <th>Trunk</th>
+                    <th>{{ __("ui.th_route") }}</th>
+                    <th>{{ __("ui.pattern") }}</th>
+                    <th>{{ __("ui.th_trunk") }}</th>
                     <th>Prefixe</th>
                     <th>CallerID</th>
                     <th style="width:50px;">Rec</th>
@@ -140,8 +140,8 @@
                 @empty
                     <tr>
                         <td colspan="9" class="text-center py-4" style="color:var(--text-secondary);">
-                            <i class="bi bi-telephone-outbound me-2"></i>Aucune route sortante
-                            <br><a href="#" onclick="openWizard();return false;" style="color:var(--accent);font-size:0.82rem;">Creer la premiere route</a>
+                            <i class="bi bi-telephone-outbound me-2"></i>{{ __('ui.no_outbound') }}
+                            <br><a href="#" onclick="openWizard();return false;" style="color:var(--accent);font-size:0.82rem;">{{ __('ui.create_first_route') }}</a>
                         </td>
                     </tr>
                 @endforelse

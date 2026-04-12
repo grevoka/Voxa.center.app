@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Musiques d\'attente')
-@section('page-title', 'Musiques d\'attente')
+@section('title', __('ui.music_on_hold')\')
+@section('page-title', __('ui.music_on_hold')\')
 
 @push('styles')
 <style>
@@ -242,7 +242,7 @@
         @else
             <div class="stat-card text-center py-4" style="color:var(--text-secondary);">
                 <i class="bi bi-collection-play me-2" style="font-size:1.5rem;"></i>
-                <div style="margin-top:0.5rem; font-size:0.85rem;">Aucune playlist</div>
+                <div style="margin-top:0.5rem; font-size:0.85rem;">{{ __('ui.no_playlist') }}</div>
                 <div style="font-size:0.75rem;">Allez sur l'onglet "Nouvelle playlist" pour en creer une</div>
             </div>
         @endif
@@ -325,7 +325,7 @@
             <div class="col-lg-5">
                 <div class="stat-card">
                     <h6 style="font-weight:700; font-size:0.85rem; margin-bottom:1rem;">
-                        <i class="bi bi-plus-circle me-1" style="color:var(--accent);"></i> Creer une playlist
+                        <i class="bi bi-plus-circle me-1" style="color:var(--accent);"></i> {{ __('ui.create_playlist') }}
                     </h6>
                     <form action="{{ route('moh.playlists.store') }}" method="POST" id="newPlForm">
                         @csrf

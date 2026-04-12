@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Nouveau contexte')
-@section('page-title', 'Nouveau contexte')
+@section('title', __('ui.new') . ' ' . __('ui.contexts'))
+@section('page-title', __('ui.new') . ' ' . __('ui.contexts'))
 
 @section('content')
     <div class="section-header">
@@ -182,7 +182,7 @@
 
             <div class="mt-4 d-flex gap-2">
                 <button type="submit" class="btn btn-accent">
-                    <i class="bi bi-check-lg me-1"></i> Creer le contexte
+                    <i class="bi bi-check-lg me-1"></i> {{ __('ui.create_context') }}
                 </button>
                 <a href="{{ route('contexts.index') }}" class="btn btn-outline-custom">Annuler</a>
             </div>

@@ -207,7 +207,7 @@
                                     <i class="bi bi-check-circle-fill" style="color:#3fb950;"></i>
                                     <code style="font-size:0.75rem;color:var(--text-secondary);">{{ $masked }}</code>
                                 </div>
-                                <small style="color:var(--text-secondary);font-size:0.65rem;">Configuree dans .env (modifier via SSH)</small>
+                                <small style="color:var(--text-secondary);font-size:0.65rem;">{{ __('ui.configured_env') }}</small>
                             @else
                                 <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.6rem;background:#f8514910;border:1px solid #f8514930;border-radius:6px;">
                                     <i class="bi bi-exclamation-triangle-fill" style="color:#f85149;"></i>

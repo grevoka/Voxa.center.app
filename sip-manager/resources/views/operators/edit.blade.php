@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Editer operateur')
-@section('page-title', 'Editer operateur')
+@section('title', __('ui.modify') . ' ' . __('ui.operators'))
+@section('page-title', __('ui.modify') . ' ' . __('ui.operators'))
 
 @section('content')
     <div class="section-header">

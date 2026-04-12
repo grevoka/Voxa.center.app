@@ -51,9 +51,9 @@
             <thead>
                 <tr>
                     <th>{{ __("ui.name") }}</th>
-                    <th>Fichier original</th>
+                    <th>{{ __("ui.original_file") }}</th>
                     <th>Reference Asterisk</th>
-                    <th>Duree</th>
+                    <th>{{ __("ui.duration") }}</th>
                     <th>Taille</th>
                     <th style="width:120px;">{{ __("ui.actions") }}</th>
                 </tr>
@@ -77,7 +77,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center py-3" style="color:var(--text-secondary);">Aucun fichier son</td></tr>
+                    <tr><td colspan="6" class="text-center py-3" style="color:var(--text-secondary);">{{ __('ui.no_audio_files') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -93,8 +93,8 @@
                 <tr>
                     <th>{{ __("ui.name") }}</th>
                     <th>Classe MOH</th>
-                    <th>Fichier original</th>
-                    <th>Duree</th>
+                    <th>{{ __("ui.original_file") }}</th>
+                    <th>{{ __("ui.duration") }}</th>
                     <th>Taille</th>
                     <th style="width:120px;">{{ __("ui.actions") }}</th>
                 </tr>

@@ -217,7 +217,7 @@
 
             const body = document.getElementById('callsBody');
             if (!channels.length) {
-                body.innerHTML = '<div class="text-center py-3" style="color:var(--text-secondary); font-size:0.85rem;"><i class="bi bi-telephone-x me-1"></i> Aucun appel en cours</div>';
+                body.innerHTML = '<div class="text-center py-3" style="color:var(--text-secondary); font-size:0.85rem;"><i class="bi bi-telephone-x me-1"></i> {{ __('ui.no_active_calls') }}</div>';
                 return;
             }
 
@@ -271,7 +271,7 @@
 
             const body = document.getElementById('endpointsBody');
             if (!endpoints.length) {
-                body.innerHTML = '<div class="text-center py-3" style="color:var(--text-secondary);">Aucun poste configure</div>';
+                body.innerHTML = '<div class="text-center py-3" style="color:var(--text-secondary);">{{ __('ui.no_lines') }}</div>';
                 return;
             }
 
@@ -299,7 +299,7 @@
         function renderTrunks(regs) {
             const body = document.getElementById('trunksBody');
             if (!regs.length) {
-                body.innerHTML = '<div class="text-center py-3" style="color:var(--text-secondary);">Aucun trunk enregistre</div>';
+                body.innerHTML = '<div class="text-center py-3" style="color:var(--text-secondary);">{{ __('ui.no_trunks') }}</div>';
                 return;
             }
 

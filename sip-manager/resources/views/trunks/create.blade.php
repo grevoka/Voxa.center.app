@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Nouveau trunk')
-@section('page-title', 'Nouveau trunk SIP')
+@section('title', __('ui.new') . ' trunk')
+@section('page-title', '{{ __('ui.new') }} trunk SIP')
 
 @section('content')
     <div class="row justify-content-center">
@@ -9,7 +9,7 @@
             <div class="stat-card">
                 <h6 style="font-weight:700;font-size:1rem;margin-bottom:1.5rem;">
                     <i class="bi bi-diagram-3-fill me-2" style="color:var(--accent);"></i>
-                    Nouveau trunk
+                    {{ __('ui.new') }} trunk
                 </h6>
 
                 <form action="{{ route('trunks.store') }}" method="POST">
@@ -124,7 +124,7 @@
                                 <input class="form-check-input" type="checkbox" name="register" value="1"
                                        id="register" {{ old('register', true) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="register" style="font-size:0.85rem;">
-                                    Enregistrement aupres du provider
+                                    {{ __('ui.register_provider') }}
                                 </label>
                             </div>
                         </div>

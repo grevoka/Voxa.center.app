@@ -10,7 +10,7 @@
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gerer les connexions vers les operateurs</p>
         </div>
         <a href="{{ route('trunks.create') }}" class="btn btn-accent">
-            <i class="bi bi-plus-lg me-1"></i> Nouveau trunk
+            <i class="bi bi-plus-lg me-1"></i> {{ __('ui.new') }} trunk
         </a>
     </div>
 
@@ -19,11 +19,11 @@
             <thead>
                 <tr>
                     <th>{{ __("ui.name") }}</th>
-                    <th>Type</th>
-                    <th>Hote</th>
+                    <th>{{ __("ui.type") }}</th>
+                    <th>{{ __("ui.host") }}</th>
                     <th>Port</th>
                     <th>{{ __("ui.codecs") }}</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.status") }}</th>
                     <th>{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
@@ -85,7 +85,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="text-center py-4" style="color:var(--text-secondary);">
-                            <i class="bi bi-diagram-3 me-2"></i>Aucun trunk configure
+                            <i class="bi bi-diagram-3 me-2"></i>{{ __('ui.no_trunks') }}
                         </td>
                     </tr>
                 @endforelse

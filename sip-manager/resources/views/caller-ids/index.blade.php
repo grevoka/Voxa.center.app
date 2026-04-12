@@ -53,7 +53,7 @@
                 {{-- Table --}}
                 <table class="table mb-0">
                     <thead>
-                        <tr><th>Numero</th><th>{{ __("ui.name") }}</th><th>Trunk</th><th style="width:90px;">{{ __("ui.actions") }}</th></tr>
+                        <tr><th>Numero</th><th>{{ __("ui.name") }}</th><th>{{ __("ui.th_trunk") }}</th><th style="width:90px;">{{ __("ui.actions") }}</th></tr>
                     </thead>
                     <tbody>
                         @forelse($callerIds as $cid)
@@ -93,7 +93,7 @@
                         </tr>
                         @empty
                         <tr><td colspan="4" class="text-center py-3" style="color:var(--text-secondary);font-size:0.82rem;">
-                            <i class="bi bi-telephone-plus me-1"></i>Aucun Caller ID — ajoutez un numero ci-dessus
+                            <i class="bi bi-telephone-plus me-1"></i>{{ __('ui.no_caller_ids') }}
                         </td></tr>
                         @endforelse
                     </tbody>
@@ -161,7 +161,7 @@
                         </div>
                     </div>
                     <button type="submit" class="btn btn-sm w-100" style="background:#bc6ff1;color:#fff;border:none;font-weight:600;">
-                        <i class="bi bi-check-lg me-1"></i>Creer le groupe
+                        <i class="bi bi-check-lg me-1"></i>{{ __('ui.create_group') }}
                     </button>
                 </form>
 
@@ -211,7 +211,7 @@
                 </div>
                 @empty
                 <div class="px-3 py-4 text-center" style="color:var(--text-secondary);font-size:0.82rem;">
-                    <i class="bi bi-collection me-1"></i>Aucun groupe — cliquez "Nouveau" pour en creer
+                    <i class="bi bi-collection me-1"></i>{{ __('ui.no_groups') }}
                 </div>
                 @endforelse
             </div>
@@ -232,7 +232,7 @@
     {{-- Edit modal (Caller ID) --}}
     <div id="cidEditModal" style="display:none;position:fixed;inset:0;z-index:1050;background:rgba(0,0,0,.6);align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
         <div style="padding:1.5rem;width:400px;max-width:90vw;background:#1c1f26;border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
-            <h6 style="font-weight:700;margin-bottom:1rem;"><i class="bi bi-pencil me-2" style="color:var(--accent);"></i>Modifier Caller ID</h6>
+            <h6 style="font-weight:700;margin-bottom:1rem;"><i class="bi bi-pencil me-2" style="color:var(--accent);"></i>{{ __('ui.edit_caller_id') }}</h6>
             <form id="cidEditForm" method="POST">
                 @csrf @method('PUT')
                 <div class="mb-2">

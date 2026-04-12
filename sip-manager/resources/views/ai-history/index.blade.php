@@ -42,7 +42,7 @@
     {{-- Filters --}}
     <form method="GET" class="d-flex gap-2 mb-3 flex-wrap align-items-end">
         <div>
-            <label style="font-size:0.68rem;color:var(--text-secondary);">Recherche</label>
+            <label style="font-size:0.68rem;color:var(--text-secondary);">{{ __('ui.search') }}</label>
             <input type="text" name="search" class="form-control form-control-sm" placeholder="Numero ou mot-cle..." value="{{ request('search') }}" style="min-width:180px;">
         </div>
         <div>
@@ -64,11 +64,11 @@
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Appelant</th>
+                    <th>{{ __("ui.date") }}</th>
+                    <th>{{ __("ui.caller") }}</th>
                     <th>{{ __('ui.ai_model') }}</th>
                     <th>{{ __('ui.ai_voice') }}</th>
-                    <th>Duree</th>
+                    <th>{{ __("ui.duration") }}</th>
                     <th>{{ __('ui.ai_turns') }}</th>
                     <th>{{ __('ui.ai_cost') }}</th>
                     <th>Fin</th>
@@ -107,7 +107,7 @@
                 </tr>
                 @empty
                 <tr><td colspan="9" class="text-center py-4" style="color:var(--text-secondary);">
-                    <i class="bi bi-robot me-1"></i>Aucune conversation AI pour le moment
+                    <i class="bi bi-robot me-1"></i>{{ __('ui.no_ai_conv') }}
                 </td></tr>
                 @endforelse
             </tbody>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Modifier — ' . ($queue->display_name ?: $queue->name))
-@section('page-title', 'Modifier la file d\'attente')
+@section('page-title', __('ui.modify') . ' ' . __('ui.queues') d\')
 
 @section('content')
     <div class="section-header">

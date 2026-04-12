@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Nouvelle ligne')
-@section('page-title', 'Nouvelle ligne SIP')
+@section('title', __('ui.new_f') . ' ' . __('ui.lines'))
+@section('page-title', '{{ __('ui.new_f') }} {{ __('ui.lines') }} SIP')
 
 @section('content')
     <div class="row justify-content-center">
@@ -9,7 +9,7 @@
             <div class="stat-card">
                 <h6 style="font-weight:700;font-size:1rem;margin-bottom:1.5rem;">
                     <i class="bi bi-telephone-plus-fill me-2" style="color:var(--accent);"></i>
-                    Nouvelle ligne
+                    {{ __('ui.new_f') }} {{ __('ui.lines') }}
                 </h6>
 
                 <form action="{{ route('lines.store') }}" method="POST">
@@ -104,7 +104,7 @@
                                 <input class="form-check-input" type="checkbox" name="voicemail_enabled" value="1"
                                        id="voicemail" {{ old('voicemail_enabled') ? 'checked' : '' }}>
                                 <label class="form-check-label" for="voicemail" style="font-size:0.85rem;">
-                                    Activer la messagerie vocale
+                                    {{ __('ui.enable_voicemail') }}
                                 </label>
                             </div>
                         </div>

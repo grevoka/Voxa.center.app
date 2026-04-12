@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Nouvel operateur')
-@section('page-title', 'Nouvel operateur')
+@section('title', __('ui.new') . ' ' . __('ui.operators'))
+@section('page-title', __('ui.new') . ' ' . __('ui.operators'))
 
 @section('content')
     <div class="section-header">

@@ -32,7 +32,7 @@
             </select>
         </div>
         <div>
-            <label style="font-size:0.68rem;color:var(--text-secondary);display:block;">Recherche</label>
+            <label style="font-size:0.68rem;color:var(--text-secondary);display:block;">{{ __('ui.search') }}</label>
             <input type="text" name="search" class="form-control form-control-sm" placeholder="Numero..." value="{{ request('search') }}" style="min-width:150px;">
         </div>
         <button type="submit" class="btn btn-accent btn-sm"><i class="bi bi-funnel me-1"></i>{{ __("ui.filter") }}</button>
@@ -46,13 +46,13 @@
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Direction</th>
-                    <th>Operateur</th>
-                    <th>Source</th>
-                    <th>Destination</th>
-                    <th>Duree</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.date") }}</th>
+                    <th>{{ __("ui.direction") }}</th>
+                    <th>{{ __("ui.operators") }}</th>
+                    <th>{{ __("ui.source") }}</th>
+                    <th>{{ __("ui.destination") }}</th>
+                    <th>{{ __("ui.duration") }}</th>
+                    <th>{{ __("ui.status") }}</th>
                     <th style="width:250px;">{{ __("ui.listen") }}</th>
                 </tr>
             </thead>
@@ -108,7 +108,7 @@
                 </tr>
                 @empty
                 <tr><td colspan="8" class="text-center py-4" style="color:var(--text-secondary);">
-                    <i class="bi bi-mic-mute me-1"></i>Aucun enregistrement trouve
+                    <i class="bi bi-mic-mute me-1"></i>{{ __('ui.no_recordings_found') }}
                 </td></tr>
                 @endforelse
             </tbody>

@@ -1,7 +1,7 @@
 @extends('layouts.operator')
 
-@section('title', 'Journal d\'appels')
-@section('page-title', 'Journal d\'appels')
+@section('title', 'Journal d\')
+@section('page-title', 'Journal d\')
 
 @section('content')
     <div class="section-header">
@@ -38,7 +38,7 @@
     <div class="data-table">
         <table class="table mb-0">
             <thead>
-                <tr><th>Date</th><th>Direction</th><th>Correspondant</th><th>Duree</th><th>Statut</th></tr>
+                <tr><th>{{ __("ui.date") }}</th><th>{{ __("ui.direction") }}</th><th>{{ __("ui.correspondent") }}</th><th>{{ __("ui.duration") }}</th><th>{{ __("ui.status") }}</th></tr>
             </thead>
             <tbody>
                 @forelse($logs as $call)
@@ -61,7 +61,7 @@
                     <td><span class="status-dot {{ $call->disposition_color }}"></span> <span style="font-size:0.75rem;">{{ $call->disposition_label }}</span></td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center py-4" style="color:var(--text-secondary);">Aucun appel</td></tr>
+                <tr><td colspan="5" class="text-center py-4" style="color:var(--text-secondary);">{{ __('ui.no_calls') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

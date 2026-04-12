@@ -51,7 +51,7 @@
         <div class="col-lg-7">
             <div class="stat-card">
                 <h6 style="font-weight:700; font-size:0.85rem; margin-bottom:1rem;">
-                    <i class="bi bi-gear me-1" style="color:var(--accent);"></i> Parametres generaux
+                    <i class="bi bi-gear me-1" style="color:var(--accent);"></i> {{ __('ui.general_settings') }}
                 </h6>
 
                 <div class="row g-3">
@@ -149,7 +149,7 @@
                     <i class="bi bi-people me-1" style="color:var(--accent);"></i> Membres
                 </h6>
                 <p style="color:var(--text-secondary); font-size:0.78rem; margin-bottom:1rem;">
-                    Selectionnez les postes qui recevront les appels de cette file.
+                    {{ __('ui.select_members') }} de cette file.
                 </p>
 
                 <div id="membersList">
@@ -184,7 +184,7 @@
 
                 @if($lines->isEmpty())
                     <p style="color:var(--text-secondary); font-size:0.82rem; text-align:center; padding:1rem;">
-                        Aucune ligne SIP disponible.
+                        {{ __('ui.no_sip_lines') }}.
                     </p>
                 @endif
             </div>

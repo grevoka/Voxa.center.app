@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Nouvelle salle de conference')
-@section('page-title', 'Nouvelle salle de conference')
+@section('title', __('ui.new_f') . ' ' . __('ui.conferences') de conference')
+@section('page-title', __('ui.new_f') . ' ' . __('ui.conferences') de conference')
 
 @section('content')
     <div class="section-header">

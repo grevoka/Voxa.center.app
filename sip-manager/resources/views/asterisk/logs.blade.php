@@ -62,7 +62,7 @@
 
         @if(!$fileExists)
             <div class="text-center py-4" style="color:var(--text-secondary);">
-                <i class="bi bi-exclamation-triangle me-2"></i>Fichier de log Asterisk introuvable — Asterisk n'est peut-etre pas demarre.
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ __('ui.log_file_missing') }}
             </div>
         @else
             <pre id="logArea" style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:1rem;color:#e6edf3;font-family:'JetBrains Mono',monospace;font-size:0.72rem;overflow-x:auto;white-space:pre;margin:0;max-height:500px;overflow-y:auto;">@foreach($lines as $line)

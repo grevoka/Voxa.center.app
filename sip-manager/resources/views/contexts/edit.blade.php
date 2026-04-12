@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Modifier contexte')
-@section('page-title', 'Modifier contexte')
+@section('title', __('ui.modify') . ' ' . __('ui.contexts'))
+@section('page-title', __('ui.modify') . ' ' . __('ui.contexts'))
 
 @section('content')
     <div class="section-header">

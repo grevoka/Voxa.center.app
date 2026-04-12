@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', __('ui.lines'))
-@section('page-title', 'Lignes telephoniques')
+@section('page-title', __('ui.lines'))
 
 @section('content')
     <div class="section-header">
@@ -10,7 +10,7 @@
             <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gerer les extensions et comptes SIP</p>
         </div>
         <a href="{{ route('lines.create') }}" class="btn btn-accent">
-            <i class="bi bi-plus-lg me-1"></i> Nouvelle ligne
+            <i class="bi bi-plus-lg me-1"></i> {{ __('ui.new_f') }} {{ __('ui.lines') }}
         </a>
     </div>
 
@@ -18,11 +18,11 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Extension</th>
+                    <th>{{ __("ui.extension") }}</th>
                     <th>{{ __("ui.name") }}</th>
-                    <th>Email</th>
-                    <th>Protocole</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.email") }}</th>
+                    <th>{{ __("ui.protocol") }}</th>
+                    <th>{{ __("ui.status") }}</th>
                     <th>{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
@@ -59,7 +59,7 @@
                 @empty
                     <tr>
                         <td colspan="6" class="text-center py-4" style="color:var(--text-secondary);">
-                            <i class="bi bi-telephone-x me-2"></i>Aucune ligne configuree
+                            <i class="bi bi-telephone-x me-2"></i>{{ __('ui.no_lines') }}
                         </td>
                     </tr>
                 @endforelse

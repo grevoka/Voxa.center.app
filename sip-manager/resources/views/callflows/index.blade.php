@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Scenarios d\'appels')
-@section('page-title', 'Scenarios d\'appels entrants')
+@section('title', __('ui.scenarios')\')
+@section('page-title', __('ui.scenarios')\')
 
 @section('content')
     <div class="section-header">
@@ -17,9 +17,9 @@
     @if($flows->isEmpty())
         <div class="stat-card text-center" style="padding:3rem;">
             <i class="bi bi-diagram-2" style="font-size:3rem; color:var(--text-secondary); opacity:.3;"></i>
-            <p style="color:var(--text-secondary); margin-top:1rem;">Aucun scenario configure.</p>
+            <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_scenario') }}.</p>
             <a href="{{ route('callflows.create') }}" class="btn btn-accent mt-2">
-                <i class="bi bi-plus-lg me-1"></i> Creer un scenario
+                <i class="bi bi-plus-lg me-1"></i> {{ __('ui.create') }} {{ __('ui.scenarios') }}
             </a>
         </div>
     @else
@@ -28,10 +28,10 @@
                 <thead>
                     <tr>
                         <th>{{ __("ui.name") }}</th>
-                        <th>Trunk</th>
-                        <th>Contexte</th>
+                        <th>{{ __("ui.th_trunk") }}</th>
+                        <th>{{ __("ui.th_context") }}</th>
                         <th>Etapes</th>
-                        <th>Statut</th>
+                        <th>{{ __("ui.status") }}</th>
                         <th>{{ __("ui.actions") }}</th>
                     </tr>
                 </thead>

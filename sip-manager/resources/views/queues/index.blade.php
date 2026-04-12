@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Files d\'attente')
-@section('page-title', 'Files d\'attente')
+@section('title', 'Files d\')
+@section('page-title', 'Files d\')
 
 @section('content')
     <div class="section-header">
@@ -17,9 +17,9 @@
     @if($queues->isEmpty())
         <div class="stat-card text-center" style="padding:3rem;">
             <i class="bi bi-people" style="font-size:3rem; color:var(--text-secondary); opacity:.3;"></i>
-            <p style="color:var(--text-secondary); margin-top:1rem;">Aucune file d'attente configuree.</p>
+            <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_queues') }}.</p>
             <a href="{{ route('queues.create') }}" class="btn btn-accent mt-2">
-                <i class="bi bi-plus-lg me-1"></i> Creer une file
+                <i class="bi bi-plus-lg me-1"></i> {{ __('ui.create_queue') }}
             </a>
         </div>
     @else
@@ -28,11 +28,11 @@
                 <thead>
                     <tr>
                         <th>{{ __("ui.name") }}</th>
-                        <th>Strategie</th>
+                        <th>{{ __("ui.strategy") }}</th>
                         <th>Membres</th>
                         <th>Timeout</th>
                         <th>Musique</th>
-                        <th>Statut</th>
+                        <th>{{ __("ui.status") }}</th>
                         <th>{{ __("ui.actions") }}</th>
                     </tr>
                 </thead>

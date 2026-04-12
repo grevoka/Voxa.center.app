@@ -38,7 +38,7 @@
     @if(auth()->user()->sipLine)
     <div id="softphonePopup" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9000;width:280px;background:var(--surface-2);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);overflow:hidden;cursor:default;">
         <div id="softphoneHeader" style="background:var(--accent-gradient);padding:0.5rem 0.75rem;cursor:move;display:flex;align-items:center;justify-content:between;user-select:none;">
-            <div style="flex:1;color:#fff;font-size:0.78rem;font-weight:600;"><i class="bi bi-telephone-fill me-1"></i>Telephone</div>
+            <div style="flex:1;color:#fff;font-size:0.78rem;font-weight:600;"><i class="bi bi-telephone-fill me-1"></i>{{ __("ui.phone") }}</div>
             <button onclick="document.getElementById('softphonePopup').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:0.85rem;padding:0;"><i class="bi bi-dash-lg"></i></button>
         </div>
         @include('operator.partials.softphone')

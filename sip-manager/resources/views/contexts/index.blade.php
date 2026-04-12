@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Contextes d\'appel')
-@section('page-title', 'Contextes d\'appel')
+@section('title', __('ui.contexts')\')
+@section('page-title', __('ui.contexts')\')
 
 @section('content')
     <div class="section-header">
@@ -23,13 +23,13 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Priorite</th>
+                    <th>{{ __("ui.priority") }}</th>
                     <th>{{ __("ui.name") }}</th>
-                    <th>Direction</th>
-                    <th>Pattern</th>
-                    <th>Destination</th>
+                    <th>{{ __("ui.direction") }}</th>
+                    <th>{{ __("ui.pattern") }}</th>
+                    <th>{{ __("ui.destination") }}</th>
                     <th>Repondeur</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.status") }}</th>
                     <th>{{ __("ui.actions") }}</th>
                 </tr>
             </thead>
@@ -97,7 +97,7 @@
                 @empty
                     <tr>
                         <td colspan="8" class="text-center py-4" style="color:var(--text-secondary);">
-                            <i class="bi bi-signpost-split me-2"></i>Aucun contexte configure
+                            <i class="bi bi-signpost-split me-2"></i>{{ __('ui.no_contexts') }}
                         </td>
                     </tr>
                 @endforelse

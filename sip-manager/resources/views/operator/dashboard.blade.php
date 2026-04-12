@@ -75,12 +75,12 @@
         <div class="col-lg-8">
             <div class="data-table">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
-                    <h6 class="mb-0" style="font-size:0.88rem;font-weight:700;"><i class="bi bi-journal-text me-2" style="color:var(--accent);"></i>Derniers appels</h6>
+                    <h6 class="mb-0" style="font-size:0.88rem;font-weight:700;"><i class="bi bi-journal-text me-2" style="color:var(--accent);"></i>{{ __('ui.last_calls') }}</h6>
                     <a href="{{ route('operator.calls') }}" style="font-size:0.72rem;color:var(--accent);text-decoration:none;">Voir tout <i class="bi bi-arrow-right"></i></a>
                 </div>
                 <table class="table mb-0">
                     <thead>
-                        <tr><th>Date</th><th>Dir.</th><th>Correspondant</th><th>Duree</th><th>Statut</th></tr>
+                        <tr><th>{{ __("ui.date") }}</th><th>Dir.</th><th>{{ __("ui.correspondent") }}</th><th>{{ __("ui.duration") }}</th><th>{{ __("ui.status") }}</th></tr>
                     </thead>
                     <tbody>
                         @forelse($recentCalls as $call)
@@ -103,7 +103,7 @@
                             <td><span class="status-dot {{ $call->disposition_color }}"></span></td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="text-center py-4" style="color:var(--text-secondary);font-size:0.82rem;">Aucun appel</td></tr>
+                        <tr><td colspan="5" class="text-center py-4" style="color:var(--text-secondary);font-size:0.82rem;">{{ __('ui.no_calls') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

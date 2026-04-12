@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', isset($route) ? 'Modifier route sortante' : 'Nouvelle route sortante')
-@section('page-title', isset($route) ? 'Modifier route sortante' : 'Nouvelle route sortante')
+@section('title', isset($route) ? __('ui.modify') . ' ' . __('ui.outbound_routes') : __('ui.new_f') . ' ' . __('ui.outbound_routes'))
+@section('page-title', isset($route) ? __('ui.modify') . ' ' . __('ui.outbound_routes') : __('ui.new_f') . ' ' . __('ui.outbound_routes'))
 
 @section('content')
     <div class="section-header">
@@ -171,7 +171,7 @@
                 <div class="data-table mt-3" style="padding:1.25rem;">
                     <button type="submit" class="btn btn-accent w-100 mb-2">
                         <i class="bi bi-check-lg me-1"></i>
-                        {{ isset($route) ? 'Mettre a jour & appliquer' : 'Creer & appliquer le dialplan' }}
+                        {{ isset($route) ? '{{ __('ui.update_apply') }}' : '{{ __('ui.create_apply') }}' }}
                     </button>
                     <a href="{{ route('outbound.index') }}" class="btn btn-outline-custom w-100">Annuler</a>
                 </div>

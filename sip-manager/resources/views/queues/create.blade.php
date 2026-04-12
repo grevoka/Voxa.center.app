@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Nouvelle file d\'attente')
-@section('page-title', 'Nouvelle file d\'attente')
+@section('title', __('ui.new_f') . ' ' . __('ui.queues') d\')
+@section('page-title', __('ui.new_f') . ' ' . __('ui.queues') d\')
 
 @section('content')
     <div class="section-header">

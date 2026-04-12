@@ -392,7 +392,7 @@ function phoneBindSession(session, number) {
     document.getElementById('phoneHangupBtn').style.display = 'block';
     document.getElementById('phoneCallInfo').style.display = 'block';
     document.getElementById('phoneCallNumber').textContent = number;
-    phoneSetStatus('busy', 'En appel');
+    phoneSetStatus('busy', 'En );
 
     session.on('confirmed', function() {
         document.getElementById('phoneIncoming').style.display = 'none';

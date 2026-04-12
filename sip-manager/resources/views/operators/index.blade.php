@@ -17,7 +17,7 @@
     <div class="data-table">
         <table class="table mb-0">
             <thead>
-                <tr><th>{{ __("ui.name") }}</th><th>Email</th><th>Poste</th><th>Extension</th><th>{{ __("ui.actions") }}</th></tr>
+                <tr><th>{{ __("ui.name") }}</th><th>{{ __("ui.email") }}</th><th>{{ __("ui.post") }}</th><th>{{ __("ui.extension") }}</th><th>{{ __("ui.actions") }}</th></tr>
             </thead>
             <tbody>
                 @forelse($operators as $op)

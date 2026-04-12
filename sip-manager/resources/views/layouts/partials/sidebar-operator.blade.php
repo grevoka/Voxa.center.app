@@ -43,7 +43,7 @@
         <button onclick="document.getElementById('softphonePopup').style.display=document.getElementById('softphonePopup').style.display==='none'?'block':'none'"
                 class="btn-icon" style="width:100%;padding:0.5rem;font-size:0.78rem;display:flex;align-items:center;justify-content:center;gap:0.4rem;border-radius:8px;">
             <i class="bi bi-telephone-fill" style="color:var(--accent);"></i>
-            <span>Telephone</span>
+            <span>{{ __("ui.phone") }}</span>
             <span id="phoneDotStatus" style="width:7px;height:7px;border-radius:50%;background:var(--text-secondary);"></span>
         </button>
     </div>

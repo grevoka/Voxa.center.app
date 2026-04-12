@@ -14,7 +14,7 @@
     <div class="data-table">
         <table class="table mb-0">
             <thead>
-                <tr><th>Dossier</th><th>Appelant</th><th>Date</th><th>Duree</th><th>{{ __("ui.actions") }}</th></tr>
+                <tr><th>{{ __('ui.ai_ctx_folder_dest') }}</th><th>{{ __("ui.caller") }}</th><th>{{ __("ui.date") }}</th><th>{{ __("ui.duration") }}</th><th>{{ __("ui.actions") }}</th></tr>
             </thead>
             <tbody>
                 @forelse($messages as $msg)
@@ -49,7 +49,7 @@
                 </tr>
                 @empty
                 <tr><td colspan="5" class="text-center py-4" style="color:var(--text-secondary);">
-                    <i class="bi bi-voicemail me-1"></i>Aucun message vocal
+                    <i class="bi bi-voicemail me-1"></i>{{ __('ui.no_voicemail_msg') }}
                 </td></tr>
                 @endforelse
             </tbody>

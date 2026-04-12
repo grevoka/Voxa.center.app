@@ -148,7 +148,7 @@
                 <form action="{{ route('ai-context.store') }}" method="POST">
                     @csrf
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Dossier</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.ai_ctx_folder_dest') }}</label>
                         <select name="folder" class="form-select form-select-sm">
                             <option value="" {{ $currentFolder === '' ? 'selected' : '' }}>{{ __('ui.ai_general') }}</option>
                             @foreach($folders as $f)

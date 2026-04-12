@@ -7,7 +7,7 @@
     <div class="section-header">
         <div>
             <h5 class="mb-1" style="font-weight:700;">{{ __("ui.profile") }}</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Modifier vos informations et votre mot de passe</p>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.modify_profile') }}</p>
         </div>
     </div>
 

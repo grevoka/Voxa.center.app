@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Modifier ligne ' . $line->extension)
-@section('page-title', 'Modifier ligne ' . $line->extension)
+@section('title', __('ui.modify') . ' ' . __('ui.lines') ' . $line->extension)
+@section('page-title', __('ui.modify') . ' ' . __('ui.lines') ' . $line->extension)
 
 @section('content')
     <div class="row justify-content-center">
@@ -9,7 +9,7 @@
             <div class="stat-card">
                 <h6 style="font-weight:700;font-size:1rem;margin-bottom:1.5rem;">
                     <i class="bi bi-pencil-fill me-2" style="color:var(--accent);"></i>
-                    Modifier la ligne {{ $line->extension }}
+                    {{ __('ui.modify') }} {{ $line->extension }}
                 </h6>
 
                 <form action="{{ route('lines.update', $line) }}" method="POST">
@@ -101,7 +101,7 @@
                                 <input class="form-check-input" type="checkbox" name="voicemail_enabled" value="1"
                                        id="voicemail" {{ old('voicemail_enabled', $line->voicemail_enabled) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="voicemail" style="font-size:0.85rem;">
-                                    Activer la messagerie vocale
+                                    {{ __('ui.enable_voicemail') }}
                                 </label>
                             </div>
                         </div>

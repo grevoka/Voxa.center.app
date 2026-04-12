@@ -15,11 +15,11 @@
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Utilisateur</th>
-                    <th>Evenement</th>
-                    <th>Details</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.date") }}</th>
+                    <th>{{ __("ui.user") }}</th>
+                    <th>{{ __("ui.event") }}</th>
+                    <th>{{ __("ui.details") }}</th>
+                    <th>{{ __("ui.status") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -49,7 +49,7 @@
                 @empty
                     <tr>
                         <td colspan="5" class="text-center py-4" style="color:var(--text-secondary);">
-                            Aucune activite enregistree
+                            {{ __('ui.no_activity') }}
                         </td>
                     </tr>
                 @endforelse

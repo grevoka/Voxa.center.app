@@ -136,7 +136,7 @@
         </div>
 
         <div class="login-card">
-            <h5>Connexion</h5>
+            <h5>{{ __("ui.login") }}</h5>
             <div class="subtitle">Accedez a votre espace de gestion</div>
 
             @if(session('status'))

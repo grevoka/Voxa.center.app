@@ -55,7 +55,7 @@
     <div class="data-table mb-4" style="padding:1rem 1.25rem;">
         <form method="GET" action="{{ route('logs.index') }}" class="row g-2 align-items-end">
             <div class="col-md-3">
-                <label class="form-label">Recherche</label>
+                <label class="form-label">{{ __('ui.search') }}</label>
                 <div class="search-box">
                     <i class="bi bi-search"></i>
                     <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="Numero, nom, contexte...">
@@ -99,13 +99,13 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Date/Heure</th>
-                    <th>Direction</th>
-                    <th>Source</th>
-                    <th>Destination</th>
-                    <th>Contexte</th>
-                    <th>Duree</th>
-                    <th>Statut</th>
+                    <th>{{ __("ui.date_time") }}</th>
+                    <th>{{ __("ui.direction") }}</th>
+                    <th>{{ __("ui.source") }}</th>
+                    <th>{{ __("ui.destination") }}</th>
+                    <th>{{ __("ui.th_context") }}</th>
+                    <th>{{ __("ui.duration") }}</th>
+                    <th>{{ __("ui.status") }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -139,7 +139,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="text-center py-4" style="color:var(--text-secondary);">
-                            <i class="bi bi-journal-x me-2"></i>Aucun appel enregistre
+                            <i class="bi bi-journal-x me-2"></i>{{ __('ui.no_calls') }}
                         </td>
                     </tr>
                 @endforelse

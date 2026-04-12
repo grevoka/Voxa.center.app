@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', isset($callflow) ? 'Modifier scenario' : 'Nouveau scenario')
-@section('page-title', isset($callflow) ? 'Modifier le scenario' : 'Creer un scenario d\'appel')
+@section('title', isset($callflow) ? __('ui.modify') . ' ' . __('ui.scenarios') : __('ui.new') . ' ' . __('ui.scenarios'))
+@section('page-title', isset($callflow) ? __('ui.modify') . ' ' . __('ui.scenarios') : __('ui.new') . ' ' . __('ui.scenarios')\')
 
 @push('styles')
 <style>
@@ -678,7 +678,7 @@
     {{-- CREATE MODE: same hub layout --}}
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">Creer un scenario d'appel</h5>
+            <h5 style="font-weight:700; margin:0;">{{ __('ui.create') }} {{ __('ui.scenarios') }} d'appel</h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Choisissez un modele ou construisez votre flux</p>
         </div>
         <div class="d-flex gap-2">
