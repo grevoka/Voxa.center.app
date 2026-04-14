@@ -11,7 +11,7 @@
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-custom" onclick="refreshLogs()" id="refreshBtn">
-                <i class="bi bi-arrow-clockwise me-1"></i> Rafraichir
+                <i class="bi bi-arrow-clockwise me-1"></i> {{ __('ui.refresh') }}
             </button>
             <div class="form-check form-switch d-flex align-items-center gap-2 ms-2">
                 <input class="form-check-input" type="checkbox" id="autoRefresh">
@@ -23,7 +23,7 @@
     {{-- CLI Commands --}}
     <div class="data-table mb-4" style="padding:1rem 1.25rem;">
         <h6 style="font-weight:700;font-size:0.85rem;margin-bottom:0.75rem;">
-            <i class="bi bi-terminal me-1" style="color:var(--accent);"></i> Commandes rapides
+            <i class="bi bi-terminal me-1" style="color:var(--accent);"></i> {{ __('ui.quick_commands') }}
         </h6>
         <div class="d-flex flex-wrap gap-2">
             <button class="btn btn-outline-custom btn-sm" onclick="runCmd('core show uptime')">Uptime</button>
@@ -47,10 +47,10 @@
     <div class="data-table" style="padding:1rem 1.25rem;">
         <div class="d-flex align-items-center justify-content-between mb-2">
             <h6 style="font-weight:700;font-size:0.85rem;margin:0;">
-                <i class="bi bi-journal-code me-1" style="color:var(--accent);"></i> Logs (derniers 200)
+                <i class="bi bi-journal-code me-1" style="color:var(--accent);"></i> {{ __('ui.logs_last') }}
             </h6>
             <select class="form-select" style="width:auto;font-size:0.78rem;padding:0.25rem 0.5rem;" id="logFilter">
-                <option value="">Tout</option>
+                <option value="">{{ __('ui.all_filter') }}</option>
                 <option value="VERBOSE">Verbose</option>
                 <option value="WARNING">Warning</option>
                 <option value="ERROR">Error</option>
@@ -116,15 +116,15 @@
         function runCmd(cmd) {
             document.getElementById('cmdOutput').style.display = '';
             document.getElementById('cmdLabel').textContent = 'asterisk -rx "' + cmd + '"';
-            document.getElementById('cmdResult').textContent = 'Chargement...';
+            document.getElementById('cmdResult').textContent = '{{ __("ui.loading") }}';
 
             fetch('{{ route("asterisk.command") }}?cmd=' + encodeURIComponent(cmd))
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('cmdResult').textContent = data.output || data.error || '(vide)';
+                    document.getElementById('cmdResult').textContent = data.output || data.error || '{{ __("ui.empty_result") }}';
                 })
                 .catch(e => {
-                    document.getElementById('cmdResult').textContent = 'Erreur: ' + e.message;
+                    document.getElementById('cmdResult').textContent = '{{ __("ui.error_label") }}: ' + e.message;
                 });
         }
 

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __("ui.call_log")\')
-@section('page-title', __("ui.call_log")\')
+@section('title', __("ui.call_log"))
+@section('page-title', __("ui.call_log"))
 
 @section('content')
     <div class="section-header">
@@ -19,7 +19,7 @@
                     <div class="stat-icon"><i class="bi bi-telephone-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['total'] }}</div>
-                <div class="stat-label">Total appels</div>
+                <div class="stat-label">{{ __('ui.total_calls') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -28,7 +28,7 @@
                     <div class="stat-icon" style="background:#29b6f620;color:#29b6f6;"><i class="bi bi-check-circle-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['answered'] }}</div>
-                <div class="stat-label">Repondus</div>
+                <div class="stat-label">{{ __('ui.answered') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -37,7 +37,7 @@
                     <div class="stat-icon" style="background:#d2992220;color:#d29922;"><i class="bi bi-telephone-x-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['missed'] }}</div>
-                <div class="stat-label">Manques</div>
+                <div class="stat-label">{{ __('ui.missed') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -46,7 +46,7 @@
                     <div class="stat-icon" style="background:#f8514920;color:#f85149;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                 </div>
                 <div class="stat-value">{{ $stats['failed'] }}</div>
-                <div class="stat-label">Echoues</div>
+                <div class="stat-label">{{ __('ui.failed') }}</div>
             </div>
         </div>
     </div>
@@ -58,34 +58,34 @@
                 <label class="form-label">{{ __('ui.search') }}</label>
                 <div class="search-box">
                     <i class="bi bi-search"></i>
-                    <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="Numero, nom, contexte...">
+                    <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="{{ __('ui.search_placeholder') }}">
                 </div>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Direction</label>
+                <label class="form-label">{{ __('ui.direction') }}</label>
                 <select name="direction" class="form-select">
-                    <option value="">Toutes</option>
+                    <option value="">{{ __('ui.all_directions') }}</option>
                     <option value="inbound" {{ request('direction') === 'inbound' ? 'selected' : '' }}>{{ __("ui.inbound") }}</option>
                     <option value="outbound" {{ request('direction') === 'outbound' ? 'selected' : '' }}>{{ __("ui.outbound") }}</option>
                     <option value="internal" {{ request('direction') === 'internal' ? 'selected' : '' }}>{{ __("ui.internal") }}</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Statut</label>
+                <label class="form-label">{{ __('ui.status') }}</label>
                 <select name="disposition" class="form-select">
-                    <option value="">Tous</option>
-                    <option value="ANSWERED" {{ request('disposition') === 'ANSWERED' ? 'selected' : '' }}>Repondu</option>
-                    <option value="NO ANSWER" {{ request('disposition') === 'NO ANSWER' ? 'selected' : '' }}>Sans reponse</option>
-                    <option value="BUSY" {{ request('disposition') === 'BUSY' ? 'selected' : '' }}>Occupe</option>
-                    <option value="FAILED" {{ request('disposition') === 'FAILED' ? 'selected' : '' }}>Echoue</option>
+                    <option value="">{{ __('ui.all_statuses') }}</option>
+                    <option value="ANSWERED" {{ request('disposition') === 'ANSWERED' ? 'selected' : '' }}>{{ __('ui.status_answered') }}</option>
+                    <option value="NO ANSWER" {{ request('disposition') === 'NO ANSWER' ? 'selected' : '' }}>{{ __('ui.status_no_answer') }}</option>
+                    <option value="BUSY" {{ request('disposition') === 'BUSY' ? 'selected' : '' }}>{{ __('ui.status_busy') }}</option>
+                    <option value="FAILED" {{ request('disposition') === 'FAILED' ? 'selected' : '' }}>{{ __('ui.status_failed') }}</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Du</label>
+                <label class="form-label">{{ __('ui.from_date') }}</label>
                 <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label">Au</label>
+                <label class="form-label">{{ __('ui.to_date') }}</label>
                 <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
             </div>
             <div class="col-md-1">
@@ -117,7 +117,7 @@
                         <td>
                             <i class="bi {{ $log->direction_icon }}" style="color:{{ $log->direction_color }};"></i>
                             <span style="font-size:0.8rem;">
-                                {{ $log->direction === 'inbound' ? 'Entrant' : ($log->direction === 'outbound' ? 'Sortant' : 'Interne') }}
+                                {{ $log->direction === 'inbound' ? __('ui.dir_inbound') : ($log->direction === 'outbound' ? __('ui.dir_outbound') : __('ui.dir_internal')) }}
                             </span>
                         </td>
                         <td>

@@ -28,7 +28,7 @@ class InstallController extends Controller
 
     /**
      * Step 1: Check requirements then advance.
-     * If DB is already configured (Docker), skip step 2 and go to admin.
+     * If DB is already configured, skip step 2 and go to admin.
      */
     public function requirements(Request $request)
     {
@@ -37,7 +37,7 @@ class InstallController extends Controller
             return back()->with('error', 'Certaines conditions ne sont pas remplies.');
         }
 
-        // If DB is already configured by Docker entrypoint, skip step 2
+        // If DB is already configured, skip step 2
         if ($this->isDatabaseReady()) {
             // Run migrations
             try {
@@ -219,7 +219,7 @@ class InstallController extends Controller
     }
 
     /**
-     * Check if DB is already configured and reachable (Docker setup).
+     * Check if DB is already configured and reachable.
      */
     private function isDatabaseReady(): bool
     {

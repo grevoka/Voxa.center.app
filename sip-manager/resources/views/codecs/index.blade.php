@@ -6,10 +6,21 @@
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Codecs audio</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Codecs disponibles pour les appels SIP</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __('ui.audio_codecs') }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.codecs_desc') }}</p>
         </div>
     </div>
+
+    @php
+        $qualityMap = [
+            'Excellent' => __('ui.quality_excellent'),
+            'HD Voice' => __('ui.quality_hd'),
+            'Bonne' => __('ui.quality_good'),
+            'Supérieure' => __('ui.quality_superior'),
+            'Moyenne' => __('ui.quality_average'),
+            'Variable' => __('ui.quality_variable'),
+        ];
+    @endphp
 
     <div class="row g-3">
         @foreach(config('asterisk.codecs') as $key => $codec)
@@ -26,7 +37,7 @@
                         </div>
                         <div>
                             <i class="bi bi-star me-1"></i>
-                            {{ $codec['quality'] }}
+                            {{ $qualityMap[$codec['quality']] ?? $codec['quality'] }}
                         </div>
                     </div>
                 </div>

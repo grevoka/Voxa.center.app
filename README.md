@@ -79,6 +79,16 @@ Voxa Center est une application web de gestion de PBX Asterisk deployable native
 | OpenAI | GPT-4o Realtime / GPT-4o Mini Realtime |
 | Python | 3.11 (websockets, AudioSocket) |
 
+## OS Compatibles
+
+| OS | Version | Status |
+|----|---------|--------|
+| **Debian 12** | Bookworm | Teste en production |
+| **Ubuntu 22.04** | Jammy LTS | Compatible |
+| **Ubuntu 24.04** | Noble LTS | Compatible |
+
+> Les autres distributions (RHEL, CentOS, Alpine) et versions (Debian 11/13, Ubuntu 20.04) ne sont pas supportees.
+
 ## Architecture (full-native, sans Docker)
 
 Tous les services tournent nativement sur la VM :
@@ -231,9 +241,8 @@ SIP.ctrl/
 │   │   └── en/ui.php                 # Traductions anglais
 │   ├── routes/web.php                # Routes
 │   └── database/migrations/          # Schema (26 migrations)
-└── docker/                           # Config Docker (legacy, non utilise)
-    ├── allinone/entrypoint.sh
-    └── asterisk/configs/
+├── install.sh                        # Script d'installation full-native
+└── backups/                          # Sauvegardes DB
 ```
 
 ## Licence

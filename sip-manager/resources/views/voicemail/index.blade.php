@@ -7,10 +7,10 @@
     <div class="section-header">
         <div>
             <h5 style="font-weight:700; margin:0;">{{ __("ui.voicemail") }}</h5>
-            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Ecoutez et gerez les messages vocaux</p>
+            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">{{ __('ui.listen_manage_vm') }}</p>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <label style="font-size:0.82rem; color:var(--text-secondary); white-space:nowrap;">Boite :</label>
+            <label style="font-size:0.82rem; color:var(--text-secondary); white-space:nowrap;">{{ __('ui.mailbox_label') }}</label>
             <select class="form-select form-select-sm" style="width:auto; min-width:180px;" onchange="window.location='?extension='+this.value">
                 @foreach($lines as $line)
                     <option value="{{ $line->extension }}" {{ $selectedExt == $line->extension ? 'selected' : '' }}>
@@ -25,7 +25,6 @@
     </div>
 
     @if($selectedExt)
-        {{-- Stats --}}
         @php
             $newCount = collect($messages)->where('folder', 'INBOX')->count();
             $oldCount = collect($messages)->where('folder', 'Old')->count();
@@ -35,19 +34,19 @@
             <div class="col-md-3">
                 <div class="stat-card text-center" style="padding:1rem;">
                     <div style="font-size:1.5rem; font-weight:800;">{{ count($messages) }}</div>
-                    <div style="font-size:0.75rem; color:var(--text-secondary);">Messages</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.messages') }}</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card text-center" style="padding:1rem;">
                     <div style="font-size:1.5rem; font-weight:800; color:var(--accent);">{{ $newCount }}</div>
-                    <div style="font-size:0.75rem; color:var(--text-secondary);">Nouveaux</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.new_messages') }}</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card text-center" style="padding:1rem;">
                     <div style="font-size:1.5rem; font-weight:800;">{{ $oldCount }}</div>
-                    <div style="font-size:0.75rem; color:var(--text-secondary);">Lus</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.read_messages') }}</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -59,7 +58,7 @@
                             {{ $totalDuration }}s
                         @endif
                     </div>
-                    <div style="font-size:0.75rem; color:var(--text-secondary);">Duree totale</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.total_duration') }}</div>
                 </div>
             </div>
         </div>
@@ -67,7 +66,7 @@
         @if(empty($messages))
             <div class="stat-card text-center" style="padding:3rem;">
                 <i class="bi bi-voicemail" style="font-size:3rem; color:var(--text-secondary); opacity:.3;"></i>
-                <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_voicemail_msg') }} pour le poste {{ $selectedExt }}.</p>
+                <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_voicemail_msg') }} {{ $selectedExt }}.</p>
             </div>
         @else
             <div class="data-table">
@@ -79,7 +78,7 @@
                             <th>{{ __("ui.date") }}</th>
                             <th>{{ __("ui.duration") }}</th>
                             <th>{{ __("ui.status") }}</th>
-                            <th style="width:200px;">Ecouter</th>
+                            <th style="width:200px;">{{ __('ui.listen') }}</th>
                             <th style="width:60px;">{{ __("ui.actions") }}</th>
                         </tr>
                     </thead>
@@ -88,9 +87,9 @@
                             <tr>
                                 <td>
                                     @if($msg['folder'] === 'INBOX')
-                                        <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;" title="Nouveau"></span>
+                                        <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;" title="{{ __('ui.new_vm') }}"></span>
                                     @else
-                                        <span style="width:8px;height:8px;border-radius:50%;background:var(--text-secondary);opacity:.3;display:inline-block;" title="Lu"></span>
+                                        <span style="width:8px;height:8px;border-radius:50%;background:var(--text-secondary);opacity:.3;display:inline-block;" title="{{ __('ui.read_vm') }}"></span>
                                     @endif
                                 </td>
                                 <td>
@@ -120,19 +119,19 @@
                                 </td>
                                 <td>
                                     @if($msg['has_audio'])
-                                        <button class="btn-icon me-1" title="Ecouter"
+                                        <button class="btn-icon me-1" title="{{ __('ui.listen') }}"
                                                 onclick="playVm('{{ $selectedExt }}', '{{ $msg['folder'] }}', '{{ $msg['id'] }}', '{{ addslashes($msg['callerid']) }}')">
                                             <i class="bi bi-play-circle"></i>
                                         </button>
                                     @else
-                                        <span style="color:var(--text-secondary); font-size:0.75rem;">Pas d'audio</span>
+                                        <span style="color:var(--text-secondary); font-size:0.75rem;">{{ __('ui.no_audio') }}</span>
                                     @endif
                                 </td>
                                 <td>
                                     <form action="{{ route('voicemail.destroy', [$selectedExt, $msg['folder'], $msg['id']]) }}" method="POST"
-                                          onsubmit="return confirm('Supprimer ce message ?')" class="d-inline">
+                                          onsubmit="return confirm('{{ __('ui.confirm_delete_vm') }}')" class="d-inline">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn-icon danger" title="Supprimer">
+                                        <button type="submit" class="btn-icon danger" title="{{ __('ui.delete') }}">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </form>

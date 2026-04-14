@@ -1,23 +1,23 @@
 @extends('layouts.app')
 
-@section('title', __('ui.scenarios')\')
-@section('page-title', __('ui.scenarios')\')
+@section('title', __('ui.scenarios'))
+@section('page-title', __('ui.scenarios'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">Scenarios d'appels</h5>
-            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Gerez vos flux d'appels entrants visuellement</p>
+            <h5 style="font-weight:700; margin:0;">{{ __('ui.scenarios') }}</h5>
+            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">{{ __('ui.scenarios') }}</p>
         </div>
         <a href="{{ route('callflows.create') }}" class="btn btn-accent">
-            <i class="bi bi-plus-lg me-1"></i> Nouveau scenario
+            <i class="bi bi-plus-lg me-1"></i> {{ __('ui.new') }} {{ __('ui.scenarios') }}
         </a>
     </div>
 
     @if($flows->isEmpty())
         <div class="stat-card text-center" style="padding:3rem;">
             <i class="bi bi-diagram-2" style="font-size:3rem; color:var(--text-secondary); opacity:.3;"></i>
-            <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_scenario') }}.</p>
+            <p style="color:var(--text-secondary); margin-top:1rem;">{{ __('ui.no_scenario') }}</p>
             <a href="{{ route('callflows.create') }}" class="btn btn-accent mt-2">
                 <i class="bi bi-plus-lg me-1"></i> {{ __('ui.create') }} {{ __('ui.scenarios') }}
             </a>
@@ -27,12 +27,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>{{ __("ui.name") }}</th>
-                        <th>{{ __("ui.th_trunk") }}</th>
-                        <th>{{ __("ui.th_context") }}</th>
-                        <th>Etapes</th>
-                        <th>{{ __("ui.status") }}</th>
-                        <th>{{ __("ui.actions") }}</th>
+                        <th>{{ __('ui.name') }}</th>
+                        <th>{{ __('ui.th_trunk') }}</th>
+                        <th>{{ __('ui.th_context') }}</th>
+                        <th>{{ __('ui.steps') }}</th>
+                        <th>{{ __('ui.status') }}</th>
+                        <th>{{ __('ui.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,7 +45,7 @@
                                 @endif
                                 @if(!empty($flow->did_filter))
                                     <div class="d-flex gap-1 mt-1 flex-wrap">
-                                        <i class="bi bi-telephone-inbound" style="color:#29b6f6;font-size:0.6rem;" title="Numero appele"></i>
+                                        <i class="bi bi-telephone-inbound" style="color:#29b6f6;font-size:0.6rem;"></i>
                                         @foreach($flow->did_filter as $did)
                                             <span style="font-size:0.6rem;background:#29b6f615;color:#29b6f6;border-radius:3px;padding:0 4px;font-family:'JetBrains Mono',monospace;">{{ $did }}</span>
                                         @endforeach
@@ -53,7 +53,7 @@
                                 @endif
                                 @if(!empty($flow->caller_id_filter))
                                     <div class="d-flex gap-1 mt-1 flex-wrap">
-                                        <i class="bi bi-funnel" style="color:#bc6ff1;font-size:0.6rem;" title="Caller ID appelant"></i>
+                                        <i class="bi bi-funnel" style="color:#bc6ff1;font-size:0.6rem;"></i>
                                         @foreach($flow->caller_id_filter as $cid)
                                             <span style="font-size:0.6rem;background:#bc6ff115;color:#bc6ff1;border-radius:3px;padding:0 4px;font-family:'JetBrains Mono',monospace;">{{ $cid }}</span>
                                         @endforeach
@@ -80,6 +80,9 @@
                                             'hangup' => 'bi-telephone-x',
                                             'announcement' => 'bi-megaphone',
                                             'goto' => 'bi-arrow-right-circle',
+                                            'ai_agent' => 'bi-robot',
+                                            'ivr' => 'bi-grid-3x3-gap',
+                                            'time_condition' => 'bi-clock-history',
                                         ];
                                         $icon = $icons[$step['type'] ?? ''] ?? 'bi-circle';
                                     @endphp
@@ -94,25 +97,25 @@
                                     @csrf
                                     <button type="submit" class="btn-icon" style="border:none; background:none;">
                                         <span class="status-dot {{ $flow->enabled ? 'online' : 'offline' }}"></span>
-                                        <span style="font-size:0.75rem;">{{ $flow->enabled ? 'Actif' : 'Inactif' }}</span>
+                                        <span style="font-size:0.75rem;">{{ $flow->enabled ? __('ui.active') : __('ui.inactive') }}</span>
                                     </button>
                                 </form>
                                 @if($flow->record_calls)
-                                    <i class="bi bi-record-circle ms-1" style="color:#ef4444; font-size:0.75rem;" title="Enregistrement actif"></i>
+                                    <i class="bi bi-record-circle ms-1" style="color:#ef4444; font-size:0.75rem;" title="{{ __('ui.record_calls') }}"></i>
                                 @endif
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
-                                    <a href="{{ route('callflows.dialplan', $flow) }}" class="btn-icon" title="Voir dialplan">
+                                    <a href="{{ route('callflows.dialplan', $flow) }}" class="btn-icon" title="Dialplan">
                                         <i class="bi bi-code-slash"></i>
                                     </a>
-                                    <a href="{{ route('callflows.edit', $flow) }}" class="btn-icon" title="Modifier">
+                                    <a href="{{ route('callflows.edit', $flow) }}" class="btn-icon" title="{{ __('ui.edit') }}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form action="{{ route('callflows.destroy', $flow) }}" method="POST"
-                                          onsubmit="return confirm('Supprimer ce scenario ?')">
+                                          onsubmit="return confirm('{{ __('ui.confirm_delete') }}')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn-icon danger" title="Supprimer">
+                                        <button type="submit" class="btn-icon danger" title="{{ __('ui.delete') }}">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>

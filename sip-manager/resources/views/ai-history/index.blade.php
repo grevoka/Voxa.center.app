@@ -43,12 +43,12 @@
     <form method="GET" class="d-flex gap-2 mb-3 flex-wrap align-items-end">
         <div>
             <label style="font-size:0.68rem;color:var(--text-secondary);">{{ __('ui.search') }}</label>
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="Numero ou mot-cle..." value="{{ request('search') }}" style="min-width:180px;">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="{{ __('ui.number_keyword') }}" value="{{ request('search') }}" style="min-width:180px;">
         </div>
         <div>
             <label style="font-size:0.68rem;color:var(--text-secondary);">{{ __('ui.ai_model') }}</label>
             <select name="model" class="form-control form-control-sm">
-                <option value="">Tous</option>
+                <option value="">{{ __('ui.all_models') }}</option>
                 <option value="gpt-4o-realtime" {{ request('model') == 'gpt-4o-realtime' ? 'selected' : '' }}>GPT-4o</option>
                 <option value="mini" {{ request('model') == 'mini' ? 'selected' : '' }}>GPT-4o Mini</option>
             </select>
@@ -71,8 +71,8 @@
                     <th>{{ __("ui.duration") }}</th>
                     <th>{{ __('ui.ai_turns') }}</th>
                     <th>{{ __('ui.ai_cost') }}</th>
-                    <th>Fin</th>
-                    <th style="width:60px;">{{ __('ui.edit') }}</th>
+                    <th>{{ __('ui.end_reason') }}</th>
+                    <th style="width:60px;"></th>
                 </tr>
             </thead>
             <tbody>
@@ -93,13 +93,21 @@
                     <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:#d29922;font-weight:700;">${{ number_format($c->cost_estimated, 3) }}</td>
                     <td>
                         @php
-                            $reasons = ['normal'=>'Normal','caller_hangup'=>'Raccroche','ai_goodbye'=>'Au revoir','timeout'=>'Timeout','max_turns'=>'Max tours','api_error'=>'Erreur','session_error'=>'Erreur'];
+                            $reasons = [
+                                'normal' => __('ui.reason_normal'),
+                                'caller_hangup' => __('ui.reason_hangup'),
+                                'ai_goodbye' => __('ui.reason_goodbye'),
+                                'timeout' => __('ui.reason_timeout'),
+                                'max_turns' => __('ui.reason_max_turns'),
+                                'api_error' => __('ui.reason_error'),
+                                'session_error' => __('ui.reason_error'),
+                            ];
                             $colors = ['normal'=>'#3fb950','caller_hangup'=>'#58a6ff','ai_goodbye'=>'#3fb950','timeout'=>'#d29922','max_turns'=>'#d29922','api_error'=>'#f85149','session_error'=>'#f85149'];
                         @endphp
                         <span style="font-size:0.65rem;color:{{ $colors[$c->hangup_reason] ?? 'var(--text-secondary)' }};">{{ $reasons[$c->hangup_reason] ?? $c->hangup_reason }}</span>
                     </td>
                     <td>
-                        <button class="btn-icon" title="Voir la conversation" style="width:28px;height:28px;font-size:0.75rem;"
+                        <button class="btn-icon" title="{{ __('ui.view_conversation') }}" style="width:28px;height:28px;font-size:0.75rem;"
                             onclick="showTranscript({{ $c->id }})">
                             <i class="bi bi-chat-text"></i>
                         </button>
@@ -122,7 +130,7 @@
         <div style="width:550px;max-width:95vw;max-height:85vh;background:#1c1f26;border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;">
             <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:between;">
                 <div style="flex:1;">
-                    <div style="font-weight:700;font-size:0.9rem;" id="trHead">Conversation</div>
+                    <div style="font-weight:700;font-size:0.9rem;" id="trHead">{{ __('ui.conversation') }}</div>
                     <div style="font-size:0.72rem;color:var(--text-secondary);" id="trMeta"></div>
                 </div>
                 <button onclick="document.getElementById('transcriptModal').style.display='none'" style="background:none;border:none;color:var(--text-secondary);font-size:1.2rem;cursor:pointer;"><i class="bi bi-x-lg"></i></button>
@@ -133,7 +141,7 @@
 
     <script>
     function showTranscript(id) {
-        document.getElementById('trBody').innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:2rem;"><i class="bi bi-hourglass-split"></i> Chargement...</div>';
+        document.getElementById('trBody').innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:2rem;"><i class="bi bi-hourglass-split"></i> {{ __("ui.loading") }}</div>';
         document.getElementById('transcriptModal').style.display = 'flex';
 
         fetch('/ai-history/' + id)
@@ -145,7 +153,7 @@
                     ' · ' + data.voice +
                     ' · ' + Math.floor(data.duration/60) + 'min' + (data.duration%60) + 's' +
                     ' · <span style="color:#d29922;">$' + parseFloat(data.cost).toFixed(3) + '</span>' +
-                    ' · ' + data.turns + ' echanges';
+                    ' · ' + data.turns + ' {{ __("ui.exchanges") }}';
 
                 let html = '';
                 (data.transcript || []).forEach(t => {
@@ -162,13 +170,13 @@
                 });
 
                 if (!data.transcript || data.transcript.length === 0) {
-                    html = '<div style="text-align:center;color:var(--text-secondary);padding:2rem;">Pas de transcription disponible</div>';
+                    html = '<div style="text-align:center;color:var(--text-secondary);padding:2rem;">{{ __("ui.no_transcript") }}</div>';
                 }
 
                 document.getElementById('trBody').innerHTML = html;
             })
             .catch(err => {
-                document.getElementById('trBody').innerHTML = '<div style="color:#f85149;padding:1rem;">Erreur: ' + err.message + '</div>';
+                document.getElementById('trBody').innerHTML = '<div style="color:#f85149;padding:1rem;">{{ __("ui.error_label") }}: ' + err.message + '</div>';
             });
     }
     </script>

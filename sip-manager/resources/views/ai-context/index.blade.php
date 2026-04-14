@@ -20,31 +20,28 @@
     @endif
 
     <div class="row g-4">
-        {{-- Dossiers + Fichiers --}}
         <div class="col-lg-7">
-            {{-- Dossiers --}}
+            {{-- Folders --}}
             <div class="data-table mb-3">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
                     <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
-                        <i class="bi bi-folder-fill me-1" style="color:#d29922;"></i> Dossiers RAG
+                        <i class="bi bi-folder-fill me-1" style="color:#d29922;"></i> {{ __('ui.rag_folders') }}
                     </h6>
                     <button class="btn btn-sm" style="background:#d2992220;color:#d29922;border:1px solid #d2992240;font-size:0.72rem;font-weight:600;"
                         onclick="document.getElementById('newFolderForm').style.display=document.getElementById('newFolderForm').style.display==='none'?'block':'none'">
-                        <i class="bi bi-folder-plus me-1"></i>Nouveau
+                        <i class="bi bi-folder-plus me-1"></i>{{ __('ui.new_folder') }}
                     </button>
                 </div>
 
-                {{-- New folder form --}}
                 <form id="newFolderForm" action="{{ route('ai-context.folders.store') }}" method="POST" class="px-3 py-2" style="display:none;border-bottom:1px solid var(--border);background:rgba(210,153,34,0.03);">
                     @csrf
                     <div class="d-flex gap-2">
-                        <input type="text" name="folder_name" class="form-control form-control-sm" placeholder="nom-du-dossier" required
+                        <input type="text" name="folder_name" class="form-control form-control-sm" placeholder="{{ __('ui.folder_name_placeholder') }}" required
                             style="font-family:'JetBrains Mono',monospace;" pattern="[a-zA-Z0-9_-]+">
                         <button type="submit" class="btn btn-sm" style="background:#d29922;color:#fff;border:none;white-space:nowrap;">{{ __("ui.create") }}</button>
                     </div>
                 </form>
 
-                {{-- General (root) --}}
                 <a href="{{ route('ai-context.index') }}" class="d-flex align-items-center gap-2 px-3 py-2 {{ $currentFolder === '' ? 'active-folder' : '' }}"
                    style="text-decoration:none;color:inherit;border-bottom:1px solid var(--border);{{ $currentFolder === '' ? 'background:var(--accent-dim);' : '' }}">
                     <i class="bi bi-folder2-open" style="color:var(--accent);"></i>
@@ -57,11 +54,11 @@
                     <a href="{{ route('ai-context.index', ['folder' => $f['name']]) }}" class="d-flex align-items-center gap-2" style="text-decoration:none;color:inherit;flex:1;">
                         <i class="bi bi-folder-fill" style="color:#d29922;"></i>
                         <span style="font-weight:600;font-size:0.82rem;">{{ $f['name'] }}</span>
-                        <span style="font-size:0.62rem;color:var(--text-secondary);">{{ $f['files'] }} fichiers · {{ number_format($f['size']/1024, 1) }} KB</span>
+                        <span style="font-size:0.62rem;color:var(--text-secondary);">{{ $f['files'] }} {{ __('ui.files_label') }} · {{ number_format($f['size']/1024, 1) }} KB</span>
                     </a>
-                    <form action="{{ route('ai-context.folders.destroy', $f['name']) }}" method="POST" onsubmit="return confirm('Supprimer le dossier {{ $f['name'] }} et tout son contenu ?')">
+                    <form action="{{ route('ai-context.folders.destroy', $f['name']) }}" method="POST" onsubmit="return confirm('{{ __('ui.confirm_delete_folder', ['name' => $f['name']]) }}')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="btn-icon" title="Supprimer" style="width:24px;height:24px;font-size:0.65rem;color:#f85149;">
+                        <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:24px;height:24px;font-size:0.65rem;color:#f85149;">
                             <i class="bi bi-trash3"></i>
                         </button>
                     </form>
@@ -69,13 +66,13 @@
                 @endforeach
             </div>
 
-            {{-- Fichiers du dossier courant --}}
+            {{-- Files --}}
             <div class="data-table">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
                     <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
                         <i class="bi bi-file-earmark-text me-1" style="color:var(--accent);"></i>
-                        {{ $currentFolder ? $currentFolder : 'General' }}
-                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">{{ count($files) }} fichiers · {{ number_format($totalSize/1024, 1) }} KB</span>
+                        {{ $currentFolder ?: __('ui.ai_general') }}
+                        <span style="font-size:0.65rem;color:var(--text-secondary);font-weight:400;margin-left:0.3rem;">{{ count($files) }} {{ __('ui.files_label') }} · {{ number_format($totalSize/1024, 1) }} KB</span>
                     </h6>
                 </div>
 
@@ -86,7 +83,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <i class="bi {{ str_ends_with($f['name'], '.md') ? 'bi-markdown' : 'bi-file-text' }}" style="color:var(--accent);"></i>
                                 <span style="font-weight:700;font-size:0.82rem;">{{ $f['name'] }}</span>
-                                <span style="font-size:0.62rem;color:var(--text-secondary);">{{ number_format($f['size']/1024, 1) }} KB · {{ $f['lines'] }} lignes</span>
+                                <span style="font-size:0.62rem;color:var(--text-secondary);">{{ number_format($f['size']/1024, 1) }} KB · {{ $f['lines'] }} {{ __('ui.lines_label') }}</span>
                             </div>
                             <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:2px;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                 {{ $f['preview'] }}
@@ -94,13 +91,13 @@
                         </div>
                         <div class="d-flex gap-1 ms-2 flex-shrink-0">
                             @php $editPath = $currentFolder ? "{$currentFolder}/{$f['name']}" : $f['name']; @endphp
-                            <button class="btn-icon" title="Editer" style="width:26px;height:26px;font-size:0.7rem;"
+                            <button class="btn-icon" title="{{ __('ui.edit') }}" style="width:26px;height:26px;font-size:0.7rem;"
                                 onclick="editFile('{{ $editPath }}')">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <form action="{{ route('ai-context.destroy', $editPath) }}" method="POST" onsubmit="return confirm('Supprimer ?')">
+                            <form action="{{ route('ai-context.destroy', $editPath) }}" method="POST" onsubmit="return confirm('{{ __('ui.confirm_delete_file') }}')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn-icon" title="Supprimer" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
+                                <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
@@ -119,7 +116,7 @@
         <div class="col-lg-5">
             <div class="stat-card mb-3">
                 <h6 style="font-weight:700;font-size:0.85rem;margin-bottom:0.75rem;">
-                    <i class="bi bi-cloud-upload me-1" style="color:#58a6ff;"></i> Uploader
+                    <i class="bi bi-cloud-upload me-1" style="color:#58a6ff;"></i> {{ __('ui.upload_label') }}
                 </h6>
                 <form action="{{ route('ai-context.upload') }}" method="POST" enctype="multipart/form-data">
                     @csrf
@@ -143,7 +140,7 @@
 
             <div class="stat-card mb-3">
                 <h6 style="font-weight:700;font-size:0.85rem;margin-bottom:0.75rem;">
-                    <i class="bi bi-plus-circle me-1" style="color:#3fb950;"></i> Creer un document
+                    <i class="bi bi-plus-circle me-1" style="color:#3fb950;"></i> {{ __('ui.create_document') }}
                 </h6>
                 <form action="{{ route('ai-context.store') }}" method="POST">
                     @csrf
@@ -167,20 +164,20 @@
                             style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;"></textarea>
                     </div>
                     <button type="submit" class="btn btn-sm w-100" style="background:#3fb950;color:#fff;border:none;font-weight:600;">
-                        <i class="bi bi-check-lg me-1"></i>Creer
+                        <i class="bi bi-check-lg me-1"></i>{{ __('ui.create_btn') }}
                     </button>
                 </form>
             </div>
 
             <div class="stat-card" style="padding:0.75rem;">
                 <h6 style="font-size:0.82rem;font-weight:700;margin-bottom:0.5rem;">
-                    <i class="bi bi-lightbulb me-1" style="color:#d29922;"></i>Comment ca marche
+                    <i class="bi bi-lightbulb me-1" style="color:#d29922;"></i>{{ __('ui.how_it_works') }}
                 </h6>
                 <ul style="font-size:0.72rem;color:var(--text-secondary);margin:0;padding-left:1rem;line-height:1.6;">
-                    <li><b>{{ __('ui.ai_general') }}</b> : documents charges par tous les agents IA</li>
-                    <li><b>Dossiers</b> : contexte specifique a un bloc AI dans le scenario</li>
-                    <li>Dans le builder, chaque bloc "Agent IA" peut choisir son dossier RAG</li>
-                    <li>L'agent charge les docs du dossier + les docs generaux</li>
+                    <li><b>{{ __('ui.ai_general') }}</b> : {{ __('ui.hint_general') }}</li>
+                    <li><b>{{ __('ui.rag_folders') }}</b> : {{ __('ui.hint_folders') }}</li>
+                    <li>{{ __('ui.hint_builder') }}</li>
+                    <li>{{ __('ui.hint_agent') }}</li>
                 </ul>
             </div>
         </div>
@@ -190,7 +187,7 @@
     <div id="editModal" style="display:none;position:fixed;inset:0;z-index:1050;background:rgba(0,0,0,.6);align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
         <div style="width:600px;max-width:95vw;max-height:85vh;background:#1c1f26;border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;">
             <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-                <div style="font-weight:700;" id="editTitle">Editer</div>
+                <div style="font-weight:700;" id="editTitle">{{ __('ui.edit_modal_title') }}</div>
                 <button onclick="document.getElementById('editModal').style.display='none'" style="background:none;border:none;color:var(--text-secondary);font-size:1.2rem;cursor:pointer;"><i class="bi bi-x-lg"></i></button>
             </div>
             <form id="editForm" method="POST" style="flex:1;display:flex;flex-direction:column;">
@@ -199,8 +196,8 @@
                     <textarea name="content" id="editContent" style="width:100%;height:100%;min-height:300px;background:#262a33;color:#e2e4eb;border:1px solid #383c47;border-radius:8px;padding:0.75rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;resize:none;"></textarea>
                 </div>
                 <div style="padding:0.75rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:0.5rem;justify-content:flex-end;">
-                    <button type="button" onclick="document.getElementById('editModal').style.display='none'" class="btn btn-sm" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">Annuler</button>
-                    <button type="submit" class="btn btn-accent btn-sm">Enregistrer</button>
+                    <button type="button" onclick="document.getElementById('editModal').style.display='none'" class="btn btn-sm" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">{{ __('ui.cancel') }}</button>
+                    <button type="submit" class="btn btn-accent btn-sm">{{ __('ui.save') }}</button>
                 </div>
             </form>
         </div>
@@ -208,15 +205,15 @@
 
     <script>
     function editFile(path) {
-        document.getElementById('editTitle').textContent = 'Editer — ' + path;
+        document.getElementById('editTitle').textContent = '{{ __("ui.edit_modal_title") }} — ' + path;
         document.getElementById('editForm').action = '/ai-context/' + encodeURIComponent(path);
-        document.getElementById('editContent').value = 'Chargement...';
+        document.getElementById('editContent').value = '{{ __("ui.loading") }}';
         document.getElementById('editModal').style.display = 'flex';
 
         fetch('/ai-context/' + encodeURIComponent(path) + '/edit')
             .then(r => r.json())
             .then(data => { document.getElementById('editContent').value = data.content; })
-            .catch(err => { document.getElementById('editContent').value = 'Erreur: ' + err.message; });
+            .catch(err => { document.getElementById('editContent').value = '{{ __("ui.error_label") }}: ' + err.message; });
     }
     </script>
 @endsection

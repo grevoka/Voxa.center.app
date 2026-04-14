@@ -31,6 +31,12 @@
                     {{ session('error') }}
                 </div>
             @endif
+            @if(session('warning'))
+                <div class="alert-flash" role="alert" style="background:#f0883e15;border:1px solid #f0883e40;">
+                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #f0883e;"></i>
+                    {{ session('warning') }}
+                </div>
+            @endif
 
             @yield('content')
         </div>

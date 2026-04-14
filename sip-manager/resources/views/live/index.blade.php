@@ -10,7 +10,7 @@
                 <span class="live-dot"></span> {{ __('ui.live') }}
             </h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">
-                {{ __('ui.active_calls') }} — rafraichi toutes les 3s
+                {{ __('ui.live_desc') }}
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -30,25 +30,25 @@
         <div class="col-6 col-lg-3">
             <div class="stat-card text-center" style="padding:1rem;">
                 <div id="statCalls" style="font-size:1.8rem; font-weight:800;">—</div>
-                <div style="font-size:0.75rem; color:var(--text-secondary);">Appels actifs</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.active_calls_stat') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card text-center" style="padding:1rem;">
                 <div id="statInbound" style="font-size:1.8rem; font-weight:800; color:#29b6f6;">—</div>
-                <div style="font-size:0.75rem; color:var(--text-secondary);">Entrants</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.inbound_calls') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card text-center" style="padding:1rem;">
                 <div id="statOutbound" style="font-size:1.8rem; font-weight:800; color:#58a6ff;">—</div>
-                <div style="font-size:0.75rem; color:var(--text-secondary);">Sortants</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.outbound_calls') }}</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="stat-card text-center" style="padding:1rem;">
                 <div id="statOnline" style="font-size:1.8rem; font-weight:800; color:var(--accent);">—</div>
-                <div style="font-size:0.75rem; color:var(--text-secondary);">Postes en ligne</div>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">{{ __('ui.online_extensions') }}</div>
             </div>
         </div>
     </div>
@@ -57,12 +57,12 @@
     <div class="data-table mb-4" id="callsSection">
         <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);font-weight:700;font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
             <i class="bi bi-telephone-forward" style="color:var(--accent);"></i>
-            Appels en cours
+            {{ __('ui.calls_in_progress') }}
             <span id="callsBadge" class="nav-badge" style="font-size:0.7rem;">0</span>
         </div>
         <div id="callsBody" style="min-height:60px;">
             <div class="text-center py-3" style="color:var(--text-secondary); font-size:0.85rem;">
-                <i class="bi bi-arrow-clockwise spin"></i> Chargement...
+                <i class="bi bi-arrow-clockwise spin"></i> {{ __('ui.loading') }}
             </div>
         </div>
     </div>
@@ -71,11 +71,11 @@
     <div class="data-table" id="endpointsSection">
         <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);font-weight:700;font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
             <i class="bi bi-telephone-fill" style="color:var(--accent);"></i>
-            Postes SIP
+            {{ __('ui.sip_extensions') }}
         </div>
         <div id="endpointsBody">
             <div class="text-center py-3" style="color:var(--text-secondary); font-size:0.85rem;">
-                <i class="bi bi-arrow-clockwise spin"></i> Chargement...
+                <i class="bi bi-arrow-clockwise spin"></i> {{ __('ui.loading') }}
             </div>
         </div>
     </div>
@@ -84,11 +84,11 @@
     <div class="data-table mt-4" id="trunksSection">
         <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);font-weight:700;font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
             <i class="bi bi-diagram-3-fill" style="color:#58a6ff;"></i>
-            Trunks SIP
+            {{ __('ui.sip_trunks') }}
         </div>
         <div id="trunksBody">
             <div class="text-center py-3" style="color:var(--text-secondary); font-size:0.85rem;">
-                <i class="bi bi-arrow-clockwise spin"></i> Chargement...
+                <i class="bi bi-arrow-clockwise spin"></i> {{ __('ui.loading') }}
             </div>
         </div>
     </div>
@@ -201,7 +201,7 @@
                     document.getElementById('lastUpdate').textContent = data.timestamp;
                 })
                 .catch(() => {
-                    document.getElementById('lastUpdate').textContent = 'Erreur';
+                    document.getElementById('lastUpdate').textContent = '{{ __("ui.error_label") }}';
                 });
         }
 
@@ -235,8 +235,8 @@
                 const dirIcon = c.direction === 'inbound' ? 'bi-telephone-inbound-fill'
                     : c.direction === 'outbound' ? 'bi-telephone-outbound-fill'
                     : 'bi-telephone-fill';
-                const dirLabel = c.direction === 'inbound' ? 'Entrant'
-                    : c.direction === 'outbound' ? 'Sortant' : 'Interne';
+                const dirLabel = c.direction === 'inbound' ? '{{ __("ui.dir_inbound") }}'
+                    : c.direction === 'outbound' ? '{{ __("ui.dir_outbound") }}' : '{{ __("ui.dir_internal") }}';
                 const stateClass = (c.state || '').toLowerCase().replace(/\s/g, '');
 
                 // Display number: caller ID for inbound, destination for outbound
@@ -251,7 +251,7 @@
                     <div class="call-info">
                         <div class="call-ext">
                             ${mainNumber}
-                            ${c.caller_id && c.direction === 'inbound' ? '<span class="call-caller-badge">Appelant</span>' : ''}
+                            ${c.caller_id && c.direction === 'inbound' ? '<span class="call-caller-badge">{{ __("ui.caller_badge") }}</span>' : ''}
                         </div>
                         <div class="call-detail">
                             ${label} — ${c.context}${connectedTo}

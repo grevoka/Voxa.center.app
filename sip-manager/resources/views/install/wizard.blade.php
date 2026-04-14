@@ -267,7 +267,7 @@
                         @endphp
 
                         @if($dbReady)
-                            {{-- Docker mode: DB already configured --}}
+                            {{-- DB already configured --}}
                             <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;">
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <i class="bi bi-check-circle-fill" style="color:var(--accent);font-size:1.1rem;"></i>
@@ -275,7 +275,7 @@
                                 </div>
                                 <div style="font-size:0.78rem;color:var(--text-secondary);">
                                     Les deux bases de donnees (Voxa Center et Asterisk Realtime) sont connectees et operationnelles.
-                                    La configuration a ete generee automatiquement par le container Docker.
+                                    La configuration des bases de donnees est operationnelle.
                                 </div>
                             </div>
 

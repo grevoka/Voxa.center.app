@@ -14,10 +14,10 @@
     {{-- Tabs --}}
     <div class="d-flex gap-2 mb-3" style="border-bottom:1px solid var(--border);padding-bottom:0.5rem;">
         <button class="settings-tab active" data-tab="sip" onclick="settingsTab('sip')">
-            <i class="bi bi-telephone-fill me-1"></i>SIP & Securite
+            <i class="bi bi-telephone-fill me-1"></i>{{ __('ui.sip_security_tab') }}
         </button>
         <button class="settings-tab" data-tab="smtp" onclick="settingsTab('smtp')">
-            <i class="bi bi-envelope-fill me-1"></i>Email / SMTP
+            <i class="bi bi-envelope-fill me-1"></i>{{ __('ui.email_smtp_tab') }}
         </button>
         <button class="settings-tab" data-tab="ai" onclick="settingsTab('ai')">
             <i class="bi bi-robot me-1"></i>AI & TTS
@@ -35,7 +35,7 @@
                     <div class="stat-card">
                         <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">{{ __("ui.sip_server") }}</h6>
                         <div class="mb-3">
-                            <label class="form-label">Server address</label>
+                            <label class="form-label">{{ __('ui.server_address') }}</label>
                             <input type="text" name="sip_server" class="form-control"
                                    value="{{ old('sip_server', \App\Models\SipSetting::get('sip_server', 'sip.local')) }}"
                                    placeholder="sip.example.com">
@@ -67,24 +67,24 @@
                     <div class="stat-card">
                         <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">{{ __("ui.security") }}</h6>
                         <div class="mb-3">
-                            <label class="form-label">Max auth attempts</label>
+                            <label class="form-label">{{ __('ui.max_auth_attempts') }}</label>
                             <input type="number" name="max_auth_attempts" class="form-control"
                                    value="{{ old('max_auth_attempts', \App\Models\SipSetting::get('max_auth_attempts', 3)) }}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Ban duration (sec)</label>
+                            <label class="form-label">{{ __('ui.ban_duration_sec') }}</label>
                             <input type="number" name="ban_duration" class="form-control"
                                    value="{{ old('ban_duration', \App\Models\SipSetting::get('ban_duration', 300)) }}">
                         </div>
                         <div class="form-check form-switch mt-3">
                             <input class="form-check-input" type="checkbox" name="srtp_enabled" value="1"
                                    id="srtp" {{ old('srtp_enabled', \App\Models\SipSetting::get('srtp_enabled', true)) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="srtp" style="font-size:0.85rem;">SRTP (media encryption)</label>
+                            <label class="form-check-label" for="srtp" style="font-size:0.85rem;">{{ __('ui.media_encryption') }}</label>
                         </div>
                         <div class="form-check form-switch mt-2">
                             <input class="form-check-input" type="checkbox" name="tls_required" value="1"
                                    id="tlsRequired" {{ old('tls_required', \App\Models\SipSetting::get('tls_required', true)) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="tlsRequired" style="font-size:0.85rem;">Require TLS signaling</label>
+                            <label class="form-check-label" for="tlsRequired" style="font-size:0.85rem;">{{ __('ui.require_tls') }}</label>
                         </div>
                     </div>
                 </div>
@@ -120,7 +120,7 @@
                                 <label class="form-label">Encryption</label>
                                 <select name="smtp_encryption" class="form-select">
                                     @php $enc = old('smtp_encryption', \App\Models\SipSetting::get('smtp_encryption', 'tls')); @endphp
-                                    <option value="none" {{ $enc === 'none' ? 'selected' : '' }}>Aucun</option>
+                                    <option value="none" {{ $enc === 'none' ? 'selected' : '' }}>{{ __('ui.encryption_none') }}</option>
                                     <option value="tls" {{ $enc === 'tls' ? 'selected' : '' }}>TLS</option>
                                     <option value="ssl" {{ $enc === 'ssl' ? 'selected' : '' }}>SSL</option>
                                 </select>
@@ -140,28 +140,28 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="stat-card">
-                        <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">Sender >Expediteur & Notifications< Notifications</h6>
+                        <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">{{ __('ui.sender_notifications') }}</h6>
                         <div class="mb-3">
-                            <label class="form-label">Sender address</label>
+                            <label class="form-label">{{ __('ui.sender_address') }}</label>
                             <input type="email" name="smtp_from_address" class="form-control"
                                    value="{{ old('smtp_from_address', \App\Models\SipSetting::get('smtp_from_address', 'noreply@voxa.center')) }}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Sender name</label>
+                            <label class="form-label">{{ __('ui.sender_name') }}</label>
                             <input type="text" name="smtp_from_name" class="form-control"
                                    value="{{ old('smtp_from_name', \App\Models\SipSetting::get('smtp_from_name', 'Voxa Center')) }}">
                         </div>
                         <div class="form-check form-switch mt-3">
                             <input class="form-check-input" type="checkbox" name="voicemail_notify_enabled" value="1"
                                    id="vmNotify" {{ old('voicemail_notify_enabled', \App\Models\SipSetting::get('voicemail_notify_enabled', false)) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="vmNotify" style="font-size:0.85rem;">Email notification (voicemail)</label>
+                            <label class="form-check-label" for="vmNotify" style="font-size:0.85rem;">{{ __('ui.email_notify_vm') }}</label>
                         </div>
                         <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);">
-                            <h6 style="font-weight:600;font-size:0.8rem;margin-bottom:0.75rem;">Test configuration</h6>
+                            <h6 style="font-weight:600;font-size:0.8rem;margin-bottom:0.75rem;">{{ __('ui.test_config') }}</h6>
                             <div class="d-flex gap-2">
                                 <input type="email" id="testEmail" class="form-control form-control-sm" placeholder="test@example.com" style="max-width:250px;">
                                 <button type="button" class="btn btn-outline-accent btn-sm" onclick="testSmtp()">
-                                    <i class="bi bi-send me-1"></i>Tester
+                                    <i class="bi bi-send me-1"></i>{{ __('ui.test_btn') }}
                                 </button>
                             </div>
                         </div>
@@ -211,9 +211,9 @@
                             @else
                                 <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.6rem;background:#f8514910;border:1px solid #f8514930;border-radius:6px;">
                                     <i class="bi bi-exclamation-triangle-fill" style="color:#f85149;"></i>
-                                    <span style="font-size:0.75rem;color:#f85149;">No key configuree</span>
+                                    <span style="font-size:0.75rem;color:#f85149;">{{ __('ui.no_key_configured') }}</span>
                                 </div>
-                                <small style="color:var(--text-secondary);font-size:0.65rem;">Ajoutez OPENAI_API_KEY=sk-... dans /var/www/html/.env</small>
+                                <small style="color:var(--text-secondary);font-size:0.65rem;">{{ __('ui.add_key_hint') }}</small>
                             @endif
                         </div>
                         <div class="mb-3">
@@ -225,10 +225,10 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" style="font-size:0.78rem;">Default voice</label>
+                            <label class="form-label" style="font-size:0.78rem;">{{ __('ui.default_voice') }}</label>
                             <select name="openai_voice" class="form-select form-select-sm">
                                 @php $curVoice = \App\Models\SipSetting::get('openai_voice', 'coral'); @endphp
-                                @foreach(['coral'=>'Coral (femme)','alloy'=>'Alloy (neutre)','ash'=>'Ash (homme)','ballad'=>'Ballad (doux)','echo'=>'Echo (homme)','sage'=>'Sage (calme)','shimmer'=>'Shimmer (femme)','verse'=>'Verse (expressif)'] as $v=>$l)
+                                @foreach(['coral'=>__('ui.voice_coral'),'alloy'=>__('ui.voice_alloy'),'ash'=>__('ui.voice_ash'),'ballad'=>__('ui.voice_ballad'),'echo'=>__('ui.voice_echo'),'sage'=>__('ui.voice_sage'),'shimmer'=>__('ui.voice_shimmer'),'verse'=>__('ui.voice_verse')] as $v=>$l)
                                     <option value="{{ $v }}" {{ $curVoice === $v ? 'selected' : '' }}>{{ $l }}</option>
                                 @endforeach
                             </select>
@@ -237,7 +237,7 @@
                             <label class="form-label" style="font-size:0.78rem;">Temperature</label>
                             <input type="number" name="openai_temperature" class="form-control form-control-sm"
                                    value="{{ \App\Models\SipSetting::get('openai_temperature', '0.8') }}" min="0" max="2" step="0.1">
-                            <small style="color:var(--text-secondary);font-size:0.65rem;">0=precis 1=creatif 2=aleatoire</small>
+                            <small style="color:var(--text-secondary);font-size:0.65rem;">{{ __('ui.temperature_hint') }}</small>
                         </div>
                         <div class="row g-2">
                             <div class="col-6">
@@ -252,7 +252,7 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <label class="form-label" style="font-size:0.78rem;">Max conversation turns</label>
+                            <label class="form-label" style="font-size:0.78rem;">{{ __('ui.max_conv_turns') }}</label>
                             <input type="number" name="openai_max_turns" class="form-control form-control-sm"
                                    value="{{ \App\Models\SipSetting::get('openai_max_turns', '30') }}" min="1" max="100">
                         </div>
@@ -264,7 +264,7 @@
                     {{-- Facturation live --}}
                     <div class="stat-card mb-3">
                         <h6 style="font-weight:700;font-size:0.9rem;margin-bottom:1rem;">
-                            <i class="bi bi-wallet2 me-1" style="color:#d29922;"></i> Facturation & Budget
+                            <i class="bi bi-wallet2 me-1" style="color:#d29922;"></i> {{ __('ui.billing_budget') }}
                         </h6>
                         @php
                             $budgetMax = \App\Models\SipSetting::get('openai_budget_max', '50');
@@ -302,7 +302,7 @@
                                 <div class="col-4">
                                     <div style="font-size:0.6rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.today") }}</div>
                                     <div style="font-size:1.1rem;font-weight:800;color:#3fb950;font-family:'JetBrains Mono',monospace;">${{ number_format($costToday, 2) }}</div>
-                                    <div style="font-size:0.6rem;color:#8b949e;">{{ $callsToday }} appels · {{ gmdate('H:i:s', $usageToday) }}</div>
+                                    <div style="font-size:0.6rem;color:#8b949e;">{{ $callsToday }} {{ __('ui.calls_label') }} · {{ gmdate('H:i:s', $usageToday) }}</div>
                                 </div>
                                 <div class="col-4">
                                     <div style="font-size:0.6rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;">{{ __("ui.week") }}</div>
@@ -317,7 +317,7 @@
                             </div>
                             <div style="margin-top:0.5rem;">
                                 <div class="d-flex justify-content-between" style="font-size:0.62rem;color:#8b949e;margin-bottom:2px;">
-                                    <span>Budget {{ ['day'=>'jour','week'=>'semaine','month'=>'mois'][$budgetPeriod] ?? '' }}</span>
+                                    <span>{{ __('ui.budget_label') }} {{ ['day'=>__('ui.budget_day'),'week'=>__('ui.budget_week'),'month'=>__('ui.budget_month')][$budgetPeriod] ?? '' }}</span>
                                     <span>${{ number_format($costPeriod, 2) }} / ${{ $budgetMax }}</span>
                                 </div>
                                 <div style="height:8px;background:#21262d;border-radius:4px;overflow:hidden;">
@@ -327,25 +327,25 @@
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label class="form-label" style="font-size:0.78rem;">Budget max ($)</label>
+                                <label class="form-label" style="font-size:0.78rem;">{{ __('ui.budget_max') }}</label>
                                 <input type="number" name="openai_budget_max" class="form-control form-control-sm" value="{{ $budgetMax }}" min="0" step="1">
                             </div>
                             <div class="col-6">
-                                <label class="form-label" style="font-size:0.78rem;">Period</label>
+                                <label class="form-label" style="font-size:0.78rem;">{{ __('ui.period') }}</label>
                                 <select name="openai_budget_period" class="form-select form-select-sm">
-                                    <option value="day" {{ $budgetPeriod === 'day' ? 'selected' : '' }}>Per day</option>
-                                    <option value="week" {{ $budgetPeriod === 'week' ? 'selected' : '' }}>Per week</option>
-                                    <option value="month" {{ $budgetPeriod === 'month' ? 'selected' : '' }}>Per month</option>
+                                    <option value="day" {{ $budgetPeriod === 'day' ? 'selected' : '' }}>{{ __('ui.per_day') }}</option>
+                                    <option value="week" {{ $budgetPeriod === 'week' ? 'selected' : '' }}>{{ __('ui.per_week') }}</option>
+                                    <option value="month" {{ $budgetPeriod === 'month' ? 'selected' : '' }}>{{ __('ui.per_month') }}</option>
                                 </select>
                             </div>
                         </div>
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label" style="font-size:0.78rem;">Max/call (sec)</label>
+                                <label class="form-label" style="font-size:0.78rem;">{{ __('ui.max_per_call') }}</label>
                                 <input type="number" name="openai_max_duration_call" class="form-control form-control-sm" value="{{ $maxDurationCall }}" min="30" max="3600" step="30">
                             </div>
                             <div class="col-6">
-                                <label class="form-label" style="font-size:0.78rem;">Max/day (sec)</label>
+                                <label class="form-label" style="font-size:0.78rem;">{{ __('ui.max_per_day') }}</label>
                                 <input type="number" name="openai_max_duration_day" class="form-control form-control-sm" value="{{ $maxDurationDay }}" min="60" max="86400" step="60">
                             </div>
                         </div>
@@ -357,14 +357,14 @@
                             <i class="bi bi-soundwave me-1" style="color:#58a6ff;"></i> Piper TTS (local)
                         </h6>
                         <div class="mb-3">
-                            <label class="form-label" style="font-size:0.78rem;">Default voice</label>
+                            <label class="form-label" style="font-size:0.78rem;">{{ __('ui.default_voice') }}</label>
                             <select name="piper_default_voice" class="form-select form-select-sm">
                                 @php $curPiper = \App\Models\SipSetting::get('piper_default_voice', 'siwis'); @endphp
-                                <option value="siwis" {{ $curPiper === 'siwis' ? 'selected' : '' }}>Femme (Siwis)</option>
-                                <option value="upmc" {{ $curPiper === 'upmc' ? 'selected' : '' }}>Homme (UPMC)</option>
-                                <option value="mls" {{ $curPiper === 'mls' ? 'selected' : '' }}>Femme 2 (MLS)</option>
+                                <option value="siwis" {{ $curPiper === 'siwis' ? 'selected' : '' }}>{{ __('ui.voice_female') }} (Siwis)</option>
+                                <option value="upmc" {{ $curPiper === 'upmc' ? 'selected' : '' }}>{{ __('ui.voice_male') }} (UPMC)</option>
+                                <option value="mls" {{ $curPiper === 'mls' ? 'selected' : '' }}>{{ __('ui.voice_female2') }} (MLS)</option>
                             </select>
-                            <small style="color:var(--text-secondary);font-size:0.65rem;">Free local voice synthesis pour IVR et annonces</small>
+                            <small style="color:var(--text-secondary);font-size:0.65rem;">{{ __('ui.free_local_tts') }}</small>
                         </div>
                         @php
                             $ttsFiles = glob('/var/lib/asterisk/sounds/tts/*');
@@ -372,7 +372,7 @@
                         @endphp
                         <div style="padding:0.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;">
                             <div class="d-flex justify-content-between">
-                                <span style="color:var(--text-secondary);">Cache files</span>
+                                <span style="color:var(--text-secondary);">{{ __('ui.cache_files') }}</span>
                                 <span style="font-weight:700;">{{ count($ttsFiles ?: []) }}</span>
                             </div>
                             <div class="d-flex justify-content-between">
@@ -410,7 +410,7 @@ function settingsTab(tab) {
 }
 function testSmtp() {
     const email = document.getElementById('testEmail').value;
-    if (!email) { alert('Entrez une adresse email'); return; }
+    if (!email) { alert('{{ __("ui.enter_email") }}'); return; }
     document.getElementById('testEmailHidden').value = email;
     document.getElementById('smtpTestForm').submit();
 }

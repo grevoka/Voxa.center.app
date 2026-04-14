@@ -105,13 +105,13 @@
                                 <div class="d-flex gap-1">
                                     <form action="{{ route('firewall.toggle', $rule) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="btn-icon" title="{{ $rule->enabled ? 'Desactiver' : 'Activer' }}" style="width:26px;height:26px;font-size:0.7rem;">
+                                        <button type="submit" class="btn-icon" title="{{ __('ui.toggle_status') }}" style="width:26px;height:26px;font-size:0.7rem;">
                                             <i class="bi bi-power"></i>
                                         </button>
                                     </form>
-                                    <form action="{{ route('firewall.destroy', $rule) }}" method="POST" onsubmit="return confirm('Supprimer {{ $rule->ip_range }} ?')">
+                                    <form action="{{ route('firewall.destroy', $rule) }}" method="POST" onsubmit="return confirm('{{ __('ui.confirm_delete_ip', ['ip' => $rule->ip_range]) }}')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn-icon" title="Supprimer" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
+                                        <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </form>
@@ -121,7 +121,7 @@
                         @empty
                         <tr>
                             <td colspan="3" class="text-center py-3" style="color:var(--text-secondary);font-size:0.82rem;">
-                                <i class="bi bi-info-circle me-1"></i>{{ __('ui.fw_no_rules') }} — tout le trafic SIP est autorise
+                                <i class="bi bi-info-circle me-1"></i>{{ __('ui.fw_no_rules') }} — {{ __('ui.fw_all_sip_allowed') }}
                             </td>
                         </tr>
                         @endforelse
@@ -177,9 +177,9 @@
                             </td>
                             <td style="font-size:0.82rem;color:var(--text-secondary);">{{ $rule->label ?: '—' }}</td>
                             <td>
-                                <form action="{{ route('firewall.destroy', $rule) }}" method="POST" onsubmit="return confirm('Debloquer {{ $rule->ip_range }} ?')">
+                                <form action="{{ route('firewall.destroy', $rule) }}" method="POST" onsubmit="return confirm('{{ __('ui.confirm_unblock', ['ip' => $rule->ip_range]) }}')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn-icon" title="Debloquer" style="width:26px;height:26px;font-size:0.7rem;">
+                                    <button type="submit" class="btn-icon" title="{{ __('ui.unblock') }}" style="width:26px;height:26px;font-size:0.7rem;">
                                         <i class="bi bi-unlock"></i>
                                     </button>
                                 </form>
@@ -214,7 +214,7 @@
                                 <form action="{{ route('firewall.unban') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="ip" value="{{ $ip }}">
-                                    <button type="submit" class="btn-icon" title="Debannir" style="width:26px;height:26px;font-size:0.7rem;">
+                                    <button type="submit" class="btn-icon" title="{{ __('ui.unban') }}" style="width:26px;height:26px;font-size:0.7rem;">
                                         <i class="bi bi-unlock"></i>
                                     </button>
                                 </form>
@@ -230,11 +230,11 @@
             <div class="stat-card mt-3" style="padding:1rem;">
                 <h6 style="font-size:0.82rem;font-weight:700;margin-bottom:0.5rem;"><i class="bi bi-lightbulb me-1" style="color:#d29922;"></i>{{ __('ui.fw_how') }}</h6>
                 <ul style="font-size:0.78rem;color:var(--text-secondary);margin:0;padding-left:1.2rem;">
-                    <li><b>Whitelist</b> : seules les IPs autorisees passent + blacklist appliquee</li>
-                    <li><b>Fail2Ban</b> : toutes les IPs autorisees, ban auto apres 5 echecs (10 min)</li>
-                    <li><b>{{ __('ui.disabled') }}</b> : aucune protection (non recommande)</li>
-                    <li>La blacklist est toujours appliquee sauf en mode desactive</li>
-                    <li>Ajoutez les ranges de votre fournisseur SIP (ex: OVH <code>91.121.128.0/23</code>)</li>
+                    <li><b>Whitelist</b> : {{ __('ui.fw_hint_whitelist') }}</li>
+                    <li><b>Fail2Ban</b> : {{ __('ui.fw_hint_fail2ban') }}</li>
+                    <li><b>{{ __('ui.disabled') }}</b> : {{ __('ui.fw_hint_disabled') }}</li>
+                    <li>{{ __('ui.fw_hint_blacklist') }}</li>
+                    <li>{{ __('ui.fw_hint_provider') }} <code>91.121.128.0/23</code>)</li>
                 </ul>
             </div>
         </div>

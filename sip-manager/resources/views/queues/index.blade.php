@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Files d\')
-@section('page-title', 'Files d\')
+@section('title', __('ui.call_queues'))
+@section('page-title', __('ui.call_queues'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 style="font-weight:700; margin:0;">{{ __("ui.queues") }}</h5>
-            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Gerez les files d'attente pour vos appels entrants</p>
+            <h5 style="font-weight:700; margin:0;">{{ __("ui.call_queues") }}</h5>
+            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">{{ __('ui.manage_queues') }}</p>
         </div>
         <a href="{{ route('queues.create') }}" class="btn btn-accent">
-            <i class="bi bi-plus-lg me-1"></i> Nouvelle file
+            <i class="bi bi-plus-lg me-1"></i> {{ __('ui.new_queue') }}
         </a>
     </div>
 
@@ -29,9 +29,9 @@
                     <tr>
                         <th>{{ __("ui.name") }}</th>
                         <th>{{ __("ui.strategy") }}</th>
-                        <th>Membres</th>
-                        <th>Timeout</th>
-                        <th>Musique</th>
+                        <th>{{ __("ui.members") }}</th>
+                        <th>{{ __("ui.timeout") }}</th>
+                        <th>{{ __("ui.music") }}</th>
                         <th>{{ __("ui.status") }}</th>
                         <th>{{ __("ui.actions") }}</th>
                     </tr>
@@ -69,17 +69,17 @@
                             </td>
                             <td>
                                 <span class="status-dot {{ $queue->enabled ? 'online' : 'offline' }}"></span>
-                                <span style="font-size:0.75rem;">{{ $queue->enabled ? 'Active' : 'Inactive' }}</span>
+                                <span style="font-size:0.75rem;">{{ $queue->enabled ? __('ui.active') : __('ui.inactive') }}</span>
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
-                                    <a href="{{ route('queues.edit', $queue) }}" class="btn-icon" title="Modifier">
+                                    <a href="{{ route('queues.edit', $queue) }}" class="btn-icon" title="{{ __('ui.edit') }}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form action="{{ route('queues.destroy', $queue) }}" method="POST"
-                                          onsubmit="return confirm('Supprimer cette file d\'attente ?')">
+                                          onsubmit="return confirm('{{ __('ui.confirm_delete_queue') }}')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn-icon danger" title="Supprimer">
+                                        <button type="submit" class="btn-icon danger" title="{{ __('ui.delete') }}">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>

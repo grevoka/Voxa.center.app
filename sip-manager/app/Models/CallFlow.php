@@ -363,6 +363,44 @@ class CallFlow extends Model
                     $lines[] = " same => n,System(rm -f /tmp/ai_prompt_\${UNIQUEID}.txt /tmp/ai_voice_\${UNIQUEID}.txt /tmp/ai_rag_\${UNIQUEID}.txt)";
                     break;
 
+                case 'did_filter':
+                    $matchNumber = $step['match_number'] ?? '';
+                    $branchTargets = $step['branch_targets'] ?? [];
+                    $dfLabel = 'df_' . $stepIndex;
+
+                    $lines[] = " same => n,NoOp(DID Filter: {$matchNumber})";
+                    if ($matchNumber) {
+                        $lines[] = " same => n,GotoIf(\$[\"\${EXTEN}\" = \"{$matchNumber}\"]?{$dfLabel}_match)";
+                    } else {
+                        $lines[] = " same => n,Goto({$dfLabel}_match)";
+                    }
+
+                    // No match branch
+                    $lines[] = " same => n,NoOp(DID No Match)";
+                    $lines[] = " same => n,Hangup()";
+                    // Match branch
+                    $lines[] = " same => n({$dfLabel}_match),NoOp(DID Match — on continue)";
+                    break;
+
+                case 'cid_filter':
+                    $matchNumber = $step['match_number'] ?? '';
+                    $branchTargets = $step['branch_targets'] ?? [];
+                    $cfLabel = 'cf_' . $stepIndex;
+
+                    $lines[] = " same => n,NoOp(CID Filter: {$matchNumber})";
+                    if ($matchNumber) {
+                        $lines[] = " same => n,GotoIf(\$[\"\${CALLERID(num)}\" = \"{$matchNumber}\"]?{$cfLabel}_match)";
+                    } else {
+                        $lines[] = " same => n,Goto({$cfLabel}_match)";
+                    }
+
+                    // No match branch
+                    $lines[] = " same => n,NoOp(CID No Match)";
+                    $lines[] = " same => n,Hangup()";
+                    // Match branch
+                    $lines[] = " same => n({$cfLabel}_match),NoOp(CID Match — on continue)";
+                    break;
+
                 case 'time_condition':
                     $timeStart = $step['time_start'] ?? '09:00';
                     $timeEnd   = $step['time_end'] ?? '18:00';

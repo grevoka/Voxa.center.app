@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('ui.modify') . ' ' . __('ui.lines') ' . $line->extension)
-@section('page-title', __('ui.modify') . ' ' . __('ui.lines') ' . $line->extension)
+@section('title', __('ui.modify') . ' ' . __('ui.lines') . ' ' . $line->extension)
+@section('page-title', __('ui.modify') . ' ' . __('ui.lines') . ' ' . $line->extension)
 
 @section('content')
     <div class="row justify-content-center">
@@ -17,7 +17,7 @@
                     @method('PUT')
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Extension</label>
+                            <label class="form-label">{{ __('ui.extension') }}</label>
                             <input type="text" name="extension" class="form-control @error('extension') is-invalid @enderror"
                                    value="{{ old('extension', $line->extension) }}" required>
                             @error('extension')
@@ -25,7 +25,7 @@
                             @enderror
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Protocole</label>
+                            <label class="form-label">{{ __('ui.protocol') }}</label>
                             <select name="protocol" class="form-select">
                                 @foreach(['SIP/UDP', 'SIP/TCP', 'SIP/TLS', 'WebRTC'] as $proto)
                                     <option value="{{ $proto }}" {{ old('protocol', $line->protocol) == $proto ? 'selected' : '' }}>{{ $proto }}</option>
@@ -33,7 +33,7 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Nom complet</label>
+                            <label class="form-label">{{ __('ui.full_name') }}</label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name', $line->name) }}" required>
                             @error('name')
@@ -41,14 +41,14 @@
                             @enderror
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Email</label>
+                            <label class="form-label">{{ __('ui.email') }}</label>
                             <input type="email" name="email" class="form-control"
                                    value="{{ old('email', $line->email) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">{{ __("ui.create") }} mot de passe SIP <small>(laisser vide pour ne pas changer)</small></label>
+                            <label class="form-label">{{ __('ui.sip_password') }} <small>({{ __('ui.leave_empty_keep') }})</small></label>
                             <input type="password" name="secret" class="form-control @error('secret') is-invalid @enderror"
-                                   placeholder="Min. 8 caracteres">
+                                   placeholder="{{ __('ui.min_chars') }}">
                             @error('secret')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -59,26 +59,26 @@
                                    value="{{ old('caller_id', $line->caller_id) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Contexte</label>
+                            <label class="form-label">{{ __('ui.th_context') }}</label>
                             <input type="text" name="context" class="form-control"
                                    value="{{ old('context', $line->context) }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">
-                                <i class="bi bi-telephone-outbound me-1" style="color:var(--accent);"></i> Trunk sortant
+                                <i class="bi bi-telephone-outbound me-1" style="color:var(--accent);"></i> {{ __('ui.outbound_trunk') }}
                             </label>
                             <select name="outbound_trunk_id" class="form-select">
-                                <option value="">— Defaut (route globale) —</option>
+                                <option value="">— {{ __('ui.default_route') }} —</option>
                                 @foreach($trunks as $trunk)
                                     <option value="{{ $trunk->id }}" {{ old('outbound_trunk_id', $line->outbound_trunk_id) == $trunk->id ? 'selected' : '' }}>
                                         {{ $trunk->name }} ({{ $trunk->host }})
                                     </option>
                                 @endforeach
                             </select>
-                            <small style="color:var(--text-secondary);font-size:0.72rem;">Force la sortie via ce trunk pour ce poste (vide = trunk de la route sortante)</small>
+                            <small style="color:var(--text-secondary);font-size:0.72rem;">{{ __('ui.force_trunk_desc') }}</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Max contacts</label>
+                            <label class="form-label">{{ __('ui.max_contacts') }}</label>
                             <input type="number" name="max_contacts" class="form-control"
                                    value="{{ old('max_contacts', $line->max_contacts) }}" min="1" max="10">
                         </div>
@@ -106,15 +106,15 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Notes</label>
+                            <label class="form-label">{{ __('ui.notes') }}</label>
                             <textarea name="notes" class="form-control" rows="2">{{ old('notes', $line->notes) }}</textarea>
                         </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
-                        <a href="{{ route('lines.index') }}" class="btn btn-outline-custom">Annuler</a>
+                        <a href="{{ route('lines.index') }}" class="btn btn-outline-custom">{{ __('ui.cancel') }}</a>
                         <button type="submit" class="btn btn-accent">
-                            <i class="bi bi-check-lg me-1"></i> Mettre a jour
+                            <i class="bi bi-check-lg me-1"></i> {{ __('ui.update') }}
                         </button>
                     </div>
                 </form>

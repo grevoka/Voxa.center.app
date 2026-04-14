@@ -57,11 +57,25 @@ if [[ "$CONFIRM" =~ ^[nN] ]]; then
 fi
 
 # ── Detect OS ──
-if [ -f /etc/debian_version ]; then
-    OS="debian"
-else
-    err "OS non supporte. Debian 12 / Ubuntu 22+ requis."
+if [ ! -f /etc/os-release ]; then
+    err "OS non supporte. Debian 12 ou Ubuntu 22.04/24.04 requis."
 fi
+
+. /etc/os-release
+
+SUPPORTED=false
+if [ "$ID" = "debian" ] && [ "$VERSION_ID" = "12" ]; then
+    SUPPORTED=true
+elif [ "$ID" = "ubuntu" ] && [[ "$VERSION_ID" =~ ^(22.04|24.04)$ ]]; then
+    SUPPORTED=true
+fi
+
+if [ "$SUPPORTED" = false ]; then
+    err "OS non supporte: $PRETTY_NAME. Systemes compatibles: Debian 12 (Bookworm), Ubuntu 22.04 (Jammy), Ubuntu 24.04 (Noble)."
+fi
+
+OS="$ID"
+log "OS detecte: $PRETTY_NAME"
 
 # ══════════════════════════════════════
 # Phase 1 : Paquets systeme

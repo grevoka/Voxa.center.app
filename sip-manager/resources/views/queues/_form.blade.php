@@ -56,20 +56,20 @@
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Nom technique</label>
+                        <label class="form-label">{{ __('ui.technical_name') }}</label>
                         <input type="text" class="form-control" name="name" required
                                value="{{ old('name', $queue->name ?? '') }}"
                                placeholder="support-queue" pattern="[a-zA-Z0-9_-]+">
-                        <small style="color:var(--text-secondary); font-size:0.7rem;">Lettres, chiffres, - et _ uniquement</small>
+                        <small style="color:var(--text-secondary); font-size:0.7rem;">{{ __('ui.letters_hint') }}</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Nom affiche</label>
+                        <label class="form-label">{{ __('ui.display_name') }}</label>
                         <input type="text" class="form-control" name="display_name"
                                value="{{ old('display_name', $queue->display_name ?? '') }}"
                                placeholder="Support technique">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Strategie</label>
+                        <label class="form-label">{{ __('ui.strategy') }}</label>
                         <select class="form-select" name="strategy" required>
                             @foreach($strategies as $key => $label)
                                 <option value="{{ $key }}" {{ old('strategy', $queue->strategy ?? 'ringall') === $key ? 'selected' : '' }}>
@@ -79,7 +79,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Musique d'attente</label>
+                        <label class="form-label">{{ __('ui.moh_label') }}</label>
                         <select class="form-select" name="music_on_hold" id="mohSelect">
                             <option value="default">default</option>
                         </select>
@@ -91,9 +91,9 @@
                             const local=classes.filter(c=>!c.is_stream&&!c.is_playlist);
                             const playlists=classes.filter(c=>c.is_playlist);
                             const streams=classes.filter(c=>c.is_stream);
-                            [{label:'Fichiers locaux',items:local,suffix:f=>f.files.length+' fichiers'},
-                             {label:'Playlists',items:playlists,suffix:f=>f.files.length+' titres'},
-                             {label:'Flux streaming',items:streams,suffix:()=>'stream'}
+                            [{label:'{{ __("ui.local_files") }}',items:local,suffix:f=>f.files.length+' {{ __("ui.files_count") }}'},
+                             {label:'{{ __("ui.playlists") }}',items:playlists,suffix:f=>f.files.length+' {{ __("ui.tracks_count") }}'},
+                             {label:'{{ __("ui.streaming") }}',items:streams,suffix:()=>'stream'}
                             ].forEach(g=>{
                                 if(!g.items.length) return;
                                 const grp=document.createElement('optgroup');
@@ -111,32 +111,32 @@
                         </script>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Timeout agent (sec)</label>
+                        <label class="form-label">{{ __('ui.agent_timeout') }}</label>
                         <input type="number" class="form-control" name="timeout"
                                value="{{ old('timeout', $queue->timeout ?? 25) }}" min="5" max="120">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Retry (sec)</label>
+                        <label class="form-label">{{ __('ui.retry_sec') }}</label>
                         <input type="number" class="form-control" name="retry"
                                value="{{ old('retry', $queue->retry ?? 5) }}" min="0" max="60">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Attente max (sec)</label>
+                        <label class="form-label">{{ __('ui.max_wait') }}</label>
                         <input type="number" class="form-control" name="max_wait_time"
                                value="{{ old('max_wait_time', $queue->max_wait_time ?? 300) }}" min="30" max="3600">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Frequence annonce (sec)</label>
+                        <label class="form-label">{{ __('ui.announce_freq') }}</label>
                         <input type="number" class="form-control" name="announce_frequency"
                                value="{{ old('announce_frequency', $queue->announce_frequency ?? 0) }}" min="0" max="300">
-                        <small style="color:var(--text-secondary); font-size:0.7rem;">0 = pas d'annonce</small>
+                        <small style="color:var(--text-secondary); font-size:0.7rem;">{{ __('ui.no_announce') }}</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Annoncer temps d'attente</label>
+                        <label class="form-label">{{ __('ui.announce_holdtime') }}</label>
                         <select class="form-select" name="announce_holdtime">
-                            <option value="" {{ !old('announce_holdtime', $queue->announce_holdtime ?? '') ? 'selected' : '' }}>Non</option>
-                            <option value="yes" {{ old('announce_holdtime', $queue->announce_holdtime ?? '') === 'yes' ? 'selected' : '' }}>Oui</option>
-                            <option value="once" {{ old('announce_holdtime', $queue->announce_holdtime ?? '') === 'once' ? 'selected' : '' }}>Une fois</option>
+                            <option value="" {{ !old('announce_holdtime', $queue->announce_holdtime ?? '') ? 'selected' : '' }}>{{ __('ui.no') }}</option>
+                            <option value="yes" {{ old('announce_holdtime', $queue->announce_holdtime ?? '') === 'yes' ? 'selected' : '' }}>{{ __('ui.yes') }}</option>
+                            <option value="once" {{ old('announce_holdtime', $queue->announce_holdtime ?? '') === 'once' ? 'selected' : '' }}>{{ __('ui.once') }}</option>
                         </select>
                     </div>
                 </div>
@@ -146,10 +146,10 @@
         <div class="col-lg-5">
             <div class="stat-card">
                 <h6 style="font-weight:700; font-size:0.85rem; margin-bottom:1rem;">
-                    <i class="bi bi-people me-1" style="color:var(--accent);"></i> Membres
+                    <i class="bi bi-people me-1" style="color:var(--accent);"></i> {{ __('ui.members') }}
                 </h6>
                 <p style="color:var(--text-secondary); font-size:0.78rem; margin-bottom:1rem;">
-                    {{ __('ui.select_members') }} de cette file.
+                    {{ __('ui.select_queue_members') }}
                 </p>
 
                 <div id="membersList">
@@ -176,7 +176,7 @@
                             <input type="number" class="form-control penalty-input"
                                    id="penalty_{{ $line->extension }}"
                                    value="{{ $penalty }}" min="0" max="10"
-                                   placeholder="P" title="Penalite (0-10)"
+                                   placeholder="P" title="{{ __('ui.penalty') }} (0-10)"
                                    {{ !$isMember ? 'disabled' : '' }}>
                         </div>
                     @endforeach
@@ -195,9 +195,9 @@
     <div id="membersHidden"></div>
 
     <div class="d-flex justify-content-end gap-2 mt-4">
-        <a href="{{ route('queues.index') }}" class="btn-outline-custom">Annuler</a>
+        <a href="{{ route('queues.index') }}" class="btn-outline-custom">{{ __('ui.cancel') }}</a>
         <button type="submit" class="btn btn-accent" onclick="prepareMembers()">
-            <i class="bi bi-check-lg me-1"></i> {{ $queue ? 'Mettre a jour' : 'Creer la file' }}
+            <i class="bi bi-check-lg me-1"></i> {{ $queue ? __('ui.update_queue') : __('ui.create_queue_btn') }}
         </button>
     </div>
 </form>

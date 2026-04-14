@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Dialplan genere')
-@section('page-title', 'Dialplan genere')
+@section('title', __('ui.generated_dialplan'))
+@section('page-title', __('ui.generated_dialplan'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Dialplan Asterisk</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">extensions.conf genere a partir des contextes configures</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __('ui.asterisk_dialplan') }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.dialplan_desc') }}</p>
         </div>
         <a href="{{ route('contexts.index') }}" class="btn btn-outline-custom">
-            <i class="bi bi-arrow-left me-1"></i> Retour aux contextes
+            <i class="bi bi-arrow-left me-1"></i> {{ __('ui.back_to_contexts') }}
         </a>
     </div>
 

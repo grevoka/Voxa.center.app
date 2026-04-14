@@ -16,6 +16,60 @@ class CallFlowController extends Controller
 {
     public function __construct(private DialplanService $dialplan) {}
 
+    /**
+     * Extract DID numbers used in did_filter blocks of a scenario's steps.
+     * Returns empty array if no DID filter → means "ALL".
+     */
+    private function extractDidsFromSteps(array $steps): array
+    {
+        $dids = [];
+        foreach ($steps as $step) {
+            if (($step['type'] ?? '') === 'did_filter' && !empty($step['match_number'])) {
+                $dids[] = $step['match_number'];
+            }
+        }
+        return $dids;
+    }
+
+    /**
+     * Check for DID conflicts with other enabled scenarios on the same trunk.
+     */
+    private function checkDidConflicts(int $trunkId, array $steps, ?int $excludeFlowId = null): ?string
+    {
+        $myDids = $this->extractDidsFromSteps($steps);
+        $hasDidFilter = !empty($myDids);
+
+        $otherFlows = CallFlow::where('trunk_id', $trunkId)
+            ->where('enabled', true)
+            ->when($excludeFlowId, fn($q) => $q->where('id', '!=', $excludeFlowId))
+            ->get();
+
+        foreach ($otherFlows as $other) {
+            $otherDids = $this->extractDidsFromSteps($other->steps ?? []);
+            $otherHasFilter = !empty($otherDids);
+
+            if (!$hasDidFilter && !$otherHasFilter) {
+                // Both catch ALL → conflict
+                return "Conflit: le scenario \"{$other->name}\" utilise deja ce trunk sans filtre DID. Ajoutez un bloc DID Filter pour distinguer les scenarios.";
+            }
+            if (!$hasDidFilter && $otherHasFilter) {
+                // New = ALL, other = specific → new would catch other's DIDs too
+                return "Conflit: le scenario \"{$other->name}\" filtre sur le(s) DID " . implode(', ', $otherDids) . ". Votre scenario sans filtre DID intercepterait tous les appels, y compris ceux-la.";
+            }
+            if ($hasDidFilter && !$otherHasFilter) {
+                // New = specific, other = ALL → other already catches everything
+                return "Conflit: le scenario \"{$other->name}\" capte deja tous les DID sur ce trunk. Ajoutez-lui un bloc DID Filter avant de creer un nouveau scenario.";
+            }
+            // Both have specific DIDs → check overlap
+            $overlap = array_intersect($myDids, $otherDids);
+            if (!empty($overlap)) {
+                return "Conflit: le DID " . implode(', ', $overlap) . " est deja utilise par le scenario \"{$other->name}\".";
+            }
+        }
+
+        return null; // No conflict
+    }
+
     public function index()
     {
         $flows = CallFlow::with('trunk')->latest()->paginate(25);
@@ -52,9 +106,9 @@ class CallFlowController extends Controller
             'trunk_id'        => 'required|exists:trunks,id',
             'inbound_context' => 'required|string|max:50',
             'steps'           => 'required|json',
-            'enabled'            => 'boolean',
-            'record_calls'       => 'boolean',
-            'record_optout'      => 'boolean',
+            'enabled'            => 'nullable|boolean',
+            'record_calls'       => 'nullable|boolean',
+            'record_optout'      => 'nullable|boolean',
             'record_optout_key'  => 'nullable|string|size:1|regex:/^[0-9*#]$/',
             'caller_id_filter'   => 'nullable|json',
             'did_filter'         => 'nullable|json',
@@ -71,7 +125,7 @@ class CallFlowController extends Controller
         $data['enabled'] = $request->boolean('enabled', true);
         $data['record_calls'] = $request->boolean('record_calls');
         $data['record_optout'] = $request->boolean('record_optout');
-        $data['record_optout_key'] = $request->input('record_optout_key', '8');
+        $data['record_optout_key'] = $request->input('record_optout_key') ?? '8';
 
         // Auto-create queue if wizard sent members
         if ($request->filled('queue_members')) {
@@ -107,10 +161,21 @@ class CallFlowController extends Controller
         }
         unset($data['queue_members']);
 
+        // Check for DID conflicts — if conflict, create disabled + warning
+        $conflict = $this->checkDidConflicts((int) $data['trunk_id'], $data['steps']);
+        if ($conflict) {
+            $data['enabled'] = false;
+        }
+
         $flow = CallFlow::create($data);
 
         // Write to Asterisk extensions.conf + reload
         $this->dialplan->writeExtensions();
+
+        if ($conflict) {
+            return redirect()->route('callflows.edit', $flow)
+                ->with('warning', $conflict . ' Le scenario a ete cree mais desactive.');
+        }
 
         return redirect()->route('callflows.edit', $flow)
             ->with('success', "Scenario \"{$flow->name}\" cree et dialplan applique.");
@@ -137,9 +202,9 @@ class CallFlowController extends Controller
             'trunk_id'        => 'required|exists:trunks,id',
             'inbound_context' => 'required|string|max:50',
             'steps'           => 'required|json',
-            'enabled'            => 'boolean',
-            'record_calls'       => 'boolean',
-            'record_optout'      => 'boolean',
+            'enabled'            => 'nullable|boolean',
+            'record_calls'       => 'nullable|boolean',
+            'record_optout'      => 'nullable|boolean',
             'record_optout_key'  => 'nullable|string|size:1|regex:/^[0-9*#]$/',
             'caller_id_filter'   => 'nullable|json',
             'positions'          => 'nullable|json',
@@ -152,12 +217,23 @@ class CallFlowController extends Controller
         $data['enabled'] = $request->boolean('enabled', true);
         $data['record_calls'] = $request->boolean('record_calls');
         $data['record_optout'] = $request->boolean('record_optout');
-        $data['record_optout_key'] = $request->input('record_optout_key', '8');
+        $data['record_optout_key'] = $request->input('record_optout_key') ?? '8';
+
+        // Check for DID conflicts — if conflict, force disable + warning
+        $conflict = $this->checkDidConflicts((int) $data['trunk_id'], $data['steps'], $callflow->id);
+        if ($conflict && $request->boolean('enabled', true)) {
+            $data['enabled'] = false;
+        }
 
         $callflow->update($data);
 
         // Rewrite Asterisk dialplan
         $this->dialplan->writeExtensions();
+
+        if ($conflict && !$callflow->enabled) {
+            return redirect()->route('callflows.edit', $callflow)
+                ->with('warning', $conflict . ' Le scenario a ete desactive.');
+        }
 
         return redirect()->route('callflows.edit', $callflow)
             ->with('success', "Scenario \"{$callflow->name}\" mis a jour et dialplan applique.");
@@ -177,6 +253,14 @@ class CallFlowController extends Controller
 
     public function toggle(CallFlow $callflow)
     {
+        // Check for DID conflicts when enabling
+        if (!$callflow->enabled) {
+            $conflict = $this->checkDidConflicts($callflow->trunk_id, $callflow->steps ?? [], $callflow->id);
+            if ($conflict) {
+                return back()->with('error', $conflict);
+            }
+        }
+
         $callflow->update(['enabled' => !$callflow->enabled]);
 
         // Rewrite dialplan (active/inactive change)

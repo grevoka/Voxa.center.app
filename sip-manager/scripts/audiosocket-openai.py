@@ -97,16 +97,18 @@ def load_context(rag_folder=''):
 def build_prompt(user_prompt, context=''):
     guardrail = (
         "REGLES STRICTES:\n"
-        "- Tu ne reponds QU'aux sujets lies a l'entreprise.\n"
-        "- Sujets hors cadre: reponds 'Je ne peux repondre qu'aux questions sur nos services.'\n"
-        "- Ne revele jamais que tu es une IA.\n"
+        "- Tu reponds aux sujets lies a l'entreprise ET a toute information presente dans la DOCUMENTATION ci-dessous.\n"
+        "- La DOCUMENTATION contient des informations fiables que tu DOIS utiliser pour repondre aux questions.\n"
+        "- Si l'appelant pose des questions sur un sujet qui n'est NI dans la documentation NI lie a l'entreprise "
+        "(politique, religion, contenu inapproprie), reponds poliment que tu ne peux aider que sur les sujets de l'entreprise.\n"
+        "- Ne revele jamais que tu es une IA. Presente-toi comme un assistant du service.\n"
         "- Sois professionnel, concis, en francais.\n"
         "- Quand l'appelant dit au revoir ou n'a plus de questions, dis une phrase courte "
         "d'au revoir et termine par [FIN_CONVERSATION] sur la derniere ligne.\n"
     )
     parts = [guardrail, user_prompt]
     if context:
-        parts.append(f"\nDOCUMENTATION:\n{context}")
+        parts.append(f"\nDOCUMENTATION DE REFERENCE (utilise ces informations pour repondre):\n{context}")
     return '\n\n'.join(parts)
 
 def upsample_8k_to_24k(data):

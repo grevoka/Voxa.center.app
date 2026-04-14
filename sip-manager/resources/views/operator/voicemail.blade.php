@@ -40,7 +40,7 @@
                             <form action="{{ route('operator.voicemail.destroy', [$msg['folder'], $msg['id']]) }}" method="POST"
                                   onsubmit="return confirm('Supprimer ce message ?')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn-icon" title="Supprimer" style="width:28px;height:28px;font-size:0.75rem;color:var(--danger);">
+                                <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:28px;height:28px;font-size:0.75rem;color:var(--danger);">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', isset($callflow) ? __('ui.modify') . ' ' . __('ui.scenarios') : __('ui.new') . ' ' . __('ui.scenarios'))
-@section('page-title', isset($callflow) ? __('ui.modify') . ' ' . __('ui.scenarios') : __('ui.new') . ' ' . __('ui.scenarios')\')
+@section('page-title', isset($callflow) ? __('ui.modify') . ' ' . __('ui.scenarios') : __('ui.new') . ' ' . __('ui.scenarios'))
 
 @push('styles')
 <style>
@@ -92,7 +92,41 @@
         min-width: 0;
     }
     .canvas-fullscreen .fs-panel-left {
-        width: 260px; border-right: 1px solid var(--border);
+        width: 240px; border-right: 1px solid var(--border);
+    }
+    .canvas-fullscreen .fs-panel-left .pal-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: .2rem;
+    }
+    .canvas-fullscreen .fs-panel-left .pal-item {
+        flex-direction: column;
+        padding: .2rem .15rem;
+        font-size: .55rem;
+        text-align: center;
+        gap: .15rem;
+    }
+    .canvas-fullscreen .fs-panel-left .pal-icon {
+        width: 20px; height: 20px; font-size: .6rem;
+    }
+    .canvas-fullscreen .fs-panel-left .cfg-toggle {
+        padding: .3rem .2rem; margin-bottom: .2rem; font-size: .6rem;
+        border-top: 1px solid var(--border); padding-top: .4rem;
+    }
+    .canvas-fullscreen .fs-panel-left .cfg-section {
+        margin-bottom: .4rem;
+    }
+    .canvas-fullscreen .fs-panel-left .cfg-section label {
+        font-size: .6rem; margin-bottom: .1rem;
+    }
+    .canvas-fullscreen .fs-panel-left .cfg-section .form-control-sm,
+    .canvas-fullscreen .fs-panel-left .cfg-section .form-select-sm {
+        font-size: .7rem; padding: .2rem .4rem; height: auto;
+    }
+    .canvas-fullscreen .fs-panel-left .cfg-section small {
+        font-size: .55rem;
+    }
+    .canvas-fullscreen .fs-panel-left .form-check-label {
+        font-size: .7rem;
     }
     .canvas-fullscreen .fs-panel-right {
         width: 260px; border-left: 1px solid var(--border);
@@ -129,37 +163,46 @@
     }
     .tpl-overlay.active { display: flex; }
     .tpl-modal {
-        background: var(--surface-1, #0f1923);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        width: 680px; max-width: 95vw; max-height: 92vh;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 16px;
+        width: 700px; max-width: 95vw; max-height: 92vh;
         display: flex; flex-direction: column;
         overflow: hidden;
+        box-shadow: 0 25px 80px rgba(0,0,0,.25);
     }
+    [data-theme="dark"] .tpl-modal { background: #1c1f26; border-color: var(--border); }
     .tpl-modal-head {
         padding: 1rem 1.25rem;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid #dee2e6;
         display: flex; align-items: center; gap: .75rem;
         font-weight: 700; font-size: .9rem;
-        color: #e2e4eb;
+        color: #1a1a2e;
     }
+    [data-theme="dark"] .tpl-modal-head { border-color: var(--border); color: #e2e4eb; }
     .tpl-modal-body {
         flex: 1; overflow-y: auto; padding: 1rem 1.25rem;
         min-height: 0;
     }
     .tpl-grid {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem;
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .6rem;
     }
     .tpl-card {
-        border: 1px solid var(--border); border-radius: 8px;
-        padding: .55rem .7rem; cursor: pointer;
-        transition: border-color .15s, background .15s;
+        border: 1px solid #dee2e6; border-radius: 10px;
+        padding: .7rem .85rem; cursor: pointer;
+        background: #fff;
+        transition: all .2s;
     }
-    .tpl-card:hover, .tpl-card.selected { border-color: var(--accent); background: var(--surface-3); }
-    .tpl-card.selected { box-shadow: 0 0 0 2px var(--accent); }
-    .tpl-card .tpl-icon { font-size: 1rem; margin-bottom: .2rem; color: var(--accent); }
-    .tpl-card h6 { margin: 0 0 .15rem; font-size: .75rem; font-weight: 700; color: #e2e4eb; }
-    .tpl-card p { margin: 0; font-size: .65rem; color: #8b949e; line-height: 1.3; }
+    [data-theme="dark"] .tpl-card { background: var(--surface-2); border-color: var(--border); }
+    .tpl-card:hover { border-color: var(--accent); background: #eef4ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(88,166,255,.15); }
+    [data-theme="dark"] .tpl-card:hover { background: var(--surface-3); }
+    .tpl-card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); background: #eef4ff; }
+    [data-theme="dark"] .tpl-card.selected { background: var(--surface-3); }
+    .tpl-card .tpl-icon { font-size: 1.1rem; margin-bottom: .3rem; color: var(--accent); }
+    .tpl-card h6 { margin: 0 0 .2rem; font-size: .8rem; font-weight: 700; color: #1a1a2e; }
+    [data-theme="dark"] .tpl-card h6 { color: #e2e4eb; }
+    .tpl-card p { margin: 0; font-size: .68rem; color: #6b7280; line-height: 1.4; }
+    [data-theme="dark"] .tpl-card p { color: #8b949e; }
     .tpl-card .tpl-badge {
         display: inline-block; font-size: .6rem; padding: 1px 6px;
         border-radius: 4px; background: var(--accent); color: #000;
@@ -185,10 +228,11 @@
     }
     .wiz-step h5 {
         font-size: .85rem; font-weight: 700; margin: 0 0 .75rem;
-        color: #e2e4eb;
+        color: #1a1a2e;
     }
+    [data-theme="dark"] .wiz-step h5 { color: #e2e4eb; }
     .wiz-step .wiz-subtitle {
-        font-size: .72rem; color: #8b949e; margin-bottom: 1rem;
+        font-size: .72rem; color: #6b7280; margin-bottom: 1rem;
     }
     .wiz-check-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: .4rem;
@@ -531,36 +575,40 @@
     .nc-ivr .node-icon        { background: #e8671525; color: #e86715; }
     .nc-time .node-header     { background: #f0883e15; }
     .nc-time .node-icon       { background: #f0883e25; color: #f0883e; }
+    .nc-did .node-header      { background: #00bcd415; }
+    .nc-did .node-icon        { background: #00bcd425; color: #00bcd4; }
+    .nc-cid .node-header      { background: #e91e6315; }
+    .nc-cid .node-icon        { background: #e91e6325; color: #e91e63; }
 
     /* ── Palette ── */
     .pal-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: .35rem;
-        margin-bottom: .6rem;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: .25rem;
+        margin-bottom: .4rem;
     }
     .pal-item {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        padding: 0.4rem 0.5rem;
-        border-radius: 8px;
+        gap: 0.3rem;
+        padding: 0.25rem 0.4rem;
+        border-radius: 6px;
         border: 1px solid var(--border);
         background: var(--surface-3);
         cursor: pointer;
         transition: all .15s;
-        font-size: 0.7rem;
-        font-weight: 500;
+        font-size: 0.62rem;
+        font-weight: 600;
         color: var(--text-secondary);
     }
     .pal-item:hover { border-color: #29b6f6; color: #29b6f6; background: var(--accent-dim); }
     .pal-icon {
-        width: 22px; height: 22px;
-        border-radius: 5px;
+        width: 18px; height: 18px;
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         flex-shrink: 0;
     }
     .cfg-toggle {
@@ -632,6 +680,14 @@
 @endpush
 
 @section('content')
+    @if($errors->any())
+    <div style="background:#f8514915;border:1px solid #f8514940;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;">
+        <div style="font-weight:700;font-size:.85rem;color:#f85149;margin-bottom:.4rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i> Erreur</div>
+        @foreach($errors->all() as $error)
+            <div style="font-size:.8rem;color:var(--text-primary);">• {{ $error }}</div>
+        @endforeach
+    </div>
+    @endif
     @if(isset($callflow))
     {{-- EDIT MODE: simple hub page --}}
     <div class="section-header">
@@ -639,7 +695,7 @@
             <h5 style="font-weight:700; margin:0;">{{ $callflow->name }}</h5>
             <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">
                 {{ $callflow->description ?: 'Scenario d\'appel' }}
-                — <span style="color:{{ $callflow->enabled ? '#29b6f6' : '#f85149' }};">{{ $callflow->enabled ? 'Actif' : 'Inactif' }}</span>
+                — <span style="color:{{ $callflow->enabled ? '#29b6f6' : '#f85149' }};">{{ $callflow->enabled ? __('ui.active') : __('ui.inactive') }}</span>
             </p>
         </div>
         <div class="d-flex gap-2">
@@ -651,35 +707,35 @@
     <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
         <div class="edit-hub-card" onclick="openFullscreen()">
             <i class="bi bi-bounding-box" style="font-size:2rem; color:#29b6f6;"></i>
-            <h6>Cartographie</h6>
-            <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
+            <h6>{{ __('ui.cartography') }}</h6>
+            <p>{{ __('ui.cartography') }} — blocs, connexions, proprietes</p>
         </div>
         <div class="edit-hub-card" onclick="wizOpenEdit()">
             <i class="bi bi-magic" style="font-size:2rem; color:#bc8cff;"></i>
             <h6>Wizard</h6>
-            <p>Modifier les etapes via l'assistant pas-a-pas</p>
+            <p>{{ __('ui.edit_steps') }}</p>
         </div>
         <div class="edit-hub-card" onclick="document.getElementById('btnSaveTpl').click()">
             <i class="bi bi-bookmark-plus" style="font-size:2rem; color:#f0883e;"></i>
-            <h6>Sauver en template</h6>
-            <p>Enregistrer ce scenario comme modele reutilisable</p>
+            <h6>{{ __('ui.save_template') }}</h6>
+            <p>{{ __('ui.reusable_tpl') }}</p>
         </div>
         @if($callflow->trunk)
         <div class="edit-hub-card" style="cursor:default;">
             <i class="bi bi-info-circle" style="font-size:2rem; color:#58a6ff;"></i>
-            <h6>Infos</h6>
-            <p>Trunk: {{ $callflow->trunk->name }}<br>Contexte: {{ $callflow->inbound_context }}<br>{{ count($callflow->steps ?? []) }} etapes</p>
+            <h6>Info</h6>
+            <p>{{ __('ui.th_trunk') }}: {{ $callflow->trunk->name }}<br>{{ __('ui.th_context') }}: {{ $callflow->inbound_context }}<br>{{ count($callflow->steps ?? []) }} {{ __('ui.steps') }}</p>
         </div>
         @endif
     </div>
-    <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">Enregistrer</button>
+    <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">{{ __('ui.save') }}</button>
     <button type="button" class="btn-outline-custom" id="btnSaveTpl" style="display:none;">Template</button>
     @else
     {{-- CREATE MODE: same hub layout --}}
     <div class="section-header">
         <div>
             <h5 style="font-weight:700; margin:0;">{{ __('ui.create') }} {{ __('ui.scenarios') }} d'appel</h5>
-            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">Choisissez un modele ou construisez votre flux</p>
+            <p style="color:var(--text-secondary); font-size:0.82rem; margin:0;">{{ __('ui.build_scenario') }}</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('callflows.index') }}" class="btn-outline-custom">
@@ -691,12 +747,12 @@
         <div class="edit-hub-card" onclick="openTplModal()">
             <i class="bi bi-magic" style="font-size:2rem; color:#bc8cff;"></i>
             <h6>Wizard</h6>
-            <p>Assistant pas-a-pas pour creer votre scenario</p>
+            <p>{{ __('ui.edit_steps') }}</p>
         </div>
         <div class="edit-hub-card" onclick="openFullscreen()">
             <i class="bi bi-bounding-box" style="font-size:2rem; color:#29b6f6;"></i>
-            <h6>Cartographie</h6>
-            <p>Editeur visuel 2D — blocs, connexions, proprietes</p>
+            <h6>{{ __('ui.cartography') }}</h6>
+            <p>{{ __('ui.cartography') }} — blocs, connexions, proprietes</p>
         </div>
     </div>
     <button type="button" class="btn btn-accent" id="btnSave" style="display:none;">{{ __("ui.create") }}</button>
@@ -717,8 +773,6 @@
         <input type="hidden" name="record_calls" id="hidRecord">
         <input type="hidden" name="record_optout" id="hidOptout">
         <input type="hidden" name="record_optout_key" id="hidOptoutKey">
-        <input type="hidden" name="caller_id_filter" id="hidCallerIdFilter">
-        <input type="hidden" name="did_filter" id="hidDidFilter">
         <input type="hidden" name="positions" id="hidPositions">
         <input type="hidden" name="queue_members" id="hidQueueMembers">
     </form>
@@ -726,62 +780,53 @@
     <div class="builder-wrap" style="display:none;">
         {{-- LEFT: palette + config --}}
         <div class="panel">
-            <div class="panel-head"><i class="bi bi-plus-circle"></i> Blocs</div>
-            {{-- DID + CID filters (hidden fields synced from fullscreen panel) --}}
-            <div style="display:none;">
-                <select id="cfgDidFilter">
-                    <option value="">Par defaut</option>
-                    @foreach($callerIds ?? [] as $cid)
-                        <option value="{{ $cid->number }}" {{ in_array($cid->number, old('did_filter', $callflow->did_filter ?? [])) ? 'selected' : '' }}>{{ $cid->number }}</option>
-                    @endforeach
-                </select>
-                <select id="cfgCallerIdFilter">
-                    <option value="">Par defaut</option>
-                    @foreach($callerIds ?? [] as $cid)
-                        <option value="{{ $cid->number }}" {{ in_array($cid->number, old('caller_id_filter', $callflow->caller_id_filter ?? [])) ? 'selected' : '' }}>{{ $cid->number }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <div class="panel-head"><i class="bi bi-plus-circle"></i> {{ __('ui.blocks') }}</div>
             <div class="panel-body" style="padding:.6rem;overflow-y:auto;">
                 <div class="pal-grid">
                     <div class="pal-item" onclick="addNode('answer')">
-                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre
+                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> {{ __('ui.answer') }}
                     </div>
                     <div class="pal-item" onclick="addNode('queue')">
                         <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File
                     </div>
                     <div class="pal-item" onclick="addNode('ring')">
-                        <div class="pal-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div> Sonnerie
+                        <div class="pal-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div> {{ __('ui.ring') }}
                     </div>
                     <div class="pal-item" onclick="addNode('voicemail')">
-                        <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie
+                        <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> {{ __('ui.voicemail_block') }}
                     </div>
                     <div class="pal-item" onclick="addNode('playback')">
                         <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Audio
                     </div>
                     <div class="pal-item" onclick="addNode('announcement')">
-                        <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce
+                        <div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> {{ __('ui.announcement_block') }}
                     </div>
                     <div class="pal-item" onclick="addNode('forward')">
-                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-forward"></i></div> Renvoi
+                        <div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-forward"></i></div> {{ __('ui.forward_block') }}
                     </div>
                     <div class="pal-item" onclick="addNode('moh')">
-                        <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique
+                        <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> {{ __('ui.music_block') }}
                     </div>
                     <div class="pal-item" onclick="addNode('ivr')">
                         <div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> IVR
                     </div>
                     <div class="pal-item" onclick="addNode('time_condition')">
-                        <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> Horaires
+                        <div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> {{ __('ui.time_block') }}
+                    </div>
+                    <div class="pal-item" onclick="addNode('did_filter')">
+                        <div class="pal-icon" style="background:#00bcd425;color:#00bcd4;"><i class="bi bi-telephone-inbound"></i></div> DID Filter
+                    </div>
+                    <div class="pal-item" onclick="addNode('cid_filter')">
+                        <div class="pal-icon" style="background:#e91e6325;color:#e91e63;"><i class="bi bi-funnel"></i></div> CID Filter
                     </div>
                     <div class="pal-item" onclick="addNode('ai_agent')">
-                        <div class="pal-icon" style="background:#10b98125;color:#10b981;"><i class="bi bi-robot"></i></div> Agent IA
+                        <div class="pal-icon" style="background:#10b98125;color:#10b981;"><i class="bi bi-robot"></i></div> {{ __('ui.ai_block') }}
                     </div>
                     <div class="pal-item" onclick="addNode('goto')">
                         <div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto
                     </div>
                     <div class="pal-item" onclick="addNode('hangup')">
-                        <div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> Raccrocher
+                        <div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> {{ __('ui.hangup_block') }}
                     </div>
                 </div>
 
@@ -793,17 +838,17 @@
                     <div class="cfg-section">
                         <label>{{ __("ui.name") }}</label>
                         <input type="text" class="form-control form-control-sm" id="cfgName"
-                               value="{{ old('name', $callflow->name ?? '') }}" required placeholder="accueil-principal">
+                               value="{{ old('name', $callflow->name ?? '') }}" required placeholder="main-reception">
                     </div>
                     <div class="cfg-section">
                         <label>Description</label>
                         <input type="text" class="form-control form-control-sm" id="cfgDesc"
-                               value="{{ old('description', $callflow->description ?? '') }}" placeholder="Optionnel">
+                               value="{{ old('description', $callflow->description ?? '') }}" placeholder="{{ __('ui.optional') }}">
                     </div>
                     <div class="cfg-section">
-                        <label>Trunk entrant</label>
+                        <label>{{ __('ui.trunk_inbound') }}</label>
                         <select class="form-select form-select-sm" id="cfgTrunk" required>
-                            <option value="">— Choisir —</option>
+                            <option value="">— {{ __('ui.choose') }} —</option>
                             @foreach($trunks as $trunk)
                                 <option value="{{ $trunk->id }}"
                                     data-context="{{ $trunk->getEffectiveInboundContext() }}"
@@ -814,12 +859,12 @@
                         </select>
                     </div>
                     <div class="cfg-section">
-                        <label>Contexte</label>
+                        <label>{{ __('ui.th_context') }}</label>
                         <input type="text" class="form-control form-control-sm" id="cfgCtx"
                                value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" required readonly style="opacity:.7;cursor:not-allowed;">
                     </div>
                     <div class="cfg-section">
-                        <label>Priorite</label>
+                        <label>{{ __('ui.priority') }}</label>
                         <input type="number" class="form-control form-control-sm" id="cfgPrio"
                                value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
                     </div>
@@ -828,7 +873,7 @@
                             <input class="form-check-input" type="checkbox" id="cfgEnabled"
                                 {{ old('enabled', $callflow->enabled ?? true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="cfgEnabled"
-                                   style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">Actif</label>
+                                   style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">{{ __('ui.active') }}</label>
                         </div>
                     </div>
                     <div class="cfg-section">
@@ -838,7 +883,7 @@
                                 onchange="toggleRecordOptions()">
                             <label class="form-check-label" for="cfgRecord"
                                    style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">
-                                <i class="bi bi-record-circle" style="color:#ef4444;"></i> Enregistrer les appels
+                                <i class="bi bi-record-circle" style="color:#ef4444;"></i> {{ __('ui.record_calls') }}
                             </label>
                         </div>
                         <small style="color:var(--text-secondary);font-size:0.68rem;">MixMonitor — les conversations seront enregistrees en WAV</small>
@@ -849,12 +894,12 @@
                                     onchange="toggleOptoutKey()">
                                 <label class="form-check-label" for="cfgOptout"
                                        style="text-transform:none; font-size:0.78rem; color:var(--text-primary);">
-                                    Permettre l'arret par l'appelant
+                                    Allow caller to stop recording
                                 </label>
                             </div>
                             <div id="optoutKeyGroup" style="display:{{ old('record_optout', $callflow->record_optout ?? false) ? '' : 'none' }};">
                                 <div class="d-flex align-items-center gap-2">
-                                    <small style="color:var(--text-secondary);font-size:0.72rem;white-space:nowrap;">Touche DTMF :</small>
+                                    <small style="color:var(--text-secondary);font-size:0.72rem;white-space:nowrap;">DTMF:</small>
                                     <select class="form-select form-select-sm" id="cfgOptoutKey" style="width:70px;">
                                         @foreach(['0','1','2','3','4','5','6','7','8','9','*','#'] as $k)
                                             <option value="{{ $k }}" {{ old('record_optout_key', $callflow->record_optout_key ?? '8') === $k ? 'selected' : '' }}>{{ $k }}</option>
@@ -862,7 +907,7 @@
                                     </select>
                                 </div>
                                 <small style="color:var(--text-secondary);font-size:0.65rem;margin-top:0.25rem;display:block;">
-                                    L'appelant pourra appuyer sur cette touche pour stopper l'enregistrement pendant la conversation
+                                    Caller can press this key to stop recording during the call
                                 </small>
                             </div>
                         </div>
@@ -874,8 +919,8 @@
         {{-- CENTER: 2D Canvas --}}
         <div class="panel" style="border-right:1px solid var(--border);">
             <div class="panel-head">
-                <i class="bi bi-bounding-box"></i> Cartographie
-                <span style="margin-left:auto; font-size:0.68rem; color:var(--text-secondary);" id="nodeCount">0 blocs</span>
+                <i class="bi bi-bounding-box"></i> {{ __('ui.cartography') }}
+                <span style="margin-left:auto; font-size:0.68rem; color:var(--text-secondary);" id="nodeCount">0 {{ __('ui.n_blocks') }}</span>
                 <button class="btn-fs" onclick="openFullscreen()" title="Plein ecran"><i class="bi bi-arrows-fullscreen"></i></button>
             </div>
             <div class="canvas-wrap" id="canvasWrap">
@@ -891,11 +936,11 @@
 
         {{-- RIGHT: properties --}}
         <div class="panel">
-            <div class="panel-head"><i class="bi bi-gear"></i> Proprietes</div>
+            <div class="panel-head"><i class="bi bi-gear"></i> {{ __('ui.properties') }}</div>
             <div class="panel-body" id="propPanel">
                 <div class="cfg-empty">
                     <i class="bi bi-hand-index" style="font-size:1.5rem; display:block; margin-bottom:.5rem;"></i>
-                    Cliquez sur un bloc
+                    {{ __('ui.click_block') }}
                 </div>
             </div>
             <div style="border-top:1px solid var(--border);">
@@ -914,7 +959,7 @@
     <div class="canvas-fullscreen" id="fsModal">
         <div class="fs-header">
             <i class="bi bi-bounding-box"></i>
-            <h3>Cartographie</h3>
+            <h3>{{ __('ui.cartography') }}</h3>
             <span style="font-size:0.7rem; color:var(--text-secondary);" id="fsNodeCount"></span>
             <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
                 <button class="zoom-btn" onclick="zoomIn()" title="Zoom +"><i class="bi bi-plus"></i></button>
@@ -924,7 +969,7 @@
                 <button class="btn-fs" onclick="closeFullscreen(); wizOpenEdit();" title="Wizard"><i class="bi bi-magic me-1"></i> Wizard</button>
                 @endif
                 <button class="btn btn-accent" style="font-size:.75rem; padding:4px 12px;" onclick="document.getElementById('btnSave').click()">
-                    <i class="bi bi-check-lg me-1"></i> Enregistrer
+                    <i class="bi bi-check-lg me-1"></i> {{ __('ui.save') }}
                 </button>
                 <button class="btn-fs" onclick="closeFullscreen()"><i class="bi bi-x-lg"></i></button>
             </div>
@@ -934,21 +979,24 @@
             <div class="fs-panel fs-panel-left">
                 <div style="flex:1; overflow-y:auto; padding:.75rem;">
                     <div style="font-weight:700; font-size:.68rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.4rem; padding:0 .2rem;">
-                        <i class="bi bi-plus-circle me-1"></i> Blocs
+                        <i class="bi bi-plus-circle me-1"></i> {{ __('ui.blocks') }}
                     </div>
                     <div class="pal-grid">
-                        <div class="pal-item" onclick="addNode('answer')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> Repondre</div>
-                        <div class="pal-item" onclick="addNode('queue')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> File</div>
-                        <div class="pal-item" onclick="addNode('ring')"><div class="pal-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div> Sonnerie</div>
-                        <div class="pal-item" onclick="addNode('voicemail')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> Messagerie</div>
-                        <div class="pal-item" onclick="addNode('playback')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> Audio</div>
-                        <div class="pal-item" onclick="addNode('announcement')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> Annonce</div>
-                        <div class="pal-item" onclick="addNode('forward')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-forward"></i></div> Renvoi</div>
-                        <div class="pal-item" onclick="addNode('moh')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> Musique</div>
-                        <div class="pal-item" onclick="addNode('ivr')"><div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> IVR</div>
-                        <div class="pal-item" onclick="addNode('time_condition')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> Horaires</div>
-                        <div class="pal-item" onclick="addNode('goto')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> Goto</div>
-                        <div class="pal-item" onclick="addNode('hangup')"><div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> Raccrocher</div>
+                        <div class="pal-item" onclick="addNode('answer')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div> {{ __('ui.answer') }}</div>
+                        <div class="pal-item" onclick="addNode('queue')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div> {{ __('ui.queue_block') }}</div>
+                        <div class="pal-item" onclick="addNode('ring')"><div class="pal-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div> {{ __('ui.ring') }}</div>
+                        <div class="pal-item" onclick="addNode('voicemail')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div> {{ __('ui.voicemail_block') }}</div>
+                        <div class="pal-item" onclick="addNode('playback')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-volume-up"></i></div> {{ __('ui.audio_block') }}</div>
+                        <div class="pal-item" onclick="addNode('announcement')"><div class="pal-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div> {{ __('ui.announcement_block') }}</div>
+                        <div class="pal-item" onclick="addNode('forward')"><div class="pal-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-forward"></i></div> {{ __('ui.forward_block') }}</div>
+                        <div class="pal-item" onclick="addNode('moh')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div> {{ __('ui.music_block') }}</div>
+                        <div class="pal-item" onclick="addNode('ivr')"><div class="pal-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div> {{ __('ui.ivr_block') }}</div>
+                        <div class="pal-item" onclick="addNode('time_condition')"><div class="pal-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-clock-history"></i></div> {{ __('ui.time_block') }}</div>
+                        <div class="pal-item" onclick="addNode('did_filter')"><div class="pal-icon" style="background:#00bcd425;color:#00bcd4;"><i class="bi bi-telephone-inbound"></i></div> DID Filter</div>
+                        <div class="pal-item" onclick="addNode('cid_filter')"><div class="pal-icon" style="background:#e91e6325;color:#e91e63;"><i class="bi bi-funnel"></i></div> CID Filter</div>
+                        <div class="pal-item" onclick="addNode('ai_agent')"><div class="pal-icon" style="background:#10b98125;color:#10b981;"><i class="bi bi-robot"></i></div> {{ __('ui.ai_block') }}</div>
+                        <div class="pal-item" onclick="addNode('goto')"><div class="pal-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div> {{ __('ui.goto_block') }}</div>
+                        <div class="pal-item" onclick="addNode('hangup')"><div class="pal-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div> {{ __('ui.hangup_block') }}</div>
                     </div>
 
                     <div class="cfg-toggle" onclick="document.getElementById('fsCfgPanel').classList.toggle('cfg-collapsed')">
@@ -956,20 +1004,22 @@
                         <i class="bi bi-chevron-down ms-auto" style="font-size:.6rem;"></i>
                     </div>
                     <div id="fsCfgPanel">
-                        <div class="cfg-section">
-                            <label>{{ __("ui.name") }}</label>
-                            <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgName"
-                                   value="{{ old('name', $callflow->name ?? '') }}" placeholder="accueil-principal">
+                        <div style="display:flex;gap:.3rem;margin-bottom:.4rem;">
+                            <div style="flex:1;">
+                                <label style="font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:.1rem;display:block;">{{ __("ui.name") }}</label>
+                                <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgName"
+                                       value="{{ old('name', $callflow->name ?? '') }}" placeholder="main-reception">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:.1rem;display:block;">Description</label>
+                                <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgDesc"
+                                       value="{{ old('description', $callflow->description ?? '') }}" placeholder="{{ __('ui.optional') }}">
+                            </div>
                         </div>
                         <div class="cfg-section">
-                            <label>Description</label>
-                            <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgDesc"
-                                   value="{{ old('description', $callflow->description ?? '') }}" placeholder="Optionnel">
-                        </div>
-                        <div class="cfg-section">
-                            <label>Trunk entrant</label>
+                            <label>{{ __('ui.trunk_inbound') }}</label>
                             <select class="form-select form-select-sm fs-cfg-sync" data-target="cfgTrunk">
-                                <option value="">— Choisir —</option>
+                                <option value="">— {{ __('ui.choose') }} —</option>
                                 @foreach($trunks as $trunk)
                                     <option value="{{ $trunk->id }}"
                                         data-context="{{ $trunk->getEffectiveInboundContext() }}"
@@ -979,43 +1029,17 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="cfg-section">
-                            <label style="color:#29b6f6;"><i class="bi bi-telephone-inbound me-1"></i>Numero appele (DID)</label>
-                            <select class="form-select form-select-sm fs-cfg-sync" data-target="cfgDidFilter" id="fsDid"
-                                style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
-                                <option value="">Par defaut (tous les numeros du trunk)</option>
-                                @foreach($callerIds ?? [] as $cid)
-                                    <option value="{{ $cid->number }}"
-                                        {{ in_array($cid->number, old('did_filter', $callflow->did_filter ?? [])) ? 'selected' : '' }}>
-                                        {{ $cid->label }} — {{ $cid->number }}{{ $cid->trunk ? ' ('.$cid->trunk->name.')' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <small style="color:var(--text-secondary);font-size:0.62rem;">Declenche ce scenario uniquement pour ce numero appele.</small>
-                        </div>
-                        <div class="cfg-section">
-                            <label style="color:#bc6ff1;"><i class="bi bi-funnel me-1"></i>Caller ID appelant</label>
-                            <select class="form-select form-select-sm fs-cfg-sync" data-target="cfgCallerIdFilter" id="fsCid"
-                                style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
-                                <option value="">Par defaut (tous les appelants)</option>
-                                @foreach($callerIds ?? [] as $cid)
-                                    <option value="{{ $cid->number }}"
-                                        {{ in_array($cid->number, old('caller_id_filter', $callflow->caller_id_filter ?? [])) ? 'selected' : '' }}>
-                                        {{ $cid->label }} — {{ $cid->number }}{{ $cid->trunk ? ' ('.$cid->trunk->name.')' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <small style="color:var(--text-secondary);font-size:0.62rem;">Filtre par numero de l'appelant entrant.</small>
-                        </div>
-                        <div class="cfg-section">
-                            <label>Contexte</label>
-                            <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgCtx"
-                                   value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" readonly style="opacity:.7;cursor:not-allowed;">
-                        </div>
-                        <div class="cfg-section">
-                            <label>Priorite</label>
-                            <input type="number" class="form-control form-control-sm fs-cfg-sync" data-target="cfgPrio"
-                                   value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
+                        <div style="display:flex;gap:.3rem;margin-bottom:.4rem;">
+                            <div style="flex:2;">
+                                <label style="font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:.1rem;display:block;">{{ __('ui.th_context') }}</label>
+                                <input type="text" class="form-control form-control-sm fs-cfg-sync" data-target="cfgCtx"
+                                       value="{{ old('inbound_context', $callflow->inbound_context ?? 'from-trunk') }}" readonly style="opacity:.5;cursor:not-allowed;font-size:.7rem;">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:.1rem;display:block;">{{ __('ui.priority') }}</label>
+                                <input type="number" class="form-control form-control-sm fs-cfg-sync" data-target="cfgPrio"
+                                       value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100" style="font-size:.7rem;">
+                            </div>
                         </div>
                         <div class="cfg-section">
                             <div class="form-check form-switch">
@@ -1024,7 +1048,7 @@
                                     onchange="document.getElementById('cfgRecord').checked = this.checked; toggleRecordOptions();">
                                 <label class="form-check-label" for="fsCfgRecord"
                                        style="text-transform:none; font-size:0.8rem; color:var(--text-primary);">
-                                    <i class="bi bi-record-circle" style="color:#ef4444;"></i> Enregistrer les appels
+                                    <i class="bi bi-record-circle" style="color:#ef4444;"></i> {{ __('ui.record_calls') }}
                                 </label>
                             </div>
                         </div>
@@ -1035,11 +1059,11 @@
             <div class="fs-body" id="fsBody"></div>
             {{-- RIGHT: properties --}}
             <div class="fs-panel fs-panel-right">
-                <div class="panel-head" style="font-size:.72rem;padding:.6rem .75rem;"><i class="bi bi-gear me-1"></i> Proprietes</div>
+                <div class="panel-head" style="font-size:.72rem;padding:.6rem .75rem;"><i class="bi bi-gear me-1"></i> {{ __('ui.properties') }}</div>
                 <div class="panel-body" id="fsPropPanel" style="flex:1; overflow-y:auto; padding:.6rem;">
                     <div class="cfg-empty">
                         <i class="bi bi-hand-index" style="font-size:1.2rem; display:block; margin-bottom:.4rem;"></i>
-                        Cliquez sur un bloc
+                        {{ __('ui.click_block') }}
                     </div>
                 </div>
             </div>
@@ -1063,25 +1087,45 @@
 
                 {{-- Step 1: choose template OR custom --}}
                 <div class="wiz-step active" id="wizStep1">
-                    <h5>Modeles pre-configures</h5>
-                    <div class="wiz-subtitle">Selectionnez un modele pour demarrer rapidement</div>
+                    <h5>{{ __('ui.preconfigured_templates') }}</h5>
+                    <div class="wiz-subtitle">{{ __('ui.build_scenario') }}</div>
                     <div class="tpl-grid">
+                        @php
+                            $tplNames = [
+                                'Accueil standard' => ['en' => 'Standard reception'],
+                                'Repondeur simple' => ['en' => 'Simple voicemail'],
+                                "File d'attente" => ['en' => 'Call queue'],
+                                'Sonnerie cascade' => ['en' => 'Cascade ringing'],
+                                'Annonce + raccrocher' => ['en' => 'Announcement + hangup'],
+                                'File cascade' => ['en' => 'Cascade queue'],
+                                'Bureau Lun-Ven 9h-18h' => ['en' => 'Office Mon-Fri 9am-6pm'],
+                            ];
+                            $tplDescs = [
+                                'Decroche, met en file d\'attente, puis messagerie si pas de reponse' => ['en' => 'Picks up, queues, then voicemail if no answer'],
+                                'Joue un message d\'annonce puis raccroche (hors service, etc.)' => ['en' => 'Plays announcement then hangs up (out of service, etc.)'],
+                                'Verifie les horaires d\'ouverture (lun-ven 09:00-18:00), accueil + file si ouvert, messagerie si ferme' => ['en' => 'Checks business hours (Mon-Fri 9-18), queue if open, voicemail if closed'],
+                                'Distribue via une file, si pas de reponse redirige vers une seconde' => ['en' => 'Distributes via queue, redirects to second if no answer'],
+                                'Decroche, musique d\'attente, puis distribue via une file' => ['en' => 'Picks up, music on hold, then distributes via queue'],
+                                'Decroche et envoie directement en messagerie vocale' => ['en' => 'Picks up and sends directly to voicemail'],
+                                'Sonne un premier poste, puis un second si pas de reponse' => ['en' => 'Rings first extension, then second if no answer'],
+                            ];
+                        @endphp
                         @foreach($templates as $tpl)
                         <div class="tpl-card" data-tpl-id="{{ $tpl->id }}" onclick="wizSelectTpl(this, {{ $tpl->id }})">
                             <div class="tpl-icon"><i class="bi {{ $tpl->icon }}"></i></div>
-                            <h6>{{ $tpl->name }}</h6>
-                            <p>{{ $tpl->description ?: 'Aucune description' }}</p>
-                            <div class="tpl-steps">{{ count($tpl->steps) }} etape{{ count($tpl->steps) > 1 ? 's' : '' }}</div>
+                            <h6>{{ $tplNames[$tpl->name][app()->getLocale()] ?? $tpl->name }}</h6>
+                            <p>{{ $tplDescs[$tpl->description][app()->getLocale()] ?? $tpl->description ?: '' }}</p>
+                            <div class="tpl-steps">{{ count($tpl->steps) }} {{ __('ui.steps') }}</div>
                         </div>
                         @endforeach
                     </div>
-                    <div class="wiz-or-divider">ou</div>
+                    <div class="wiz-or-divider">{{ __('ui.or') }}</div>
                     <div class="tpl-card selected-custom" style="border:2px dashed var(--border); background:var(--surface-1);" onclick="wizSelectCustom(this)">
                         <div style="display:flex; align-items:center; gap:.75rem;">
                             <div class="tpl-icon" style="margin:0; font-size:1.4rem;"><i class="bi bi-sliders"></i></div>
                             <div>
-                                <h6 style="font-size:.9rem;">Creer sur mesure</h6>
-                                <p>Construisez votre scenario etape par etape</p>
+                                <h6 style="font-size:.9rem;">{{ __('ui.build_scenario') }}</h6>
+                                <p>{{ __('ui.build_scenario') }}</p>
                             </div>
                             <i class="bi bi-chevron-right" style="margin-left:auto; font-size:1rem; color:var(--text-secondary);"></i>
                         </div>
@@ -1090,8 +1134,8 @@
 
                 {{-- Step 2: step-by-step builder (custom only) --}}
                 <div class="wiz-step" id="wizStep2">
-                    <h5>Composez votre scenario</h5>
-                    <div class="wiz-subtitle">Ajoutez les etapes dans l'ordre souhaite</div>
+                    <h5>{{ __('ui.build_scenario') }}</h5>
+                    <div class="wiz-subtitle">{{ __('ui.add_steps_order') }}</div>
 
                     {{-- Timeline of added steps --}}
                     <div id="wizTimeline" style="margin-bottom:1rem;"></div>
@@ -1099,7 +1143,7 @@
                     {{-- Picker for next step --}}
                     <div id="wizPicker">
                         <div style="font-weight:700; font-size:.72rem; letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:.5rem;">
-                            <i class="bi bi-plus-circle me-1"></i> Ajouter une etape
+                            <i class="bi bi-plus-circle me-1"></i> Add step
                         </div>
                         <div class="wiz-feat-grid">
                             <div class="wiz-feat-item" onclick="wizAddStep('playback')">
@@ -1108,19 +1152,19 @@
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('announcement')">
                                 <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-megaphone"></i></div>
-                                <div class="wiz-feat-text"><h6>Annonce</h6><p>Message avant mise en attente</p></div>
+                                <div class="wiz-feat-text"><h6>{{ __('ui.announcement_block') }}</h6></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('queue')">
                                 <div class="wiz-feat-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-people"></i></div>
-                                <div class="wiz-feat-text"><h6>File d'attente</h6><p>Distribue l'appel aux postes</p></div>
+                                <div class="wiz-feat-text"><h6>{{ __('ui.queues') }}</h6><p>{{ __('ui.queue_distributes') }}</p></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('ring')">
                                 <div class="wiz-feat-icon" style="background:#29b6f625;color:#29b6f6;"><i class="bi bi-bell"></i></div>
-                                <div class="wiz-feat-text"><h6>Sonnerie directe</h6><p>Sonne un poste sans file</p></div>
+                                <div class="wiz-feat-text"><h6>{{ __('ui.ring') }}</h6></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('moh')">
                                 <div class="wiz-feat-icon" style="background:#f0883e25;color:#f0883e;"><i class="bi bi-music-note-beamed"></i></div>
-                                <div class="wiz-feat-text"><h6>Musique d'attente</h6><p>Musique pendant l'attente</p></div>
+                                <div class="wiz-feat-text"><h6>{{ __('ui.music_on_hold') }}</h6></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('voicemail')">
                                 <div class="wiz-feat-icon" style="background:#d2992225;color:#d29922;"><i class="bi bi-voicemail"></i></div>
@@ -1128,7 +1172,7 @@
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('ivr')">
                                 <div class="wiz-feat-icon" style="background:#e8671525;color:#e86715;"><i class="bi bi-grid-3x3-gap"></i></div>
-                                <div class="wiz-feat-text"><h6>Menu vocal (IVR)</h6><p>Touche 1, 2, 3... pour router</p></div>
+                                <div class="wiz-feat-text"><h6>IVR</h6></div>
                             </div>
                             <div class="wiz-feat-item" onclick="wizAddStep('goto')">
                                 <div class="wiz-feat-icon" style="background:#bc8cff25;color:#bc8cff;"><i class="bi bi-arrow-right-circle"></i></div>
@@ -1149,12 +1193,12 @@
                     </div>
                     <div class="cfg-section">
                         <label>Description</label>
-                        <input type="text" class="form-control form-control-sm" id="wizDesc" placeholder="Optionnel">
+                        <input type="text" class="form-control form-control-sm" id="wizDesc" placeholder="{{ __('ui.optional') }}">
                     </div>
                     <div class="cfg-section">
-                        <label>Trunk entrant *</label>
+                        <label>{{ __('ui.trunk_inbound') }} *</label>
                         <select class="form-select form-select-sm" id="wizTrunk" required>
-                            <option value="">— Choisir —</option>
+                            <option value="">— {{ __('ui.choose') }} —</option>
                             @foreach($trunks as $trunk)
                             <option value="{{ $trunk->id }}" data-context="{{ $trunk->getEffectiveInboundContext() }}">{{ $trunk->name }}</option>
                             @endforeach
@@ -1171,7 +1215,7 @@
                 </button>
                 <span style="flex:1;"></span>
                 <button class="btn btn-accent" id="wizBtnNext" onclick="wizNext()" disabled>
-                    Suivant <i class="bi bi-arrow-right ms-1"></i>
+                    {{ __('ui.next') }} <i class="bi bi-arrow-right ms-1"></i>
                 </button>
             </div>
         </div>
@@ -1180,14 +1224,14 @@
     {{-- Save as template modal --}}
     <div id="tplModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;">
         <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:380px;max-width:90vw;">
-            <h6 style="margin:0 0 1rem;font-weight:700;"><i class="bi bi-bookmark-plus me-2" style="color:#f0883e;"></i>Sauver comme template</h6>
+            <h6 style="margin:0 0 1rem;font-weight:700;"><i class="bi bi-bookmark-plus me-2" style="color:#f0883e;"></i>{{ __('ui.save_template') }}</h6>
             <div class="cfg-section">
                 <label>Nom du template *</label>
                 <input type="text" class="form-control form-control-sm" id="tplModalName" placeholder="ex: Accueil standard" autofocus>
             </div>
             <div class="cfg-section">
                 <label>Description</label>
-                <input type="text" class="form-control form-control-sm" id="tplModalDesc" placeholder="Optionnel">
+                <input type="text" class="form-control form-control-sm" id="tplModalDesc" placeholder="{{ __('ui.optional') }}">
             </div>
             <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;">
                 <button class="btn-outline-custom" onclick="closeSaveTplModal()">Annuler</button>
@@ -1207,22 +1251,63 @@
 @push('scripts')
 <script>
 // ════════════════════════════════════════
+// i18n JS translations
+const T = {
+    answer: '{{ __("ui.answer") }}', ring: '{{ __("ui.ring") }}', queue: '{{ __("ui.queue_block") }}',
+    voicemail: '{{ __("ui.voicemail_block") }}', audio: '{{ __("ui.audio_block") }}',
+    announcement: '{{ __("ui.announcement_block") }}', music: '{{ __("ui.music_block") }}',
+    forward: '{{ __("ui.forward_block") }}', goto: '{{ __("ui.goto_block") }}',
+    ivr: '{{ __("ui.ivr_block") }}', time: '{{ __("ui.time_block") }}',
+    hangup: '{{ __("ui.hangup_block") }}', ai: '{{ __("ui.ai_block") }}',
+    didFilter: 'DID Filter', cidFilter: 'CID Filter',
+    matchNumber: '{{ __("ui.number") }}', matchDesc: '{{ __("ui.cid_filter_desc") }}',
+    ext: '{{ __("ui.extension") }}', exts: '{{ __("ui.extension") }}', mailbox: '{{ __("ui.voicemail") }}',
+    wait: '{{ __("ui.timeout") }}', end: '{{ __("ui.hangup_block") }}',
+    cls: '{{ __("ui.codecs") }}', dur: '{{ __("ui.duration") }}',
+    outConn: '{{ __("ui.outgoing_conn") }}', notConn: '{{ __("ui.not_connected") }}',
+    clickBlock: '{{ __("ui.click_block") }}', internalExt: '{{ __("ui.extension") }}',
+    externalNum: '{{ __("ui.outbound") }}', box: '{{ __("ui.voicemail") }}',
+    none: '{{ __("ui.none") }}', file: '{{ __("ui.files") }}',
+    number: '{{ __("ui.number") }}', orAudio: '{{ __("ui.or_audio_file") }}',
+    ttsText: '{{ __("ui.tts_text") }}', ttsVocal: '{{ __("ui.tts_vocal") }}',
+    ttsPiperDesc: '{!! __("ui.tts_piper_desc") !!}',
+    reps: '{{ __("ui.repetitions") }}', repDesc: '{!! __("ui.rep_desc") !!}',
+    ivrBranches: '{{ __("ui.ivr_branches") }}', notLinked: '{{ __("ui.not_linked") }}',
+    openHour: '{{ __("ui.open_hour") }}', closeHour: '{{ __("ui.close_hour") }}',
+    days: '{{ __("ui.days") }}', branches: '{{ __("ui.branches") }}',
+    open: '{{ __("ui.open") }}', closed: '{{ __("ui.closed") }}',
+    localFiles: '{{ __("ui.local_files") }}', queueLabel: '{{ __("ui.queue_label") }}',
+    promptInstr: '{{ __("ui.prompt_instructions") }}',
+    addContext: '{{ __("ui.additional_context") }}',
+    ragFolder: '{{ __("ui.rag_folder") }}', ragAll: '{{ __("ui.rag_all_docs") }}',
+    type: '{{ __("ui.type") }}',
+    aiVoice: '{{ __("ui.ai_voice_label") }}',
+    aiRagDesc: '{!! __("ui.ai_rag_context_desc") !!}',
+    aiGuardTitle: '{{ __("ui.ai_guardrail_title") }}',
+    aiGuardDesc: '{!! __("ui.ai_guardrail_desc") !!}',
+    incomingCall: '{{ __("ui.incoming_call") }}',
+    choose: '{{ __("ui.choose") }}',
+    optional: '{{ __("ui.optional") }}',
+};
+
 // DATA
 // ════════════════════════════════════════
 const TYPES = {
-    answer:       { label:'Repondre',         icon:'bi-telephone-inbound',  color:'answer' },
-    ring:         { label:'Sonnerie',          icon:'bi-bell',              color:'ring' },
-    queue:        { label:'File d\'attente',   icon:'bi-people',            color:'queue' },
-    voicemail:    { label:'Messagerie',        icon:'bi-voicemail',         color:'voicemail' },
-    playback:     { label:'Lecture audio',     icon:'bi-volume-up',         color:'playback' },
-    announcement: { label:'Annonce',           icon:'bi-megaphone',         color:'announcement' },
-    moh:          { label:'Musique',           icon:'bi-music-note-beamed', color:'moh' },
-    forward:      { label:'Renvoi',            icon:'bi-telephone-forward', color:'forward' },
-    goto:         { label:'Goto',              icon:'bi-arrow-right-circle',color:'goto' },
-    ivr:          { label:'Menu vocal',        icon:'bi-grid-3x3-gap',      color:'ivr' },
-    time_condition:{ label:'Horaires',         icon:'bi-clock-history',     color:'time' },
-    ai_agent:     { label:'Agent IA',          icon:'bi-robot',             color:'ai' },
-    hangup:       { label:'Raccrocher',        icon:'bi-telephone-x',       color:'hangup' },
+    answer:       { label:T.answer,           icon:'bi-telephone-inbound',  color:'answer' },
+    ring:         { label:T.ring,             icon:'bi-bell',              color:'ring' },
+    queue:        { label:T.queue,             icon:'bi-people',            color:'queue' },
+    voicemail:    { label:T.voicemail,         icon:'bi-voicemail',         color:'voicemail' },
+    playback:     { label:T.audio,             icon:'bi-volume-up',         color:'playback' },
+    announcement: { label:T.announcement,      icon:'bi-megaphone',         color:'announcement' },
+    moh:          { label:T.music,             icon:'bi-music-note-beamed', color:'moh' },
+    forward:      { label:T.forward,           icon:'bi-telephone-forward', color:'forward' },
+    goto:         { label:T.goto,              icon:'bi-arrow-right-circle',color:'goto' },
+    ivr:          { label:T.ivr,               icon:'bi-grid-3x3-gap',      color:'ivr' },
+    time_condition:{ label:T.time,             icon:'bi-clock-history',     color:'time' },
+    ai_agent:     { label:T.ai,               icon:'bi-robot',             color:'ai' },
+    did_filter:   { label:T.didFilter,         icon:'bi-telephone-inbound', color:'did' },
+    cid_filter:   { label:T.cidFilter,         icon:'bi-funnel',            color:'cid' },
+    hangup:       { label:T.hangup,            icon:'bi-telephone-x',       color:'hangup' },
 };
 const DEFAULTS = {
     answer:       { wait:1 },
@@ -1237,10 +1322,18 @@ const DEFAULTS = {
     ivr:          { sound:'custom/menu', timeout:5, options: { '1': '', '2': '', '3': '' } },
     time_condition: { time_start:'09:00', time_end:'18:00', days:'mon-fri', closed_sound:'custom/ferme', closed_action:'voicemail', closed_target:'1000' },
     ai_agent:     { ai_prompt:'Tu es un assistant telephonique professionnel pour notre entreprise. Reponds en francais de maniere concise et utile.', ai_voice:'alloy' },
+    did_filter:   { match_number:'' },
+    cid_filter:   { match_number:'' },
     hangup:       {},
 };
 const QUEUES = @json($queues);
 const LINES  = @json($lines);
+@php
+    $cidData = ($callerIds ?? collect())->map(function($c) {
+        return ['id' => $c->id, 'number' => $c->number, 'label' => $c->label, 'trunk_id' => $c->trunk_id, 'trunk_name' => $c->trunk?->name];
+    })->values();
+@endphp
+const CALLER_IDS = @json($cidData);
 @php
     $audioData = ($audioFiles ?? collect())->map(function($a) {
         return ['id' => $a->id, 'name' => $a->name, 'ref' => $a->getAsteriskRef(), 'category' => $a->category, 'moh_class' => $a->moh_class];
@@ -1255,9 +1348,9 @@ function _fillMohSel(selId, classes, current) {
     const local = classes.filter(c => !c.is_stream && !c.is_playlist);
     const playlists = classes.filter(c => c.is_playlist);
     const streams = classes.filter(c => c.is_stream);
-    [{label:'Fichiers locaux', items:local, suffix:f=>(f.files||[]).length+' fichiers'},
-     {label:'Playlists', items:playlists, suffix:f=>(f.files||[]).length+' titres'},
-     {label:'Flux streaming', items:streams, suffix:()=>'stream'}
+    [{label:T.localFiles, items:local, suffix:f=>(f.files||[]).length+' files'},
+     {label:'Playlists', items:playlists, suffix:f=>(f.files||[]).length+' tracks'},
+     {label:'Streaming', items:streams, suffix:()=>'stream'}
     ].forEach(g => {
         if (!g.items.length) return;
         const grp = document.createElement('optgroup');
@@ -1275,7 +1368,7 @@ function _fillMohSel(selId, classes, current) {
 
 function audioSelect(nodeId, prop, currentVal, category = null) {
     const filtered = category ? AUDIO_FILES.filter(a => a.category === category) : AUDIO_FILES;
-    let opts = '<option value="">— Choisir —</option>';
+    let opts = '<option value="">— {{ __('ui.choose') }} —</option>';
     filtered.forEach(a => {
         opts += `<option value="${a.ref}" ${currentVal === a.ref ? 'selected' : ''}>${a.name} (${a.ref})</option>`;
     });
@@ -1308,6 +1401,7 @@ let nodes = [];        // {id, type, x, y, data:{}, next:null}
 let selectedId = null;
 let nextId = 1;
 const startId = '__start__';
+function isBranchType(t){ return t==='ivr'||t==='time_condition'||t==='did_filter'||t==='cid_filter'; }
 
 // Canvas transform
 let camX = 0, camY = 0, zoom = 1;
@@ -1347,23 +1441,29 @@ function loadSteps(steps, savedPositions) {
         delete n.data._nodeId;
 
         // Restore branches
-        if ((s.type === 'ivr' || s.type === 'time_condition') && s.branch_targets) {
+        if (isBranchType(s.type) && s.branch_targets) {
             n.branches = Object.assign({}, s.branch_targets);
             delete n.data.branch_targets;
+        }
+        // Restore saved next connection
+        if (s._next !== undefined) {
+            n.next = s._next;
+            delete n.data._next;
         }
         nodes.push(n);
         if (savedNodeId) idMap[savedNodeId] = nId;
     });
 
-    // Rebuild linear chain (next) for non-branching nodes
-    // Follow original order: each node links to the next, unless it's IVR/time_condition
-    for (let i = 0; i < nodes.length - 1; i++) {
-        if (nodes[i].type !== 'ivr' && nodes[i].type !== 'time_condition') {
-            // Only link to next if next node is not already a branch target of something
-            const nextNode = nodes[i + 1];
-            const isBranchTarget = nodes.some(n => n.branches && Object.values(n.branches).includes(nextNode.id));
-            if (!isBranchTarget) {
-                nodes[i].next = nextNode.id;
+    // Rebuild linear chain ONLY if no _next was saved (legacy/template steps)
+    const hasExplicitNext = steps.some(s => s._next !== undefined);
+    if (!hasExplicitNext) {
+        for (let i = 0; i < nodes.length - 1; i++) {
+            if (!isBranchType(nodes[i].type)) {
+                const nextNode = nodes[i + 1];
+                const isBranchTarget = nodes.some(n => n.branches && Object.values(n.branches).includes(nextNode.id));
+                if (!isBranchTarget) {
+                    nodes[i].next = nextNode.id;
+                }
             }
         }
     }
@@ -1416,7 +1516,7 @@ function wizRenderTimeline() {
     html += '<div class="wiz-tl-label">Debut obligatoire</div>';
     html += `<div class="wiz-tl-item mandatory">
         <div class="wiz-tl-icon" style="background:#58a6ff25;color:#58a6ff;"><i class="bi bi-telephone-inbound"></i></div>
-        <div class="wiz-tl-text"><h6>Decrocher</h6><p>Repond a l'appel entrant</p></div>
+        <div class="wiz-tl-text"><h6>{{ __('ui.pick_up') }}</h6><p>{{ __('ui.pick_up_desc') }}</p></div>
         <span style="font-size:.6rem; color:var(--accent); font-weight:700;">OBLIGATOIRE</span>
     </div>`;
 
@@ -1430,7 +1530,7 @@ function wizRenderTimeline() {
             <div class="wiz-tl-drag" title="Deplacer"><i class="bi bi-grip-vertical"></i></div>
             <div class="wiz-tl-icon" style="background:${colorBg(s.type)};color:${colorFg(s.type)};"><i class="bi ${t.icon}"></i></div>
             <div class="wiz-tl-text"><h6>${t.label}</h6><p>${wizStepDesc(s)}</p></div>
-            <div class="wiz-tl-remove" onclick="wizRemoveStep(${i})" title="Supprimer"><i class="bi bi-x"></i></div>
+            <div class="wiz-tl-remove" onclick="wizRemoveStep(${i})" title="{{ __('ui.delete') }}"><i class="bi bi-x"></i></div>
         </div>`;
     });
 
@@ -1438,7 +1538,7 @@ function wizRenderTimeline() {
     html += '<div class="wiz-tl-connector"></div>';
     html += `<div class="wiz-tl-item auto">
         <div class="wiz-tl-icon" style="background:#f8514925;color:#f85149;"><i class="bi bi-telephone-x"></i></div>
-        <div class="wiz-tl-text"><h6>Raccrocher</h6><p>Termine l'appel (ajoute automatiquement)</p></div>
+        <div class="wiz-tl-text"><h6>{{ __('ui.hangup_block') }}</h6></div>
         <span style="font-size:.6rem; color:var(--text-secondary); font-weight:700;">AUTO</span>
     </div>`;
 
@@ -1480,9 +1580,9 @@ function wizStepDesc(s) {
         case 'announcement': return s.sound || 'Message d\'annonce';
         case 'queue': return 'Distribution aux postes';
         case 'ring': return 'Sonnerie directe';
-        case 'forward': return (s.dest_type==='external'?'Ext: ':'Poste ') + (s.destination||'?') + ' (' + (s.timeout||20) + 's)';
+        case 'forward': return (s.dest_type==='external'?T.externalNum+': ':T.internalExt+' ') + (s.destination||'?') + ' (' + (s.timeout||20) + 's)';
         case 'moh': return (s.moh_class || 'default') + ' (' + (s.duration || 10) + 's)';
-        case 'voicemail': return 'Boite ' + (s.mailbox || '1000');
+        case 'voicemail': return T.box + ' ' + (s.mailbox || '1000');
         case 'goto': return 'Vers ' + (s.target_context || 'default');
         case 'ivr': return 'Touches ' + Object.keys(s.options || {}).join(', ');
         case 'ai_agent': return 'Agent IA (' + (s.ai_voice || 'alloy') + ')';
@@ -1508,7 +1608,7 @@ function wizShowStep(n) {
     const applyLabel = WIZ_EDIT_MODE ? 'Enregistrer' : 'Creer le scenario';
     document.getElementById('wizBtnNext').innerHTML = n === lastStep
         ? `<i class="bi bi-check-lg me-1"></i> ${applyLabel}`
-        : 'Suivant <i class="bi bi-arrow-right ms-1"></i>';
+        : '{{ __('ui.next') }} <i class="bi bi-arrow-right ms-1"></i>';
     const mainTitle = WIZ_EDIT_MODE ? 'Modifier le scenario' : 'Nouveau scenario';
     const titles = { 1: mainTitle, 2: 'Composez votre scenario', 3: 'Configuration' };
     document.getElementById('wizTitle').textContent = titles[n] || '';
@@ -1571,7 +1671,7 @@ function wizBuildDynFields() {
 
     if (hasQueue || hasRing) {
         html += `<div class="cfg-section">
-            <label>${hasQueue ? "Membres de la file d'attente" : "Postes a faire sonner"}</label>
+            <label>${hasQueue ? T.queue : T.exts}</label>
             <div class="wiz-check-grid" id="wizExtGrid">
                 ${LINES.map(l => `
                     <div class="wiz-check-item" data-ext="${l.extension}" onclick="this.classList.toggle('checked')">
@@ -1588,7 +1688,7 @@ function wizBuildDynFields() {
         html += `<div class="cfg-section">
             <label>Boite vocale</label>
             <select class="form-select form-select-sm" id="wizMailbox">
-                <option value="">— Choisir —</option>
+                <option value="">— {{ __('ui.choose') }} —</option>
                 ${LINES.map(l => `<option value="${l.extension}">${l.extension} — ${l.display_name || l.extension}</option>`).join('')}
             </select>
         </div>`;
@@ -1640,6 +1740,12 @@ function wizApply() {
         }
     }
 
+    if (!finalSteps.length) {
+        alert('Erreur: aucune etape trouvee. Template ID=' + wizSelectedTplId + ', TEMPLATES=' + TEMPLATES.length);
+        console.error('wizApply: empty steps', { wizSelectedTplId, wizIsCustom, TEMPLATES });
+        return;
+    }
+
     document.getElementById('stepsInput').value = JSON.stringify(finalSteps);
     document.getElementById('hidName').value = name;
     document.getElementById('hidDesc').value = document.getElementById('wizDesc').value || '';
@@ -1665,12 +1771,11 @@ function wizOpenEdit() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!WIZ_EDIT_MODE) {
-        openTplModal();
-    } else {
-        // Edit mode: always open fullscreen cartography directly
+    if (WIZ_EDIT_MODE) {
+        // Edit mode: open fullscreen cartography directly
         requestAnimationFrame(() => { openFullscreen(); });
     }
+    // Create mode: show hub page with choices (Wizard / Cartography)
 });
 
 // ════════════════════════════════════════
@@ -1707,7 +1812,7 @@ function render(){
         canvasInner.appendChild(mkNode(n));
     });
 
-    document.getElementById('nodeCount').textContent = nodes.length + ' bloc' + (nodes.length!==1?'s':'');
+    document.getElementById('nodeCount').textContent = nodes.length + ' {{ __('ui.n_blocks') }}';
     applyTransform();
     requestAnimationFrame(() => drawEdges());
 }
@@ -1718,7 +1823,7 @@ function mkStart(){
     el.style.left = '400px';
     el.style.top = '30px';
     el.dataset.id = startId;
-    el.innerHTML = `<div class="node-header"><i class="bi bi-telephone-inbound-fill me-1"></i> APPEL ENTRANT</div>`;
+    el.innerHTML = `<div class="node-header"><i class="bi bi-telephone-inbound-fill me-1"></i> ${T.incomingCall}</div>`;
     // out port
     const port = document.createElement('div');
     port.className = 'port port-out';
@@ -1775,14 +1880,13 @@ function mkNode(n){
             lbl.textContent = key;
             el.appendChild(lbl);
         });
-    } else if (n.type === 'time_condition') {
-        // Time condition: 2 branches only — open (green) + closed (red)
+    } else if (n.type === 'time_condition' || n.type === 'did_filter' || n.type === 'cid_filter') {
+        // Branching blocks: 2 branches — match/open (green) + no-match/closed (red)
         if (!n.branches) n.branches = {};
         n.next = null; // No linear "next", only branches
-        const branchDefs = [
-            { key: 'open', label: 'Ouvert', color: '#3fb950' },
-            { key: 'closed', label: 'Ferme', color: '#f85149' }
-        ];
+        const branchDefs = n.type === 'time_condition'
+            ? [{ key: 'open', label: T.open, color: '#3fb950' }, { key: 'closed', label: T.closed, color: '#f85149' }]
+            : [{ key: 'match', label: 'Match', color: '#3fb950' }, { key: 'no_match', label: 'No match', color: '#f85149' }];
         branchDefs.forEach((bd, i) => {
             const bp = document.createElement('div');
             bp.className = 'port port-branch';
@@ -1821,11 +1925,11 @@ function mkNode(n){
 
 function nodeDetail(n){
     switch(n.type){
-        case 'answer':    return `Attente ${n.data.wait||1}s`;
-        case 'forward':   return `${n.data.dest_type==='external'?'Externe':'Poste'}: ${n.data.destination||'<i>non defini</i>'} (${n.data.timeout||20}s)`;
-        case 'ring':      return (n.data.extensions||[]).length ? `Postes: ${n.data.extensions.join(', ')}` : '<i>Aucun poste</i>';
+        case 'answer':    return `${T.wait} ${n.data.wait||1}s`;
+        case 'forward':   return `${n.data.dest_type==='external'?T.externalNum:T.internalExt}: ${n.data.destination||'—'} (${n.data.timeout||20}s)`;
+        case 'ring':      return (n.data.extensions||[]).length ? `${T.exts}: ${n.data.extensions.join(', ')}` : '<i>—</i>';
         case 'queue':     return n.data.queue_name || '<i>Aucune file</i>';
-        case 'voicemail': return `Boite ${n.data.mailbox||'1000'}`;
+        case 'voicemail': return `${T.box} ${n.data.mailbox||'1000'}`;
         case 'playback':  return n.data.sound||'hello-world';
         case 'announcement': return n.data.sound||'custom/welcome';
         case 'moh':       return `${n.data.moh_class||'default'} (${n.data.duration||10}s)`;
@@ -1833,7 +1937,9 @@ function nodeDetail(n){
         case 'ivr':       return `Menu: ${Object.keys(n.data.options||{}).join(', ')} (x${n.data.max_loops||3})`;
         case 'ai_agent':  return `<span style="color:#10b981;">OpenAI</span> ${(n.data.ai_voice||'alloy')}`;
         case 'time_condition': return `${n.data.time_start||'09:00'}-${n.data.time_end||'18:00'} ${n.data.days||'mon-fri'}`;
-        case 'hangup':    return 'Fin';
+        case 'did_filter': return `<span style="color:#00bcd4;">DID</span> ${n.data.match_number||'*'}`;
+        case 'cid_filter': return `<span style="color:#e91e63;">CID</span> ${n.data.match_number||'*'}`;
+        case 'hangup':    return T.end;
         default: return '';
     }
 }
@@ -1854,7 +1960,7 @@ function nodePortPos(id, dir, branchKey){
     const el = canvasInner.querySelector(`[data-id="${id}"]`);
     const w = el ? el.offsetWidth : 220;
     const h = el ? el.offsetHeight : 70;
-    if (branchKey !== undefined && (n.type === 'ivr' || n.type === 'time_condition')) {
+    if (branchKey !== undefined && isBranchType(n.type)) {
         // Find the branch port position
         const port = el?.querySelector(`.port-branch[data-key="${branchKey}"]`);
         if (port) {
@@ -1896,18 +2002,19 @@ function drawEdges(){
     }
 
     nodes.forEach(n => {
-        if (n.next !== null && n.type !== 'ivr' && n.type !== 'time_condition') {
+        if (n.next !== null && !isBranchType(n.type)) {
             const target = nodes.find(x => x.id === n.next);
             if (target) drawCurve(svg, nodePortPos(n.id,'out'), nodePortPos(target.id,'in'));
         }
         // IVR / time_condition branches
-        if ((n.type === 'ivr' || n.type === 'time_condition') && n.branches) {
+        if (isBranchType(n.type) && n.branches) {
             Object.keys(n.branches).forEach(key => {
                 const targetId = n.branches[key];
                 const target = nodes.find(x => x.id === targetId);
                 if (!target) return;
                 let color = '#bc6ff1'; // IVR default
                 if (n.type === 'time_condition') color = key === 'open' ? '#3fb950' : '#f85149';
+                if (n.type === 'did_filter' || n.type === 'cid_filter') color = key === 'match' ? '#3fb950' : '#f85149';
                 drawCurve(svg, nodePortPos(n.id, 'branch', key), nodePortPos(target.id, 'in'), false, color);
             });
         }
@@ -2117,7 +2224,7 @@ function openFullscreen(){
     fsBody.addEventListener('wheel', fsWheel, { passive: false });
     fsBody.addEventListener('mousedown', fsMouseDown);
     document.getElementById('fsNodeCount').textContent =
-        nodes.length + ' bloc' + (nodes.length !== 1 ? 's' : '');
+        nodes.length + ' {{ __('ui.n_blocks') }}';
     document.addEventListener('keydown', fsEscape);
     render();
     // Wait for layout to settle before centering
@@ -2125,37 +2232,18 @@ function openFullscreen(){
 }
 
 function centerOnNodes(){
-    if (!nodes.length) { zoomReset(); return; }
     const container = fsActive ? fsBody : canvasWrap;
-    const cw = container.clientWidth || 800, ch = container.clientHeight || 600;
-    let minX = 400, minY = 30, maxX = 400 + 180, maxY = 30 + 52;
-    nodes.forEach(n => {
-        minX = Math.min(minX, n.x);
-        minY = Math.min(minY, n.y);
-        maxX = Math.max(maxX, n.x + 220);
-        maxY = Math.max(maxY, n.y + 100);
-    });
-    const pad = 60;
-    const nodesW = maxX - minX + pad * 2;
-    const nodesH = maxY - minY + pad * 2;
-    zoom = Math.min(1, Math.min(cw / nodesW, ch / nodesH));
-    zoom = Math.max(0.35, zoom);
-    const cx = (minX + maxX) / 2;
-    const cy = (minY + maxY) / 2;
-    camX = (cw / 2) - cx * zoom;
-    camY = (ch / 2) - cy * zoom;
+    const cw = container.clientWidth || 800;
+    zoom = 1;
+    // Position so the start node (INCOMING CALL at ~400,30) is visible near the top center
+    camX = (cw / 2) - 490;
+    camY = 20;
     applyTransform();
     drawEdges();
 }
 
 function closeFullscreen(){
-    canvasWrap.appendChild(canvasInner);
-    fsModal.classList.remove('active');
-    fsActive = false;
-    fsBody.removeEventListener('wheel', fsWheel);
-    fsBody.removeEventListener('mousedown', fsMouseDown);
-    document.removeEventListener('keydown', fsEscape);
-    zoomReset();
+    window.location.href = '{{ route("callflows.index") }}';
 }
 
 function fsEscape(e){ if (e.key === 'Escape') closeFullscreen(); }
@@ -2191,8 +2279,8 @@ function addNode(type){
         next: null,
     };
 
-    // auto-link: attach to last unlinked node
-    const unlinked = nodes.filter(nd => nd.next === null && nd.type !== 'hangup');
+    // auto-link: attach to last unlinked node (exclude branch types & hangup)
+    const unlinked = nodes.filter(nd => nd.next === null && nd.type !== 'hangup' && !isBranchType(nd.type));
     if (unlinked.length) {
         const last = unlinked[unlinked.length - 1];
         last.next = n.id;
@@ -2236,7 +2324,7 @@ function renderProps(){
     const fsPanel = document.getElementById('fsPropPanel');
     const n = nodes.find(x => x.id === selectedId);
     if (!n) {
-        const empty = `<div class="cfg-empty"><i class="bi bi-hand-index" style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>Cliquez sur un bloc</div>`;
+        const empty = `<div class="cfg-empty"><i class="bi bi-hand-index" style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>{{ __('ui.click_block') }}</div>`;
         panel.innerHTML = empty;
         if (fsPanel) fsPanel.innerHTML = empty;
         return;
@@ -2251,26 +2339,26 @@ function renderProps(){
 
     switch(n.type){
         case 'answer':
-            h += cfgF('Delai (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.wait||1}" min="0" max="30" onchange="setProp(${n.id},'wait',+this.value)">`);
+            h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.wait||1}" min="0" max="30" onchange="setProp(${n.id},'wait',+this.value)">`);
             break;
         case 'forward':
-            h += cfgF('Type', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'dest_type',this.value); renderProps();">
-                <option value="extension" ${(n.data.dest_type||'extension')==='extension'?'selected':''}>Poste interne</option>
+            h += cfgF(T.type, `<select class="form-select form-select-sm" onchange="setProp(${n.id},'dest_type',this.value); renderProps();">
+                <option value="extension" ${(n.data.dest_type||'extension')==='extension'?'selected':''}>${T.internalExt}</option>
                 <option value="external" ${n.data.dest_type==='external'?'selected':''}>Numero externe</option>
             </select>`);
             if ((n.data.dest_type||'extension') === 'extension') {
-                let extOpts = '<option value="">— Choisir —</option>';
+                let extOpts = '<option value="">— {{ __('ui.choose') }} —</option>';
                 LINES.forEach(l => { extOpts += `<option value="${l.extension}" ${n.data.destination===String(l.extension)?'selected':''}>${l.extension} — ${l.callerid_name||l.username||''}</option>`; });
-                h += cfgF('Poste', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'destination',this.value)">${extOpts}</select>`);
+                h += cfgF(T.internalExt, `<select class="form-select form-select-sm" onchange="setProp(${n.id},'destination',this.value)">${extOpts}</select>`);
             } else {
-                h += cfgF('Numero', `<input type="tel" class="form-control form-control-sm" value="${n.data.destination||''}" placeholder="0612345678" onchange="setProp(${n.id},'destination',this.value)" style="font-family:'JetBrains Mono',monospace;">`);
+                h += cfgF(T.number, `<input type="tel" class="form-control form-control-sm" value="${n.data.destination||''}" placeholder="0612345678" onchange="setProp(${n.id},'destination',this.value)" style="font-family:'JetBrains Mono',monospace;">`);
             }
-            h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||20}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||20}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
             h += `<div style="margin-top:.5rem;font-size:.72rem;color:var(--text-secondary);"><i class="bi bi-info-circle me-1"></i>Si pas de reponse apres le timeout, le scenario continue au bloc suivant.</div>`;
             break;
         case 'ring':
-            h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||25}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
-            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Postes</label>`;
+            h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||25}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">${T.exts}</label>`;
             LINES.forEach(l => {
                 const ck = (n.data.extensions||[]).includes(String(l.extension)) ? 'checked' : '';
                 h += `<div class="member-item">
@@ -2282,51 +2370,51 @@ function renderProps(){
             break;
         case 'queue':
             h += cfgF('File d\'attente', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'queue_name',this.value)">
-                <option value="">— Choisir —</option>
+                <option value="">— {{ __('ui.choose') }} —</option>
                 ${QUEUES.map(q => `<option value="${q.name}" ${n.data.queue_name===q.name?'selected':''}>${q.display_name||q.name}</option>`).join('')}
             </select>`);
-            h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||60}" min="10" max="300" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||60}" min="10" max="300" onchange="setProp(${n.id},'timeout',+this.value)">`);
             break;
         case 'voicemail':
-            h += cfgF('Boite', `<input type="text" class="form-control form-control-sm" value="${n.data.mailbox||'1000'}" onchange="setProp(${n.id},'mailbox',this.value)">`);
-            h += cfgF('Type', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'vm_type',this.value)">
+            h += cfgF(T.box, `<input type="text" class="form-control form-control-sm" value="${n.data.mailbox||'1000'}" onchange="setProp(${n.id},'mailbox',this.value)">`);
+            h += cfgF(T.type, `<select class="form-select form-select-sm" onchange="setProp(${n.id},'vm_type',this.value)">
                 <option value="u" ${n.data.vm_type==='u'?'selected':''}>Indisponible</option>
                 <option value="b" ${n.data.vm_type==='b'?'selected':''}>Occupe</option>
                 <option value="s" ${n.data.vm_type==='s'?'selected':''}>Standard</option>
             </select>`);
             break;
         case 'playback':
-            h += cfgF('Texte TTS', ttsField(n.id, n.data.tts_text, n.data.tts_voice));
-            h += cfgF('Ou fichier audio', audioSelect(n.id, 'sound', n.data.sound||'hello-world', 'sound'));
+            h += cfgF(T.ttsText, ttsField(n.id, n.data.tts_text, n.data.tts_voice));
+            h += cfgF(T.orAudio, audioSelect(n.id, 'sound', n.data.sound||'hello-world', 'sound'));
             break;
         case 'announcement':
-            h += cfgF('Texte TTS', ttsField(n.id, n.data.tts_text, n.data.tts_voice));
-            h += cfgF('Ou fichier audio', audioSelect(n.id, 'sound', n.data.sound||'custom/welcome', 'sound'));
+            h += cfgF(T.ttsText, ttsField(n.id, n.data.tts_text, n.data.tts_voice));
+            h += cfgF(T.orAudio, audioSelect(n.id, 'sound', n.data.sound||'custom/welcome', 'sound'));
             break;
         case 'moh':
             {
                 const selId = 'mohSel_'+n.id;
                 const cur = n.data.moh_class||'default';
-                h += cfgF('Classe', `<select class="form-select form-select-sm" id="${selId}" onchange="setProp(${n.id},'moh_class',this.value)"><option value="default">default</option></select>`);
+                h += cfgF('Class', `<select class="form-select form-select-sm" id="${selId}" onchange="setProp(${n.id},'moh_class',this.value)"><option value="default">default</option></select>`);
                 setTimeout(()=>{
                     if(!window._mohCache){
                         fetch('/api/moh').then(r=>r.json()).then(cls=>{window._mohCache=cls; _fillMohSel(selId,cls,cur);});
                     } else { _fillMohSel(selId,window._mohCache,cur); }
                 },0);
             }
-            h += cfgF('Duree (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.duration||10}" min="1" max="300" onchange="setProp(${n.id},'duration',+this.value)">`);
+            h += cfgF(T.dur + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.duration||10}" min="1" max="300" onchange="setProp(${n.id},'duration',+this.value)">`);
             break;
         case 'goto':
-            h += cfgF('Contexte', `<input type="text" class="form-control form-control-sm" value="${n.data.target_context||'default'}" onchange="setProp(${n.id},'target_context',this.value)">`);
+            h += cfgF(T.goto, `<input type="text" class="form-control form-control-sm" value="${n.data.target_context||'default'}" onchange="setProp(${n.id},'target_context',this.value)">`);
             break;
         case 'ivr':
-            h += cfgF('Message vocal (TTS)', ttsField(n.id, n.data.tts_text, n.data.tts_voice));
-            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.3rem;margin-bottom:.4rem;">Synthese vocale Piper. Laissez vide pour utiliser un fichier audio.</small>`;
-            h += cfgF('Ou fichier audio', audioSelect(n.id, 'sound', n.data.sound||'custom/menu', 'sound'));
-            h += cfgF('Timeout (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||5}" min="1" max="30" onchange="setProp(${n.id},'timeout',+this.value)">`);
-            h += cfgF('Repetitions', `<input type="number" class="form-control form-control-sm" value="${n.data.max_loops||3}" min="1" max="10" onchange="setProp(${n.id},'max_loops',+this.value)">`);
-            h += `<small style="color:var(--text-secondary);font-size:.62rem;display:block;margin-top:-0.6rem;margin-bottom:.5rem;">Nombre de fois que le message est rejoue si pas de reponse</small>`;
-            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">Branches IVR</label>`;
+            h += cfgF(T.ttsVocal, ttsField(n.id, n.data.tts_text, n.data.tts_voice));
+            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.3rem;margin-bottom:.4rem;">${T.ttsPiperDesc}</small>`;
+            h += cfgF(T.orAudio, audioSelect(n.id, 'sound', n.data.sound||'custom/menu', 'sound'));
+            h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||5}" min="1" max="30" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            h += cfgF(T.reps, `<input type="number" class="form-control form-control-sm" value="${n.data.max_loops||3}" min="1" max="10" onchange="setProp(${n.id},'max_loops',+this.value)">`);
+            h += `<small style="color:var(--text-secondary);font-size:.62rem;display:block;margin-top:-0.6rem;margin-bottom:.5rem;">${T.repDesc}</small>`;
+            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-top:.75rem;display:block;margin-bottom:.3rem;">${T.ivrBranches}</label>`;
             const opts = n.data.options || {};
             const branches = n.branches || {};
             Object.keys(opts).forEach(key => {
@@ -2336,7 +2424,7 @@ function renderProps(){
                 const targetLabel = targetNode ? (TYPES[targetNode.type]?.label || targetNode.type) : '';
                 const linkedTag = targetNode
                     ? `<span style="font-size:.6rem;background:#bc6ff120;color:#bc6ff1;border-radius:4px;padding:1px 5px;white-space:nowrap;">→ ${targetLabel}</span>`
-                    : `<span style="font-size:.6rem;color:var(--text-secondary);font-style:italic;">non relie</span>`;
+                    : `<span style="font-size:.6rem;color:var(--text-secondary);font-style:italic;">${T.notLinked}</span>`;
                 h += `<div class="member-item" style="gap:.3rem;align-items:center;">
                     <span class="ext-badge" style="min-width:22px;text-align:center;background:#bc6ff1;color:#fff;">${key}</span>
                     ${linkedTag}
@@ -2346,23 +2434,23 @@ function renderProps(){
                 </div>`;
             });
             h += `<div style="margin-top:.4rem;display:flex;gap:.3rem;">
-                <input type="text" class="form-control form-control-sm ivr-key-input" data-node="${n.id}" placeholder="Touche" style="width:55px;">
+                <input type="text" class="form-control form-control-sm ivr-key-input" data-node="${n.id}" placeholder="Key" style="width:55px;">
                 <button class="btn-outline-custom" style="padding:2px 8px;font-size:.7rem;" onclick="addIvrOpt(${n.id}, this)">
                     <i class="bi bi-plus me-1"></i>{{ __("ui.add") }}</button>
             </div>`;
             break;
         case 'time_condition':
-            h += cfgF('Heure ouverture', `<input type="time" class="form-control form-control-sm" value="${n.data.time_start||'09:00'}" onchange="setProp(${n.id},'time_start',this.value)">`);
-            h += cfgF('Heure fermeture', `<input type="time" class="form-control form-control-sm" value="${n.data.time_end||'18:00'}" onchange="setProp(${n.id},'time_end',this.value)">`);
-            h += cfgF('Jours', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'days',this.value)">
-                <option value="mon-fri" ${(n.data.days||'mon-fri')==='mon-fri'?'selected':''}>Lun — Ven</option>
-                <option value="mon-sat" ${(n.data.days)==='mon-sat'?'selected':''}>Lun — Sam</option>
-                <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Lun — Dim (tous)</option>
-                <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sam — Dim</option>
+            h += cfgF(T.openHour, `<input type="time" class="form-control form-control-sm" value="${n.data.time_start||'09:00'}" onchange="setProp(${n.id},'time_start',this.value)">`);
+            h += cfgF(T.closeHour, `<input type="time" class="form-control form-control-sm" value="${n.data.time_end||'18:00'}" onchange="setProp(${n.id},'time_end',this.value)">`);
+            h += cfgF(T.days, `<select class="form-select form-select-sm" onchange="setProp(${n.id},'days',this.value)">
+                <option value="mon-fri" ${(n.data.days||'mon-fri')==='mon-fri'?'selected':''}>Mon — Fri</option>
+                <option value="mon-sat" ${(n.data.days)==='mon-sat'?'selected':''}>Mon — Sat</option>
+                <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Mon — Sun (all)</option>
+                <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sat — Sun</option>
             </select>`);
             {
                 h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
-                h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Branches</label>`;
+                h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">${T.branches}</label>`;
                 const tcBranches = n.branches || {};
                 const tcDefs = [{key:'open',label:'Ouvert',color:'#3fb950',icon:'bi-sun'},{key:'closed',label:'Ferme',color:'#f85149',icon:'bi-moon'}];
                 tcDefs.forEach(bd => {
@@ -2378,20 +2466,20 @@ function renderProps(){
             }
             break;
         case 'ai_agent':
-            h += cfgF('Instructions (prompt)', `<textarea class="form-control form-control-sm" rows="4" placeholder="Tu es un assistant telephonique..."
+            h += cfgF(T.promptInstr, `<textarea class="form-control form-control-sm" rows="4" placeholder="Tu es un assistant telephonique..."
                 style="font-size:.75rem;" onchange="setProp(${n.id},'ai_prompt',this.value)">${n.data.ai_prompt||''}</textarea>`);
-            h += cfgF('Voix OpenAI', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'ai_voice',this.value)">
-                <option value="coral" ${(n.data.ai_voice||'coral')==='coral'?'selected':''}>Coral (femme)</option>
-                <option value="alloy" ${n.data.ai_voice==='alloy'?'selected':''}>Alloy (neutre)</option>
-                <option value="ash" ${n.data.ai_voice==='ash'?'selected':''}>Ash (homme)</option>
-                <option value="ballad" ${n.data.ai_voice==='ballad'?'selected':''}>Ballad (doux)</option>
-                <option value="echo" ${n.data.ai_voice==='echo'?'selected':''}>Echo (homme)</option>
-                <option value="sage" ${n.data.ai_voice==='sage'?'selected':''}>Sage (calme)</option>
-                <option value="shimmer" ${n.data.ai_voice==='shimmer'?'selected':''}>Shimmer (femme)</option>
-                <option value="verse" ${n.data.ai_voice==='verse'?'selected':''}>Verse (expressif)</option>
+            h += cfgF(T.aiVoice, `<select class="form-select form-select-sm" onchange="setProp(${n.id},'ai_voice',this.value)">
+                <option value="coral" ${(n.data.ai_voice||'coral')==='coral'?'selected':''}>Coral (female)</option>
+                <option value="alloy" ${n.data.ai_voice==='alloy'?'selected':''}>Alloy (neutral)</option>
+                <option value="ash" ${n.data.ai_voice==='ash'?'selected':''}>Ash (male)</option>
+                <option value="ballad" ${n.data.ai_voice==='ballad'?'selected':''}>Ballad (soft)</option>
+                <option value="echo" ${n.data.ai_voice==='echo'?'selected':''}>Echo (male)</option>
+                <option value="sage" ${n.data.ai_voice==='sage'?'selected':''}>Sage (calm)</option>
+                <option value="shimmer" ${n.data.ai_voice==='shimmer'?'selected':''}>Shimmer (female)</option>
+                <option value="verse" ${n.data.ai_voice==='verse'?'selected':''}>Verse (expressive)</option>
             </select>`);
-            h += cfgF('Dossier RAG', `<select class="form-select form-select-sm" id="ragFolder_${n.id}" onchange="setProp(${n.id},'ai_rag_folder',this.value)">
-                <option value="" ${!n.data.ai_rag_folder?'selected':''}>General (tous les docs)</option>
+            h += cfgF(T.ragFolder, `<select class="form-select form-select-sm" id="ragFolder_${n.id}" onchange="setProp(${n.id},'ai_rag_folder',this.value)">
+                <option value="" ${!n.data.ai_rag_folder?'selected':''}>${T.ragAll}</option>
             </select>`);
             // Load folders dynamically
             setTimeout(() => {
@@ -2407,16 +2495,53 @@ function renderProps(){
                     });
                 });
             }, 0);
-            h += cfgF('Contexte supplementaire', `<textarea class="form-control form-control-sm" rows="3" placeholder="Infos additionnelles..."
+            h += cfgF(T.addContext, `<textarea class="form-control form-control-sm" rows="3" placeholder="Infos additionnelles..."
                 style="font-size:.72rem;" onchange="setProp(${n.id},'ai_context',this.value)">${n.data.ai_context||''}</textarea>`);
-            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.5rem;margin-bottom:.4rem;">Le dossier RAG + ce texte seront fournis a l'IA comme base de connaissances.</small>`;
+            h += `<small style="color:var(--text-secondary);font-size:.6rem;display:block;margin-top:-0.5rem;margin-bottom:.4rem;">${T.aiRagDesc}</small>`;
             h += `<div style="margin-top:.5rem;padding:.5rem;background:#10b98110;border:1px solid #10b98130;border-radius:8px;">
-                <div style="font-size:.7rem;font-weight:700;color:#10b981;margin-bottom:.3rem;"><i class="bi bi-shield-check me-1"></i>Cadrage automatique</div>
-                <div style="font-size:.65rem;color:var(--text-secondary);line-height:1.4;">
-                    L'IA refuse les sujets hors cadre (politique, personnel...) et ne revele pas qu'elle est une IA.
-                    Les fichiers de contexte dans storage/app/ai-context/ sont charges automatiquement (RAG).
-                </div>
+                <div style="font-size:.7rem;font-weight:700;color:#10b981;margin-bottom:.3rem;"><i class="bi bi-shield-check me-1"></i>${T.aiGuardTitle}</div>
+                <div style="font-size:.65rem;color:var(--text-secondary);line-height:1.4;">${T.aiGuardDesc}</div>
             </div>`;
+            break;
+        case 'did_filter':
+            {
+                let didOpts = '<option value="">— {{ __("ui.choose") }} —</option>';
+                CALLER_IDS.forEach(c => { didOpts += `<option value="${c.number}" ${n.data.match_number===c.number?'selected':''}>${c.label} — ${c.number}${c.trunk_name?' ('+c.trunk_name+')':''}</option>`; });
+                h += cfgF('DID', `<select class="form-select form-select-sm" style="font-family:'JetBrains Mono',monospace;font-size:.78rem;" onchange="setProp(${n.id},'match_number',this.value)">${didOpts}</select>`);
+                h += `<small style="color:var(--text-secondary);font-size:.62rem;display:block;margin-top:-0.3rem;margin-bottom:.5rem;">{{ __('ui.did_desc') }}</small>`;
+                h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
+                h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">${T.branches}</label>`;
+                const dfBranches = n.branches || {};
+                [{key:'match',label:'Match',color:'#3fb950',icon:'bi-check-circle'},{key:'no_match',label:'No match',color:'#f85149',icon:'bi-x-circle'}].forEach(bd => {
+                    const tgt = dfBranches[bd.key] ? nodes.find(x => x.id === dfBranches[bd.key]) : null;
+                    const tgtLabel = tgt ? (TYPES[tgt.type]?.label || tgt.type) : T.notLinked;
+                    h += `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;padding:.3rem .5rem;border-radius:6px;border:1px solid ${bd.color}30;background:${bd.color}08;">
+                        <i class="bi ${bd.icon}" style="color:${bd.color};font-size:.75rem;"></i>
+                        <span style="font-weight:700;font-size:.75rem;color:${bd.color};">${bd.label}</span>
+                        <span style="font-size:.7rem;color:var(--text-secondary);">→</span>
+                        <span style="font-size:.72rem;font-weight:600;">${tgtLabel}</span>
+                    </div>`;
+                });
+            }
+            break;
+        case 'cid_filter':
+            {
+                h += cfgF('{{ __("ui.cid_filter_label") }}', `<input type="tel" class="form-control form-control-sm" value="${n.data.match_number||''}" placeholder="0671852797" style="font-family:'JetBrains Mono',monospace;font-size:.78rem;" onchange="setProp(${n.id},'match_number',this.value)">`);
+                h += `<small style="color:var(--text-secondary);font-size:.62rem;display:block;margin-top:-0.3rem;margin-bottom:.5rem;">{{ __('ui.cid_filter_desc') }}</small>`;
+                h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
+                h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">${T.branches}</label>`;
+                const cfBranches = n.branches || {};
+                [{key:'match',label:'Match',color:'#3fb950',icon:'bi-check-circle'},{key:'no_match',label:'No match',color:'#f85149',icon:'bi-x-circle'}].forEach(bd => {
+                    const tgt = cfBranches[bd.key] ? nodes.find(x => x.id === cfBranches[bd.key]) : null;
+                    const tgtLabel = tgt ? (TYPES[tgt.type]?.label || tgt.type) : T.notLinked;
+                    h += `<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;padding:.3rem .5rem;border-radius:6px;border:1px solid ${bd.color}30;background:${bd.color}08;">
+                        <i class="bi ${bd.icon}" style="color:${bd.color};font-size:.75rem;"></i>
+                        <span style="font-weight:700;font-size:.75rem;color:${bd.color};">${bd.label}</span>
+                        <span style="font-size:.7rem;color:var(--text-secondary);">→</span>
+                        <span style="font-size:.72rem;font-weight:600;">${tgtLabel}</span>
+                    </div>`;
+                });
+            }
             break;
         case 'hangup':
             h += `<p style="color:var(--text-secondary);font-size:.8rem;">Termine l'appel.</p>`;
@@ -2425,15 +2550,15 @@ function renderProps(){
 
     // connection info
     h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
-    h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Connexion sortante</label>`;
+    h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">${T.outConn}</label>`;
     if (n.type === 'hangup') {
-        h += `<span style="font-size:.78rem;color:var(--text-secondary);">Aucune (fin)</span>`;
+        h += `<span style="font-size:.78rem;color:var(--text-secondary);">${T.none} (${T.end})</span>`;
     } else if (n.next) {
         const tgt = nodes.find(x => x.id === n.next);
         h += `<span style="font-size:.78rem;">→ ${tgt ? (TYPES[tgt.type]?.label||tgt.type) + ' #'+tgt.id : '?'}</span>
-              <button class="btn-outline-custom" style="margin-left:.5rem;padding:2px 8px;font-size:.7rem;" onclick="setProp(${n.id},'__unlink',true)">Delier</button>`;
+              <button class="btn-outline-custom" style="margin-left:.5rem;padding:2px 8px;font-size:.7rem;" onclick="setProp(${n.id},'__unlink',true)">Unlink</button>`;
     } else {
-        h += `<span style="font-size:.78rem;color:var(--text-secondary);">Non connecte — tirez depuis le port vert</span>`;
+        h += `<span style="font-size:.78rem;color:var(--text-secondary);">${T.notConn}</span>`;
     }
 
     panel.innerHTML = h;
@@ -2445,11 +2570,11 @@ function cfgF(label, input){
 }
 
 function colorBg(type){
-    const m = {answer:'#58a6ff25',ring:'#29b6f625',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525',forward:'#58a6ff25'};
+    const m = {answer:'#58a6ff25',ring:'#29b6f625',queue:'#bc8cff25',voicemail:'#d2992225',playback:'#58a6ff25',moh:'#f0883e25',hangup:'#f8514925',announcement:'#d2992225',goto:'#bc8cff25',ivr:'#e8671525',forward:'#58a6ff25',time_condition:'#f0883e25',ai_agent:'#10b98125',did_filter:'#00bcd425',cid_filter:'#e91e6325'};
     return m[type]||'#58a6ff25';
 }
 function colorFg(type){
-    const m = {answer:'#58a6ff',ring:'#29b6f6',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715',forward:'#58a6ff'};
+    const m = {answer:'#58a6ff',ring:'#29b6f6',queue:'#bc8cff',voicemail:'#d29922',playback:'#58a6ff',moh:'#f0883e',hangup:'#f85149',announcement:'#d29922',goto:'#bc8cff',ivr:'#e86715',forward:'#58a6ff',time_condition:'#f0883e',ai_agent:'#10b981',did_filter:'#00bcd4',cid_filter:'#e91e63'};
     return m[type]||'#58a6ff';
 }
 
@@ -2470,9 +2595,9 @@ function ttsField(nodeId, text, voice) {
         style="font-size:.75rem;" onchange="setProp(${nodeId},'tts_text',this.value)">${text||''}</textarea>
         <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
             <select class="form-select form-select-sm" style="font-size:.7rem;flex:1;" onchange="setProp(${nodeId},'tts_voice',this.value)">
-                <option value="siwis" ${(voice||'siwis')==='siwis'?'selected':''}>Femme (Siwis)</option>
-                <option value="upmc" ${voice==='upmc'?'selected':''}>Homme (UPMC)</option>
-                <option value="mls" ${voice==='mls'?'selected':''}>Femme 2 (MLS)</option>
+                <option value="siwis" ${(voice||'siwis')==='siwis'?'selected':''}>Female (Siwis)</option>
+                <option value="upmc" ${voice==='upmc'?'selected':''}>Male (UPMC)</option>
+                <option value="mls" ${voice==='mls'?'selected':''}>Female 2 (MLS)</option>
             </select>
             <button id="ttsBtn_${nodeId}" class="btn-tts-preview" onclick="ttsPreview(${nodeId})"><i class="bi bi-play-fill me-1"></i>Ecouter</button>
         </div>`;
@@ -2632,7 +2757,7 @@ function buildSteps(){
         const step = Object.assign({ type: n.type, _nodeId: n.id }, n.data);
 
         // Include branch targets for IVR/time_condition
-        if ((n.type === 'ivr' || n.type === 'time_condition') && n.branches) {
+        if (isBranchType(n.type) && n.branches) {
             step.branch_targets = {};
             Object.keys(n.branches).forEach(key => {
                 step.branch_targets[key] = n.branches[key];
@@ -2640,6 +2765,9 @@ function buildSteps(){
                 if (!visited.has(n.branches[key])) queue.push(n.branches[key]);
             });
         }
+
+        // Save linear next connection
+        if (n.next !== null) step._next = n.next;
 
         ordered.push(step);
 
@@ -2653,10 +2781,11 @@ function buildSteps(){
     nodes.forEach(n => {
         if (!visited.has(n.id)) {
             const step = Object.assign({ type: n.type, _nodeId: n.id }, n.data);
-            if ((n.type === 'ivr' || n.type === 'time_condition') && n.branches) {
+            if (isBranchType(n.type) && n.branches) {
                 step.branch_targets = {};
                 Object.keys(n.branches).forEach(key => { step.branch_targets[key] = n.branches[key]; });
             }
+            if (n.next !== null) step._next = n.next;
             ordered.push(step);
         }
     });
@@ -2682,12 +2811,6 @@ document.getElementById('btnSave').addEventListener('click', () => {
     document.getElementById('hidRecord').value = document.getElementById('cfgRecord').checked ? '1' : '0';
     document.getElementById('hidOptout').value = document.getElementById('cfgOptout').checked ? '1' : '0';
     document.getElementById('hidOptoutKey').value = document.getElementById('cfgOptoutKey').value;
-    // Caller ID filter: textarea lines → JSON array
-    // Read from fullscreen selects (fsDid/fsCid) which are the visible ones
-    var didVal = (document.getElementById('fsDid') || document.getElementById('cfgDidFilter')).value.trim();
-    document.getElementById('hidDidFilter').value = didVal ? JSON.stringify([didVal]) : JSON.stringify([]);
-    var cidVal = (document.getElementById('fsCid') || document.getElementById('cfgCallerIdFilter')).value.trim();
-    document.getElementById('hidCallerIdFilter').value = cidVal ? JSON.stringify([cidVal]) : JSON.stringify([]);
     document.getElementById('flowForm').submit();
 });
 

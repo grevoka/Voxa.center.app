@@ -17,7 +17,7 @@
                     @method('PUT')
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Nom du trunk</label>
+                            <label class="form-label">{{ __('ui.trunk_name') }}</label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name', $trunk->name) }}" required>
                             @error('name')
@@ -25,7 +25,7 @@
                             @enderror
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Type</label>
+                            <label class="form-label">{{ __('ui.type') }}</label>
                             <select name="type" class="form-select">
                                 @foreach(['SIP', 'IAX', 'PRI'] as $type)
                                     <option value="{{ $type }}" {{ old('type', $trunk->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
@@ -41,7 +41,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Hote / IP</label>
+                            <label class="form-label">{{ __('ui.host_ip') }}</label>
                             <input type="text" name="host" class="form-control @error('host') is-invalid @enderror"
                                    value="{{ old('host', $trunk->host) }}" required>
                             @error('host')
@@ -49,27 +49,27 @@
                             @enderror
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Port</label>
+                            <label class="form-label">{{ __('ui.port') }}</label>
                             <input type="number" name="port" class="form-control"
                                    value="{{ old('port', $trunk->port) }}" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Canaux max</label>
+                            <label class="form-label">{{ __('ui.max_channels') }}</label>
                             <input type="number" name="max_channels" class="form-control"
                                    value="{{ old('max_channels', $trunk->max_channels) }}" required>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label">Proxy sortant <span style="font-size:0.7rem;color:var(--text-secondary);">(optionnel, ex: sip-proxy.ovh.net)</span></label>
+                            <label class="form-label">{{ __('ui.outbound_proxy_label') }} <span style="font-size:0.7rem;color:var(--text-secondary);">({{ __('ui.outbound_proxy_opt') }})</span></label>
                             <input type="text" name="outbound_proxy" class="form-control"
                                    value="{{ old('outbound_proxy', $trunk->outbound_proxy) }}" placeholder="ml835941-ovh-1.sip-proxy.io">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Utilisateur / Auth</label>
+                            <label class="form-label">{{ __('ui.user_auth') }}</label>
                             <input type="text" name="username" class="form-control"
                                    value="{{ old('username', $trunk->username) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Mot de passe <small>(laisser vide pour ne pas changer)</small></label>
+                            <label class="form-label">{{ __('ui.password') }} <small>({{ __('ui.leave_empty_keep') }})</small></label>
                             <input type="password" name="secret" class="form-control">
                         </div>
                         <div class="col-12">
@@ -87,12 +87,12 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Caller ID sortant</label>
+                            <label class="form-label">{{ __('ui.outbound_caller_id') }}</label>
                             <input type="text" name="caller_id" class="form-control"
                                    value="{{ old('caller_id', $trunk->caller_id) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Contexte (sortant)</label>
+                            <label class="form-label">{{ __('ui.outbound_context') }}</label>
                             <input type="text" name="context" class="form-control"
                                    value="{{ old('context', $trunk->context) }}">
                         </div>
@@ -101,23 +101,23 @@
                         <div class="col-12" style="border-top:1px solid rgba(255,255,255,.05); padding-top:1rem; margin-top:.5rem;">
                             <h6 style="font-weight:600; font-size:0.9rem; margin-bottom:0.5rem;">
                                 <i class="bi bi-shield-lock me-1" style="color:var(--accent);"></i>
-                                Appels entrants (Identify by IP)
+                                {{ __('ui.inbound_calls') }}
                             </h6>
                             <p style="font-size:0.8rem; opacity:0.6; margin-bottom:1rem;">
-                                IPs/CIDR du provider autorisees a envoyer des appels sans authentification. Une par ligne.
+                                {{ __('ui.inbound_calls_desc') }}
                             </p>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">IPs autorisees (CIDR)</label>
+                            <label class="form-label">{{ __('ui.allowed_ips') }}</label>
                             <textarea name="inbound_ips_text" class="form-control" rows="4"
                                       placeholder="91.121.129.0/24&#10;91.121.128.0/24">{{ old('inbound_ips_text', $trunk->inbound_ips ? implode("\n", $trunk->inbound_ips) : '') }}</textarea>
-                            <small style="opacity:0.5;">Une IP ou plage CIDR par ligne</small>
+                            <small style="opacity:0.5;">{{ __('ui.one_per_line') }}</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Contexte entrant</label>
+                            <label class="form-label">{{ __('ui.inbound_context') }}</label>
                             <input type="text" name="inbound_context" class="form-control"
                                    value="{{ old('inbound_context', $trunk->inbound_context) }}" placeholder="from-trunk-d4 (auto si vide)">
-                            <small style="opacity:0.5;">Laissez vide pour generer automatiquement</small>
+                            <small style="opacity:0.5;">{{ __('ui.auto_if_empty') }}</small>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
@@ -129,13 +129,13 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Notes</label>
+                            <label class="form-label">{{ __('ui.notes') }}</label>
                             <textarea name="notes" class="form-control" rows="2">{{ old('notes', $trunk->notes) }}</textarea>
                         </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
-                        <a href="{{ route('trunks.index') }}" class="btn btn-outline-custom">Annuler</a>
+                        <a href="{{ route('trunks.index') }}" class="btn btn-outline-custom">{{ __('ui.cancel') }}</a>
                         <button type="submit" class="btn btn-accent">
                             <i class="bi bi-check-lg me-1"></i> Mettre a jour
                         </button>

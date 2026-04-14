@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', __('ui.new') . ' trunk')
-@section('page-title', '{{ __('ui.new') }} trunk SIP')
+@section('page-title', __('ui.new') . ' trunk')
 
 @section('content')
     <div class="row justify-content-center">
@@ -16,15 +16,13 @@
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Nom du trunk</label>
+                            <label class="form-label">{{ __('ui.trunk_name') }}</label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name') }}" placeholder="OVH-Main" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Type</label>
+                            <label class="form-label">{{ __('ui.type') }}</label>
                             <select name="type" class="form-select">
                                 <option value="SIP" {{ old('type') == 'SIP' ? 'selected' : '' }}>SIP</option>
                                 <option value="IAX" {{ old('type') == 'IAX' ? 'selected' : '' }}>IAX2</option>
@@ -40,104 +38,90 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Hote / IP</label>
+                            <label class="form-label">{{ __('ui.host_ip') }}</label>
                             <input type="text" name="host" class="form-control @error('host') is-invalid @enderror"
                                    value="{{ old('host') }}" placeholder="sip.provider.com" required>
-                            @error('host')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @error('host') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Port</label>
-                            <input type="number" name="port" class="form-control"
-                                   value="{{ old('port', 5060) }}" required>
+                            <label class="form-label">{{ __('ui.port') }}</label>
+                            <input type="number" name="port" class="form-control" value="{{ old('port', 5060) }}" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Canaux max</label>
-                            <input type="number" name="max_channels" class="form-control"
-                                   value="{{ old('max_channels', 30) }}" required>
+                            <label class="form-label">{{ __('ui.max_channels') }}</label>
+                            <input type="number" name="max_channels" class="form-control" value="{{ old('max_channels', 30) }}" required>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label">Proxy sortant <span style="font-size:0.7rem;color:var(--text-secondary);">(optionnel, ex: sip-proxy.ovh.net)</span></label>
+                            <label class="form-label">{{ __('ui.outbound_proxy_label') }} <span style="font-size:0.7rem;color:var(--text-secondary);">({{ __('ui.outbound_proxy_opt') }})</span></label>
                             <input type="text" name="outbound_proxy" class="form-control"
                                    value="{{ old('outbound_proxy') }}" placeholder="ml835941-ovh-1.sip-proxy.io">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Utilisateur / Auth</label>
-                            <input type="text" name="username" class="form-control"
-                                   value="{{ old('username') }}" placeholder="username">
+                            <label class="form-label">{{ __('ui.user_auth') }}</label>
+                            <input type="text" name="username" class="form-control" value="{{ old('username') }}" placeholder="username">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Mot de passe</label>
-                            <input type="password" name="secret" class="form-control"
-                                   placeholder="Min. 8 caracteres">
+                            <label class="form-label">{{ __('ui.password') }}</label>
+                            <input type="password" name="secret" class="form-control" placeholder="{{ __('ui.min_chars') }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Codecs (ordre de preference)</label>
+                            <label class="form-label">{{ __('ui.codecs_order') }}</label>
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach($codecs as $key => $codec)
                                     <label class="codec-tag codec-check" style="cursor:pointer;">
                                         <input type="checkbox" name="codecs[]" value="{{ $key }}"
                                                {{ in_array($key, old('codecs', ['alaw', 'ulaw', 'g722'])) ? 'checked' : '' }}
-                                               style="display:none;"
-                                               onchange="this.parentElement.classList.toggle('selected', this.checked)">
+                                               style="display:none;" onchange="this.parentElement.classList.toggle('selected', this.checked)">
                                         {{ $codec['name'] }}
                                     </label>
                                 @endforeach
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Caller ID sortant</label>
-                            <input type="text" name="caller_id" class="form-control"
-                                   value="{{ old('caller_id') }}" placeholder="+33 1 00 00 00 00">
+                            <label class="form-label">{{ __('ui.outbound_caller_id') }}</label>
+                            <input type="text" name="caller_id" class="form-control" value="{{ old('caller_id') }}" placeholder="+33 1 00 00 00 00">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Contexte (sortant)</label>
-                            <input type="text" name="context" class="form-control"
-                                   value="{{ old('context', 'from-trunk') }}">
+                            <label class="form-label">{{ __('ui.outbound_context') }}</label>
+                            <input type="text" name="context" class="form-control" value="{{ old('context', 'from-trunk') }}">
                         </div>
 
-                        {{-- Inbound IPs --}}
                         <div class="col-12" style="border-top:1px solid rgba(255,255,255,.05); padding-top:1rem; margin-top:.5rem;">
                             <h6 style="font-weight:600; font-size:0.9rem; margin-bottom:0.5rem;">
                                 <i class="bi bi-shield-lock me-1" style="color:var(--accent);"></i>
-                                Appels entrants (Identify by IP)
+                                {{ __('ui.inbound_calls') }}
                             </h6>
-                            <p style="font-size:0.8rem; opacity:0.6; margin-bottom:1rem;">
-                                IPs/CIDR du provider autorisees a envoyer des appels sans authentification. Une par ligne.
-                            </p>
+                            <p style="font-size:0.8rem; opacity:0.6; margin-bottom:1rem;">{{ __('ui.inbound_calls_desc') }}</p>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">IPs autorisees (CIDR)</label>
+                            <label class="form-label">{{ __('ui.allowed_ips') }}</label>
                             <textarea name="inbound_ips_text" class="form-control" rows="4"
-                                      placeholder="91.121.129.0/24&#10;91.121.128.0/24&#10;178.33.0.0/16">{{ old('inbound_ips_text') }}</textarea>
-                            <small style="opacity:0.5;">Une IP ou plage CIDR par ligne</small>
+                                      placeholder="91.121.129.0/24&#10;91.121.128.0/24">{{ old('inbound_ips_text') }}</textarea>
+                            <small style="opacity:0.5;">{{ __('ui.one_per_line') }}</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Contexte entrant</label>
+                            <label class="form-label">{{ __('ui.inbound_context') }}</label>
                             <input type="text" name="inbound_context" class="form-control"
-                                   value="{{ old('inbound_context') }}" placeholder="from-trunk-ovh (auto si vide)">
-                            <small style="opacity:0.5;">Laissez vide pour generer automatiquement</small>
+                                   value="{{ old('inbound_context') }}" placeholder="from-trunk-ovh">
+                            <small style="opacity:0.5;">{{ __('ui.auto_if_empty') }}</small>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="register" value="1"
                                        id="register" {{ old('register', true) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="register" style="font-size:0.85rem;">
-                                    {{ __('ui.register_provider') }}
-                                </label>
+                                <label class="form-check-label" for="register" style="font-size:0.85rem;">{{ __('ui.register_provider') }}</label>
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Notes</label>
-                            <textarea name="notes" class="form-control" rows="2" placeholder="Notes optionnelles...">{{ old('notes') }}</textarea>
+                            <label class="form-label">{{ __('ui.notes') }}</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="{{ __('ui.optional_notes') }}...">{{ old('notes') }}</textarea>
                         </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
-                        <a href="{{ route('trunks.index') }}" class="btn btn-outline-custom">Annuler</a>
+                        <a href="{{ route('trunks.index') }}" class="btn btn-outline-custom">{{ __('ui.cancel') }}</a>
                         <button type="submit" class="btn btn-accent">
-                            <i class="bi bi-check-lg me-1"></i> Enregistrer
+                            <i class="bi bi-check-lg me-1"></i> {{ __('ui.save') }}
                         </button>
                     </div>
                 </form>

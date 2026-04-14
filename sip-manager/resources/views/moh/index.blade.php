@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('ui.music_on_hold')\')
-@section('page-title', __('ui.music_on_hold')\')
+@section('title', __('ui.music_on_hold'))
+@section('page-title', __('ui.music_on_hold'))
 
 @push('styles')
 <style>
@@ -74,7 +74,7 @@
     <div class="section-header">
         <div>
             <h5 class="mb-1" style="font-weight:700;">{{ __("ui.music_on_hold") }}</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gerez les sources audio pour la musique d'attente</p>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.manage_moh_sources') }}</p>
         </div>
     </div>
 
@@ -86,13 +86,13 @@
                 <i class="bi bi-music-note-beamed" style="color:var(--accent); font-size:1.1rem;"></i>
             </div>
             <div style="flex:1;">
-                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-secondary); font-weight:600; margin-bottom:0.3rem;">Source par defaut</div>
+                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-secondary); font-weight:600; margin-bottom:0.3rem;">{{ __('ui.default_source') }}</div>
                 <select class="form-select" name="source" id="mohDefaultSource" style="max-width:400px;">
                     <option value="rotation" {{ $currentSource === 'rotation' ? 'selected' : '' }}>
-                        Rotation automatique — tous les fichiers
+                        {{ __('ui.auto_rotation') }}
                     </option>
                     @if(count($files))
-                        <optgroup label="Fichier unique">
+                        <optgroup label="{{ __('ui.single_file') }}">
                             @foreach($files as $file)
                                 <option value="file:{{ $file['name'] }}" {{ $currentSource === 'file:' . $file['name'] ? 'selected' : '' }}>
                                     {{ $file['display_name'] }} ({{ strtoupper($file['ext']) }})
@@ -104,13 +104,13 @@
                         <optgroup label="Playlists">
                             @foreach($playlists->where('enabled', true) as $pl)
                                 <option value="playlist:{{ $pl->id }}" {{ $currentSource === 'playlist:' . $pl->id ? 'selected' : '' }}>
-                                    {{ $pl->display_name ?: $pl->name }} ({{ count($pl->files ?? []) }} titres)
+                                    {{ $pl->display_name ?: $pl->name }} ({{ count($pl->files ?? []) }} {{ __('ui.tracks') }})
                                 </option>
                             @endforeach
                         </optgroup>
                     @endif
                     @if($streams->where('enabled', true)->count())
-                        <optgroup label="Flux streaming">
+                        <optgroup label="{{ __('ui.streaming') }}">
                             @foreach($streams->where('enabled', true) as $st)
                                 <option value="stream:{{ $st->id }}" {{ $currentSource === 'stream:' . $st->id ? 'selected' : '' }}>
                                     {{ $st->display_name ?: $st->name }} (stream)
@@ -121,7 +121,7 @@
                 </select>
             </div>
             <button type="submit" class="btn btn-accent" style="font-size:0.82rem; flex-shrink:0;">
-                <i class="bi bi-check-lg me-1"></i> Appliquer
+                <i class="bi bi-check-lg me-1"></i> {{ __('ui.apply') }}
             </button>
         </form>
     </div>
@@ -129,7 +129,7 @@
     {{-- Tabs --}}
     <div class="moh-tabs">
         <div class="moh-tab active" data-tab="files">
-            <i class="bi bi-music-note-list"></i> Fichiers
+            <i class="bi bi-music-note-list"></i> {{ __('ui.files_tab') }}
             <span class="tab-count">{{ count($files) }}</span>
         </div>
         <div class="moh-tab" data-tab="playlists">
@@ -137,7 +137,7 @@
             <span class="tab-count">{{ $playlists->count() }}</span>
         </div>
         <div class="moh-tab" data-tab="new-playlist">
-            <i class="bi bi-plus-circle"></i> Nouvelle playlist
+            <i class="bi bi-plus-circle"></i> {{ __('ui.new_playlist') }}
         </div>
         <div class="moh-tab" data-tab="streams">
             <i class="bi bi-broadcast"></i> Streaming
@@ -153,9 +153,9 @@
                     <thead>
                         <tr>
                             <th style="width:40px;"></th>
-                            <th>Musique</th>
-                            <th>Format</th>
-                            <th>Taille</th>
+                            <th>{{ __('ui.music') }}</th>
+                            <th>{{ __('ui.format') }}</th>
+                            <th>{{ __('ui.size') }}</th>
                             <th style="width:100px;">{{ __("ui.actions") }}</th>
                         </tr>
                     </thead>
@@ -174,7 +174,7 @@
                                     <div style="display:flex; align-items:center; gap:0.5rem;">
                                         <span style="font-weight:600; font-size:0.85rem;">{{ $file['display_name'] }}</span>
                                         @if($isActive)
-                                            <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(41,182,246,0.12); color:#29b6f6; text-transform:uppercase;">Par defaut</span>
+                                            <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(41,182,246,0.12); color:#29b6f6; text-transform:uppercase;">{{ __('ui.default_badge') }}</span>
                                         @endif
                                     </div>
                                     <div style="font-size:0.7rem; color:var(--text-secondary); font-family:'JetBrains Mono',monospace;">{{ $file['file'] }}</div>
@@ -194,7 +194,7 @@
                 </table>
             @else
                 <div class="text-center py-4" style="color:var(--text-secondary);">
-                    <i class="bi bi-music-note me-2"></i>Aucun fichier audio dans /var/lib/asterisk/moh/
+                    <i class="bi bi-music-note me-2"></i>{{ __('ui.no_moh_files') }}
                 </div>
             @endif
         </div>
@@ -213,27 +213,27 @@
                             <div style="font-weight:700; font-size:0.9rem;">
                                 {{ $playlist->display_name ?: $playlist->name }}
                                 @if($playlist->enabled)
-                                    <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(41,182,246,0.12); color:#29b6f6; text-transform:uppercase; margin-left:0.3rem;">Actif</span>
+                                    <span style="font-size:0.6rem; font-weight:600; padding:1px 6px; border-radius:4px; background:rgba(41,182,246,0.12); color:#29b6f6; text-transform:uppercase; margin-left:0.3rem;">{{ __('ui.active') }}</span>
                                 @endif
                             </div>
                             <div style="display:flex; align-items:center; gap:0.5rem;">
                                 <span class="codec-tag" style="font-size:0.62rem;">{{ $playlist->getMohClassName() }}</span>
-                                <span style="font-size:0.72rem; color:var(--text-secondary);">{{ count($playlist->files ?? []) }} titres</span>
+                                <span style="font-size:0.72rem; color:var(--text-secondary);">{{ count($playlist->files ?? []) }} {{ __('ui.tracks') }}</span>
                             </div>
                         </div>
                         <div style="display:flex; gap:4px; flex-shrink:0;">
-                            <button type="button" class="btn-icon" title="Editer" style="width:28px;height:28px;font-size:0.75rem;"
+                            <button type="button" class="btn-icon" title="{{ __('ui.edit') }}" style="width:28px;height:28px;font-size:0.75rem;"
                                     onclick="openPlModal({{ $playlist->id }})">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form action="{{ route('moh.playlists.toggle', $playlist) }}" method="POST" class="d-inline">
                                 @csrf
-                                <button type="submit" class="btn-icon" title="{{ $playlist->enabled ? 'Desactiver' : 'Activer' }}" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-power"></i></button>
+                                <button type="submit" class="btn-icon" title="{{ __('ui.toggle_status') }}" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-power"></i></button>
                             </form>
                             <form action="{{ route('moh.playlists.destroy', $playlist) }}" method="POST" class="d-inline"
-                                  onsubmit="return confirm('Supprimer la playlist {{ $playlist->name }} ?')">
+                                  onsubmit="return confirm('{{ __('ui.confirm_delete_playlist', ['name' => $playlist->name]) }}')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn-icon danger" title="Supprimer" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-trash3"></i></button>
+                                <button type="submit" class="btn-icon danger" title="{{ __('ui.delete') }}" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-trash3"></i></button>
                             </form>
                         </div>
                     </div>
@@ -243,7 +243,7 @@
             <div class="stat-card text-center py-4" style="color:var(--text-secondary);">
                 <i class="bi bi-collection-play me-2" style="font-size:1.5rem;"></i>
                 <div style="margin-top:0.5rem; font-size:0.85rem;">{{ __('ui.no_playlist') }}</div>
-                <div style="font-size:0.75rem;">Allez sur l'onglet "Nouvelle playlist" pour en creer une</div>
+                <div style="font-size:0.75rem;">{{ __('ui.go_new_playlist') }}</div>
             </div>
         @endif
     </div>
@@ -268,7 +268,7 @@
                     <div class="moh-modal-body">
                         <label class="form-label" style="font-size:0.8rem; font-weight:600;">
                             <i class="bi bi-list-ol me-1" style="color:var(--accent);"></i>
-                            Pistes ({{ count($playlist->files ?? []) }})
+                            {{ __('ui.tracks_label') }} ({{ count($playlist->files ?? []) }})
                         </label>
                         <div class="pl-tracklist" data-id="{{ $playlist->id }}" style="border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:1rem;">
                             @foreach($playlist->files ?? [] as $idx => $f)
@@ -291,7 +291,7 @@
                         {{-- Add tracks --}}
                         <label class="form-label" style="font-size:0.8rem; font-weight:600;">
                             <i class="bi bi-plus-circle me-1" style="color:var(--accent);"></i>
-                            Ajouter des titres
+                            {{ __('ui.add_tracks') }}
                         </label>
                         <div id="addTracks{{ $playlist->id }}" style="max-height:200px; overflow-y:auto;">
                             @foreach($files as $file)
@@ -309,9 +309,9 @@
 
                     <div class="moh-modal-footer">
                         <div class="pl-hidden-inputs"></div>
-                        <button type="button" class="btn-outline-custom" onclick="closePlModal({{ $playlist->id }})">Annuler</button>
+                        <button type="button" class="btn-outline-custom" onclick="closePlModal({{ $playlist->id }})">{{ __('ui.cancel') }}</button>
                         <button type="submit" class="btn btn-accent" onclick="preparePlFiles({{ $playlist->id }})">
-                            <i class="bi bi-check-lg me-1"></i> Enregistrer
+                            <i class="bi bi-check-lg me-1"></i> {{ __('ui.save') }}
                         </button>
                     </div>
                 </form>
@@ -331,17 +331,17 @@
                         @csrf
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">Nom technique *</label>
+                                <label class="form-label">{{ __('ui.technical_name') }} *</label>
                                 <input type="text" class="form-control" name="name" required placeholder="ambiance-jazz" pattern="[a-zA-Z0-9_-]+">
-                                <small style="color:var(--text-secondary); font-size:0.7rem;">Genere la classe <code>playlist-xxx</code></small>
+                                <small style="color:var(--text-secondary); font-size:0.7rem;">{{ __('ui.generates_class') }} <code>playlist-xxx</code></small>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Nom affiche</label>
+                                <label class="form-label">{{ __('ui.display_name') }}</label>
                                 <input type="text" class="form-control" name="display_name" placeholder="Ambiance Jazz">
                             </div>
                             <div class="col-12">
                                 <button type="submit" class="btn btn-accent w-100">
-                                    <i class="bi bi-check-lg me-1"></i> Creer la playlist
+                                    <i class="bi bi-check-lg me-1"></i> {{ __('ui.create_playlist_btn') }}
                                 </button>
                             </div>
                         </div>
@@ -353,14 +353,14 @@
                 <div class="stat-card">
                     <h6 style="font-weight:700; font-size:0.85rem; margin-bottom:0.75rem;">
                         <i class="bi bi-music-note-list me-1" style="color:var(--accent);"></i>
-                        Selectionnez les fichiers
+                        {{ __('ui.select_files') }}
                         <span id="newPlCount" style="color:var(--accent); font-weight:400; font-size:0.78rem;"></span>
                     </h6>
 
                     {{-- Selected tracks (sortable) --}}
                     <div id="newPlTracks" style="min-height:50px; border:1px dashed var(--border); border-radius:8px; padding:0.5rem; margin-bottom:0.75rem;">
                         <div id="newPlEmpty" style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:0.78rem;">
-                            <i class="bi bi-arrow-down me-1"></i> Cliquez sur les fichiers ci-dessous pour les ajouter
+                            <i class="bi bi-arrow-down me-1"></i> {{ __('ui.click_to_add') }}
                         </div>
                     </div>
 
@@ -388,7 +388,7 @@
             <div class="col-lg-7">
                 <div class="data-table">
                     <div style="padding:0.75rem 1rem; border-bottom:1px solid var(--border); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-broadcast" style="color:var(--accent);"></i> Flux actifs
+                        <i class="bi bi-broadcast" style="color:var(--accent);"></i> {{ __('ui.active_streams') }}
                         <span class="nav-badge" style="font-size:0.7rem;">{{ $streams->count() }}</span>
                     </div>
                     @if($streams->count())
@@ -407,11 +407,11 @@
                                     </div>
                                     <div style="display:flex; gap:3px; flex-shrink:0;">
                                         <form action="{{ route('moh.streams.toggle', $stream) }}" method="POST" class="d-inline">@csrf
-                                            <button type="submit" class="btn-icon" title="{{ $stream->enabled ? 'Desactiver' : 'Activer' }}" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-power"></i></button>
+                                            <button type="submit" class="btn-icon" title="{{ __('ui.toggle_status') }}" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-power"></i></button>
                                         </form>
-                                        <form action="{{ route('moh.streams.destroy', $stream) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer le flux {{ $stream->name }} ?')">
+                                        <form action="{{ route('moh.streams.destroy', $stream) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('ui.confirm_delete_stream', ['name' => $stream->name]) }}')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn-icon danger" title="Supprimer" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-trash3"></i></button>
+                                            <button type="submit" class="btn-icon danger" title="{{ __('ui.delete') }}" style="width:28px;height:28px;font-size:0.75rem;"><i class="bi bi-trash3"></i></button>
                                         </form>
                                     </div>
                                 </div>
@@ -419,7 +419,7 @@
                         @endforeach
                     @else
                         <div class="text-center py-4" style="color:var(--text-secondary); font-size:0.82rem;">
-                            <i class="bi bi-broadcast me-2"></i>Aucun flux configure
+                            <i class="bi bi-broadcast me-2"></i>{{ __('ui.no_streams') }}
                         </div>
                     @endif
                 </div>
@@ -427,27 +427,27 @@
             <div class="col-lg-5">
                 <div class="stat-card">
                     <h6 style="font-weight:700; font-size:0.85rem; margin-bottom:1rem;">
-                        <i class="bi bi-plus-circle me-1" style="color:var(--accent);"></i> Nouveau flux
+                        <i class="bi bi-plus-circle me-1" style="color:var(--accent);"></i> {{ __('ui.new_stream') }}
                     </h6>
                     <form action="{{ route('moh.streams.store') }}" method="POST">
                         @csrf
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">Nom technique *</label>
+                                <label class="form-label">{{ __('ui.technical_name') }} *</label>
                                 <input type="text" class="form-control" name="name" required placeholder="lofi-radio" pattern="[a-zA-Z0-9_-]+">
-                                <small style="color:var(--text-secondary); font-size:0.7rem;">Genere la classe <code>stream-xxx</code></small>
+                                <small style="color:var(--text-secondary); font-size:0.7rem;">{{ __('ui.generates_class') }} <code>stream-xxx</code></small>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Nom affiche</label>
+                                <label class="form-label">{{ __('ui.display_name') }}</label>
                                 <input type="text" class="form-control" name="display_name" placeholder="Radio Lofi Chill">
                             </div>
                             <div class="col-12">
-                                <label class="form-label">URL du flux *</label>
+                                <label class="form-label">{{ __('ui.stream_url') }} *</label>
                                 <input type="url" class="form-control" name="url" required placeholder="https://stream.example.com/radio.mp3" style="font-family:'JetBrains Mono',monospace; font-size:0.82rem;">
-                                <small style="color:var(--text-secondary); font-size:0.7rem;">HTTP/HTTPS — MP3, AAC, OGG (decode via ffmpeg)</small>
+                                <small style="color:var(--text-secondary); font-size:0.7rem;">{{ __('ui.stream_hint') }}</small>
                             </div>
                             <div class="col-12">
-                                <button type="submit" class="btn btn-accent w-100"><i class="bi bi-check-lg me-1"></i> Ajouter le flux</button>
+                                <button type="submit" class="btn btn-accent w-100"><i class="bi bi-check-lg me-1"></i> {{ __('ui.add_stream') }}</button>
                             </div>
                         </div>
                     </form>

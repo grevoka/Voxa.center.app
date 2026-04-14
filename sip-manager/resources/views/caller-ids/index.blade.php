@@ -7,7 +7,7 @@
     <div class="section-header d-flex align-items-center justify-content-between">
         <div>
             <h5 class="mb-1" style="font-weight:700;">{{ __("ui.caller_id") }}</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Gerez les Caller ID presentes aux operateurs et les groupes d'acces</p>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.cid_manage_desc') }}</p>
         </div>
     </div>
 
@@ -27,7 +27,7 @@
                     @csrf
                     <div class="row g-2 align-items-end">
                         <div class="col-4">
-                            <label class="form-label" style="font-size:0.72rem;">Numero</label>
+                            <label class="form-label" style="font-size:0.72rem;">{{ __('ui.cid_number') }}</label>
                             <input type="text" name="number" class="form-control form-control-sm" placeholder="+33185090002" required
                                    style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">
                         </div>
@@ -53,7 +53,7 @@
                 {{-- Table --}}
                 <table class="table mb-0">
                     <thead>
-                        <tr><th>Numero</th><th>{{ __("ui.name") }}</th><th>{{ __("ui.th_trunk") }}</th><th style="width:90px;">{{ __("ui.actions") }}</th></tr>
+                        <tr><th>{{ __('ui.cid_number') }}</th><th>{{ __("ui.name") }}</th><th>{{ __("ui.th_trunk") }}</th><th style="width:90px;">{{ __("ui.actions") }}</th></tr>
                     </thead>
                     <tbody>
                         @forelse($callerIds as $cid)
@@ -74,17 +74,17 @@
                                 <div class="d-flex gap-1">
                                     <form action="{{ route('caller-ids.toggle', $cid) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="btn-icon" title="{{ $cid->is_active ? 'Desactiver' : 'Activer' }}" style="width:26px;height:26px;font-size:0.7rem;">
+                                        <button type="submit" class="btn-icon" title="{{ $cid->is_active ? __('ui.disable') : __('ui.enable') }}" style="width:26px;height:26px;font-size:0.7rem;">
                                             <i class="bi bi-power"></i>
                                         </button>
                                     </form>
-                                    <button class="btn-icon" title="Editer" style="width:26px;height:26px;font-size:0.7rem;"
+                                    <button class="btn-icon" title="{{ __('ui.edit') }}" style="width:26px;height:26px;font-size:0.7rem;"
                                         onclick="cidEdit({{ $cid->id }}, '{{ addslashes($cid->number) }}', '{{ addslashes($cid->label) }}', '{{ $cid->trunk_id }}')">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <form action="{{ route('caller-ids.destroy', $cid) }}" method="POST" onsubmit="return confirm('Supprimer ?')">
+                                    <form action="{{ route('caller-ids.destroy', $cid) }}" method="POST" onsubmit="return confirm('{{ __('ui.confirm_delete') }}')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="btn-icon" title="Supprimer" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
+                                        <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </form>
@@ -109,11 +109,11 @@
             <div class="data-table mb-3">
                 <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid var(--border);">
                     <h6 class="mb-0" style="font-size:0.85rem;font-weight:700;">
-                        <i class="bi bi-people-fill me-1" style="color:#bc6ff1;"></i> Groupes d'acces
+                        <i class="bi bi-people-fill me-1" style="color:#bc6ff1;"></i> {{ __('ui.cid_access_groups') }}
                         <span class="badge" style="background:#bc6ff120;color:#bc6ff1;font-size:0.6rem;margin-left:0.3rem;">{{ $groups->count() }}</span>
                     </h6>
                     <button class="btn btn-sm" style="background:#bc6ff120;color:#bc6ff1;border:1px solid #bc6ff140;font-size:0.72rem;font-weight:600;" onclick="document.getElementById('newGroupForm').style.display = document.getElementById('newGroupForm').style.display === 'none' ? 'block' : 'none'">
-                        <i class="bi bi-plus-lg me-1"></i>Nouveau
+                        <i class="bi bi-plus-lg me-1"></i>{{ __('ui.new') }}
                     </button>
                 </div>
 
@@ -121,15 +121,15 @@
                 <form id="newGroupForm" action="{{ route('caller-ids.groups.store') }}" method="POST" class="px-3 py-2" style="display:none;border-bottom:1px solid var(--border);background:rgba(188,111,241,0.03);">
                     @csrf
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Nom du groupe</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.cid_group_name') }}</label>
                         <input type="text" name="name" class="form-control form-control-sm" placeholder="Equipe commerciale" required>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Description</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.description') }}</label>
                         <input type="text" name="description" class="form-control form-control-sm" placeholder="Acces aux numeros commerciaux">
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Caller IDs du groupe</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.cid_group_callerids') }}</label>
                         <div style="max-height:120px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:0.3rem;">
                             @foreach(\App\Models\CallerId::where('is_active', true)->get() as $c)
                             <label class="d-flex align-items-center gap-2" style="font-size:0.78rem;padding:2px 4px;cursor:pointer;">
@@ -141,12 +141,12 @@
                             </label>
                             @endforeach
                             @if(\App\Models\CallerId::where('is_active', true)->count() === 0)
-                                <div style="font-size:0.75rem;color:var(--text-secondary);padding:4px;">Creez d'abord des Caller IDs</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);padding:4px;">{{ __('ui.cid_create_first') }}</div>
                             @endif
                         </div>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label" style="font-size:0.72rem;">Operateurs autorises</label>
+                        <label class="form-label" style="font-size:0.72rem;">{{ __('ui.cid_allowed_operators') }}</label>
                         <div style="max-height:120px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:0.3rem;">
                             @foreach($operators as $op)
                             <label class="d-flex align-items-center gap-2" style="font-size:0.78rem;padding:2px 4px;cursor:pointer;">
@@ -156,7 +156,7 @@
                             </label>
                             @endforeach
                             @if($operators->isEmpty())
-                                <div style="font-size:0.75rem;color:var(--text-secondary);padding:4px;">Aucun operateur</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);padding:4px;">{{ __('ui.cid_no_operator') }}</div>
                             @endif
                         </div>
                     </div>
@@ -181,7 +181,7 @@
                                     <span style="font-size:0.65rem;background:var(--accent-dim);color:var(--accent);border-radius:4px;padding:1px 6px;font-family:'JetBrains Mono',monospace;">{{ $c->number }}</span>
                                 @endforeach
                                 @if($group->callerIds->isEmpty())
-                                    <span style="font-size:0.68rem;color:var(--text-secondary);font-style:italic;">aucun numero</span>
+                                    <span style="font-size:0.68rem;color:var(--text-secondary);font-style:italic;">{{ __('ui.cid_no_number') }}</span>
                                 @endif
                             </div>
                             <div class="d-flex flex-wrap gap-1 mt-1">
@@ -191,18 +191,18 @@
                                     </span>
                                 @endforeach
                                 @if($group->users->isEmpty())
-                                    <span style="font-size:0.68rem;color:var(--text-secondary);font-style:italic;">aucun operateur</span>
+                                    <span style="font-size:0.68rem;color:var(--text-secondary);font-style:italic;">{{ __('ui.cid_no_operator') }}</span>
                                 @endif
                             </div>
                         </div>
                         <div class="d-flex gap-1 ms-2">
-                            <button class="btn-icon" title="Editer" style="width:26px;height:26px;font-size:0.7rem;"
+                            <button class="btn-icon" title="{{ __('ui.edit') }}" style="width:26px;height:26px;font-size:0.7rem;"
                                 onclick="cidGroupEdit({{ $group->id }}, {{ json_encode(['name' => $group->name, 'description' => $group->description, 'caller_ids' => $group->callerIds->pluck('id'), 'users' => $group->users->pluck('id')]) }})">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <form action="{{ route('caller-ids.groups.destroy', $group) }}" method="POST" onsubmit="return confirm('Supprimer le groupe {{ $group->name }} ?')">
+                            <form action="{{ route('caller-ids.groups.destroy', $group) }}" method="POST" onsubmit="return confirm('{{ __('ui.confirm_delete') }} {{ $group->name }} ?')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn-icon" title="Supprimer" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
+                                <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
@@ -218,12 +218,12 @@
 
             {{-- Info box --}}
             <div class="stat-card" style="padding:1rem;">
-                <h6 style="font-size:0.82rem;font-weight:700;margin-bottom:0.5rem;"><i class="bi bi-lightbulb me-1" style="color:#d29922;"></i>Comment ca marche</h6>
+                <h6 style="font-size:0.82rem;font-weight:700;margin-bottom:0.5rem;"><i class="bi bi-lightbulb me-1" style="color:#d29922;"></i>{{ __('ui.ai_how_it_works') }}</h6>
                 <ul style="font-size:0.78rem;color:var(--text-secondary);margin:0;padding-left:1.2rem;line-height:1.6;">
-                    <li>Creez des <b>Caller IDs</b> avec le numero et le trunk associe</li>
-                    <li>Organisez-les dans des <b>groupes</b> et assignez des operateurs</li>
-                    <li>Chaque operateur verra uniquement les numeros de ses groupes dans le <b>softphone</b></li>
-                    <li>Par defaut, le Caller ID de la ligne SIP est utilise</li>
+                    <li>{!! __('ui.cid_how_1') !!}</li>
+                    <li>{!! __('ui.cid_how_2') !!}</li>
+                    <li>{!! __('ui.cid_how_3') !!}</li>
+                    <li>{!! __('ui.cid_how_4') !!}</li>
                 </ul>
             </div>
         </div>
@@ -236,7 +236,7 @@
             <form id="cidEditForm" method="POST">
                 @csrf @method('PUT')
                 <div class="mb-2">
-                    <label class="form-label" style="font-size:0.72rem;">Numero</label>
+                    <label class="form-label" style="font-size:0.72rem;">{{ __('ui.cid_number') }}</label>
                     <input type="text" name="number" id="cidEditNumber" class="form-control form-control-sm" required style="font-family:'JetBrains Mono',monospace;">
                 </div>
                 <div class="mb-2">
@@ -253,8 +253,8 @@
                     </select>
                 </div>
                 <div class="d-flex gap-2 justify-content-end">
-                    <button type="button" class="btn btn-sm" onclick="document.getElementById('cidEditModal').style.display='none'" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">Annuler</button>
-                    <button type="submit" class="btn btn-accent btn-sm">Enregistrer</button>
+                    <button type="button" class="btn btn-sm" onclick="document.getElementById('cidEditModal').style.display='none'" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">{{ __('ui.cancel') }}</button>
+                    <button type="submit" class="btn btn-accent btn-sm">{{ __('ui.save') }}</button>
                 </div>
             </form>
         </div>
@@ -263,7 +263,7 @@
     {{-- Edit modal (Group) --}}
     <div id="grpEditModal" style="display:none;position:fixed;inset:0;z-index:1050;background:rgba(0,0,0,.6);align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
         <div style="padding:1.5rem;width:440px;max-width:90vw;background:#1c1f26;border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
-            <h6 style="font-weight:700;margin-bottom:1rem;"><i class="bi bi-pencil me-2" style="color:#bc6ff1;"></i>Modifier le groupe</h6>
+            <h6 style="font-weight:700;margin-bottom:1rem;"><i class="bi bi-pencil me-2" style="color:#bc6ff1;"></i>{{ __('ui.cid_edit_group') }}</h6>
             <form id="grpEditForm" method="POST">
                 @csrf @method('PUT')
                 <div class="mb-2">
@@ -271,7 +271,7 @@
                     <input type="text" name="name" id="grpEditName" class="form-control form-control-sm" required>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label" style="font-size:0.72rem;">Description</label>
+                    <label class="form-label" style="font-size:0.72rem;">{{ __('ui.description') }}</label>
                     <input type="text" name="description" id="grpEditDesc" class="form-control form-control-sm">
                 </div>
                 <div class="mb-2">
@@ -301,8 +301,8 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2 justify-content-end">
-                    <button type="button" class="btn btn-sm" onclick="document.getElementById('grpEditModal').style.display='none'" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">Annuler</button>
-                    <button type="submit" class="btn btn-sm" style="background:#bc6ff1;color:#fff;border:none;font-weight:600;">Enregistrer</button>
+                    <button type="button" class="btn btn-sm" onclick="document.getElementById('grpEditModal').style.display='none'" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">{{ __('ui.cancel') }}</button>
+                    <button type="submit" class="btn btn-sm" style="background:#bc6ff1;color:#fff;border:none;font-weight:600;">{{ __('ui.save') }}</button>
                 </div>
             </form>
         </div>

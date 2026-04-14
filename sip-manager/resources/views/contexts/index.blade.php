@@ -1,20 +1,20 @@
 @extends('layouts.app')
 
-@section('title', __('ui.contexts')\')
-@section('page-title', __('ui.contexts')\')
+@section('title', __('ui.contexts'))
+@section('page-title', __('ui.contexts'))
 
 @section('content')
     <div class="section-header">
         <div>
-            <h5 class="mb-1" style="font-weight:700;">Contextes d'appel</h5>
-            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">Regles de routage entrant, sortant et interne</p>
+            <h5 class="mb-1" style="font-weight:700;">{{ __('ui.call_contexts') }}</h5>
+            <p class="mb-0" style="font-size:0.82rem;color:var(--text-secondary);">{{ __('ui.routing_rules') }}</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('contexts.dialplan') }}" class="btn btn-outline-custom">
-                <i class="bi bi-code-slash me-1"></i> Voir Dialplan
+                <i class="bi bi-code-slash me-1"></i> {{ __('ui.view_dialplan') }}
             </a>
             <a href="{{ route('contexts.create') }}" class="btn btn-accent">
-                <i class="bi bi-plus-lg me-1"></i> Nouveau contexte
+                <i class="bi bi-plus-lg me-1"></i> {{ __('ui.new_context') }}
             </a>
         </div>
     </div>
@@ -28,7 +28,7 @@
                     <th>{{ __("ui.direction") }}</th>
                     <th>{{ __("ui.pattern") }}</th>
                     <th>{{ __("ui.destination") }}</th>
-                    <th>Repondeur</th>
+                    <th>{{ __("ui.voicemail") }}</th>
                     <th>{{ __("ui.status") }}</th>
                     <th>{{ __("ui.actions") }}</th>
                 </tr>
@@ -66,29 +66,29 @@
                                 <span style="color:var(--accent);font-size:0.8rem;">
                                     <i class="bi bi-voicemail"></i> {{ $ctx->voicemail_box }}
                                 </span>
-                                <br><small style="color:var(--text-secondary);font-size:0.7rem;">apres {{ $ctx->ring_timeout }}s</small>
+                                <br><small style="color:var(--text-secondary);font-size:0.7rem;">{{ __('ui.after_seconds', ['seconds' => $ctx->ring_timeout]) }}</small>
                             @else
                                 <span style="color:var(--text-secondary);font-size:0.8rem;">—</span>
                             @endif
                         </td>
                         <td>
                             <span class="status-dot {{ $ctx->enabled ? 'online' : 'offline' }}"></span>
-                            {{ $ctx->enabled ? 'Actif' : 'Inactif' }}
+                            {{ $ctx->enabled ? __('ui.active') : __('ui.inactive') }}
                         </td>
                         <td>
                             <form action="{{ route('contexts.toggle', $ctx) }}" method="POST" class="d-inline">
                                 @csrf
-                                <button type="submit" class="btn-icon me-1" title="Basculer">
+                                <button type="submit" class="btn-icon me-1" title="{{ __('ui.toggle_status') }}">
                                     <i class="bi bi-power"></i>
                                 </button>
                             </form>
-                            <a href="{{ route('contexts.edit', $ctx) }}" class="btn-icon me-1" title="Modifier">
+                            <a href="{{ route('contexts.edit', $ctx) }}" class="btn-icon me-1" title="{{ __('ui.edit') }}">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ route('contexts.destroy', $ctx) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer le contexte {{ $ctx->name }} ?')">
+                            <form action="{{ route('contexts.destroy', $ctx) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('ui.confirm_delete_context', ['name' => $ctx->name]) }}')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-icon danger" title="Supprimer">
+                                <button type="submit" class="btn-icon danger" title="{{ __('ui.delete') }}">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>

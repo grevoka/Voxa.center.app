@@ -96,7 +96,7 @@
                                 </audio>
                                 <form action="{{ route('recordings.destroy', $r->uniqueid) }}" method="POST" onsubmit="return confirm('Supprimer cet enregistrement ?')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn-icon" title="Supprimer" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
+                                    <button type="submit" class="btn-icon" title="{{ __('ui.delete') }}" style="width:26px;height:26px;font-size:0.7rem;color:#f85149;">
                                         <i class="bi bi-trash3"></i>
                                     </button>
                                 </form>
