@@ -763,6 +763,7 @@ return [
     'voice_female' => 'Femme',
     'voice_male' => 'Homme',
     'voice_female2' => 'Femme 2',
+    'install_wizard' => 'Assistant d\'installation',
 
     // Live
     'live_desc' => 'Appels actifs — rafraichi toutes les 3s',

@@ -33,9 +33,16 @@
             text-align: center;
             margin-bottom: 2rem;
         }
+        .install-brand img {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            margin-bottom: 0.75rem;
+        }
         .install-brand h2 {
             font-weight: 800;
             font-size: 1.6rem;
+            margin: 0;
         }
         .install-brand h2 span { color: var(--accent); }
         .install-brand small {
@@ -188,8 +195,9 @@
 <body>
     <div class="install-container">
         <div class="install-brand">
-            <h2><span>//</span> SIP<span>.</span>ctrl</h2>
-            <small>Assistant d'installation</small>
+            <img src="/img/voxa-logo.png" alt="Voxa Center">
+            <h2>Voxa<span>.</span>Center</h2>
+            <small>{{ __('ui.install_wizard') ?? 'Installation wizard' }}</small>
         </div>
 
         <div class="install-card">
