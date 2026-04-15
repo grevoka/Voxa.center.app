@@ -241,10 +241,22 @@ SIP.ctrl/
 │   │   └── en/ui.php                 # Traductions anglais
 │   ├── routes/web.php                # Routes
 │   └── database/migrations/          # Schema (26 migrations)
-├── install.sh                        # Script d'installation full-native
-└── backups/                          # Sauvegardes DB
+├── backups/                          # Sauvegardes DB
+└── LICENSE                           # Licence GPL-3.0
 ```
 
 ## Licence
 
-Projet prive — tous droits reserves.
+Ce projet est distribue sous licence **GNU General Public License v3.0** (GPL-3.0).
+
+Vous etes libre de :
+- Utiliser, copier et distribuer ce logiciel
+- Modifier le code source et distribuer vos modifications
+- Utiliser ce logiciel a des fins commerciales
+
+Sous condition que :
+- Toute distribution inclut le code source ou un acces a celui-ci
+- Les travaux derives soient distribues sous la meme licence GPL-3.0
+- Les mentions de copyright et de licence soient conservees
+
+Voir le fichier [LICENSE](LICENSE) pour le texte complet de la licence.
