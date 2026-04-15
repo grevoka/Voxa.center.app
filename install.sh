@@ -6,6 +6,14 @@
 #
 set -e
 
+# ── Auto-download si execute via pipe (curl | bash) ──
+if [ ! -t 0 ]; then
+    TMPSCRIPT=$(mktemp /tmp/voxa-install.XXXXXX.sh)
+    curl -sSL "https://raw.githubusercontent.com/grevoka/Voxa.center.app/main/install.sh" -o "$TMPSCRIPT"
+    chmod +x "$TMPSCRIPT"
+    exec bash "$TMPSCRIPT" "$@"
+fi
+
 # ── Couleurs ──
 RED='\033[0;31m'
 GREEN='\033[0;32m'
