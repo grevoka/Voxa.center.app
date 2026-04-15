@@ -7,11 +7,12 @@
 set -e
 
 # ── Auto-download si execute via pipe (curl | bash) ──
-if [ ! -t 0 ]; then
+if [ ! -t 0 ] && [ -z "$VOXA_REEXEC" ]; then
     TMPSCRIPT=$(mktemp /tmp/voxa-install.XXXXXX.sh)
     curl -sSL "https://raw.githubusercontent.com/grevoka/Voxa.center.app/main/install.sh" -o "$TMPSCRIPT"
     chmod +x "$TMPSCRIPT"
-    exec bash "$TMPSCRIPT" "$@"
+    export VOXA_REEXEC=1
+    exec bash "$TMPSCRIPT" "$@" </dev/tty
 fi
 
 # ── Couleurs ──
