@@ -245,24 +245,34 @@ if command -v asterisk &>/dev/null; then
 else
     log "Compilation d'Asterisk 20 (peut prendre 5-10 min)..."
 
-    AST_VERSION="20.13.0"
+    AST_VERSION="20.19.0"
     cd /usr/src
+    AST_LOG="/tmp/asterisk-build.log"
     if [ ! -d "asterisk-${AST_VERSION}" ]; then
-        wget -q "https://downloads.asterisk.org/pub/telephony/asterisk/asterisk-${AST_VERSION}.tar.gz"
+        log "Telechargement d'Asterisk ${AST_VERSION}..."
+        wget -q "https://downloads.asterisk.org/pub/telephony/asterisk/asterisk-${AST_VERSION}.tar.gz" || err "Echec du telechargement Asterisk ${AST_VERSION}"
         tar xzf "asterisk-${AST_VERSION}.tar.gz"
         rm -f "asterisk-${AST_VERSION}.tar.gz"
     fi
     cd "asterisk-${AST_VERSION}"
 
-    contrib/scripts/install_prereq install > /dev/null 2>&1 || true
-    ./configure --with-jansson-bundled --with-pjproject-bundled > /dev/null 2>&1
-    make menuselect.makeopts
-    menuselect/menuselect --enable codec_opus menuselect.makeopts 2>/dev/null || true
-    make -j$(nproc) > /dev/null 2>&1
-    make install > /dev/null 2>&1
-    make samples > /dev/null 2>&1
+    log "Installation des prerequis Asterisk..."
+    contrib/scripts/install_prereq install >> "$AST_LOG" 2>&1 || true
 
-    log "Asterisk compile et installe."
+    log "Configuration Asterisk (./configure)..."
+    ./configure --with-jansson-bundled --with-pjproject-bundled >> "$AST_LOG" 2>&1 || { warn "configure echoue — voir $AST_LOG"; err "Echec de ./configure"; }
+
+    make menuselect.makeopts >> "$AST_LOG" 2>&1
+    menuselect/menuselect --enable codec_opus menuselect.makeopts 2>/dev/null || true
+
+    log "Compilation Asterisk (make -j$(nproc))..."
+    make -j$(nproc) >> "$AST_LOG" 2>&1 || { warn "make echoue — voir $AST_LOG"; err "Echec de la compilation"; }
+
+    log "Installation Asterisk (make install)..."
+    make install >> "$AST_LOG" 2>&1 || err "Echec de make install"
+    make samples >> "$AST_LOG" 2>&1 || true
+
+    log "Asterisk ${AST_VERSION} compile et installe."
 fi
 
 # ── Detect public IP ──
