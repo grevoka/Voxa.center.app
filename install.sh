@@ -462,17 +462,32 @@ log "Asterisk configure et demarre."
 # ══════════════════════════════════════
 log "Deploiement de l'application Laravel..."
 
+VOXA_REPO="https://github.com/grevoka/Voxa.center.app"
+VOXA_BRANCH="main"
+VOXA_ARCHIVE="${VOXA_REPO}/archive/refs/heads/${VOXA_BRANCH}.tar.gz"
+
 cd /var/www
-if [ -d "${INSTALL_DIR}/.git" ]; then
-    cd "$INSTALL_DIR"
-    git pull || warn "Git pull echoue."
+rm -rf /tmp/voxa-src
+mkdir -p /tmp/voxa-src
+
+log "Telechargement de Voxa Center..."
+if curl -sSL "$VOXA_ARCHIVE" -o /tmp/voxa-src.tar.gz; then
+    tar xzf /tmp/voxa-src.tar.gz -C /tmp/voxa-src --strip-components=1
+    rm -f /tmp/voxa-src.tar.gz
 else
-    # Clone sip-manager subdirectory
-    git clone https://github.com/grevoka/SIP.ctrl.git /tmp/voxa-src 2>/dev/null || true
+    # Fallback: git clone
+    log "Fallback: git clone..."
+    git clone --depth 1 -b "$VOXA_BRANCH" "$VOXA_REPO" /tmp/voxa-src 2>/dev/null || err "Impossible de telecharger Voxa Center"
+fi
+
+# Copy sip-manager content to install dir
+if [ -d /tmp/voxa-src/sip-manager ]; then
     rm -rf "${INSTALL_DIR}"
     cp -r /tmp/voxa-src/sip-manager "${INSTALL_DIR}"
-    rm -rf /tmp/voxa-src
+else
+    err "Structure du depot invalide (sip-manager/ introuvable)"
 fi
+rm -rf /tmp/voxa-src
 
 cd "$INSTALL_DIR"
 
