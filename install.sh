@@ -33,12 +33,12 @@ echo -e "${NC}"
 echo ""
 
 # ── Demander le hostname ──
-read -p "Nom de domaine (ex: sipctrl.example.com): " HOSTNAME
+read -p "Nom de domaine (ex: sipctrl.example.com): " HOSTNAME < /dev/tty
 if [ -z "$HOSTNAME" ]; then
     err "Le nom de domaine est obligatoire."
 fi
 
-read -p "Email pour Let's Encrypt (ex: admin@example.com): " LE_EMAIL
+read -p "Email pour Let's Encrypt (ex: admin@example.com): " LE_EMAIL < /dev/tty
 if [ -z "$LE_EMAIL" ]; then
     err "L'email est obligatoire pour Let's Encrypt."
 fi
@@ -51,7 +51,7 @@ echo "  Domaine:     ${HOSTNAME}"
 echo "  Email:       ${LE_EMAIL}"
 echo "  Repertoire:  ${INSTALL_DIR}"
 echo ""
-read -p "Continuer ? [O/n] " CONFIRM
+read -p "Continuer ? [O/n] " CONFIRM < /dev/tty
 if [[ "$CONFIRM" =~ ^[nN] ]]; then
     echo "Annule."; exit 0
 fi
