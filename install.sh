@@ -134,15 +134,35 @@ log "Configuration de MariaDB..."
 # Generate password
 DB_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 24)
 
-mysql -u root <<-EOSQL
+# Detect MariaDB access method (unix_socket for fresh install, or ask password)
+MYSQL_CMD="mysql -u root"
+if ! $MYSQL_CMD -e "SELECT 1" &>/dev/null; then
+    # Try unix_socket via sudo
+    MYSQL_CMD="mysql"
+    if ! $MYSQL_CMD -e "SELECT 1" &>/dev/null; then
+        echo -e "${YELLOW}MariaDB root necesssite un mot de passe.${NC}"
+        read -p "Mot de passe root MariaDB actuel: " EXISTING_DB_PASS < /dev/tty
+        MYSQL_CMD="mysql -u root -p${EXISTING_DB_PASS}"
+        if ! $MYSQL_CMD -e "SELECT 1" &>/dev/null; then
+            err "Impossible de se connecter a MariaDB. Verifiez le mot de passe root."
+        fi
+    fi
+fi
+
+$MYSQL_CMD <<-EOSQL
     CREATE DATABASE IF NOT EXISTS sip_manager CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     CREATE DATABASE IF NOT EXISTS asterisk_rt CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_PASS}';
+    CREATE USER IF NOT EXISTS 'voxa'@'localhost' IDENTIFIED BY '${DB_PASS}';
+    GRANT ALL PRIVILEGES ON sip_manager.* TO 'voxa'@'localhost';
+    GRANT ALL PRIVILEGES ON asterisk_rt.* TO 'voxa'@'localhost';
     FLUSH PRIVILEGES;
 EOSQL
 
+# Use the new dedicated user from now on
+MYSQL_APP="mysql -u voxa -p${DB_PASS}"
+
 # ── Creer les tables PJSIP Realtime ──
-mysql -u root -p"${DB_PASS}" asterisk_rt <<-'EORT'
+$MYSQL_APP asterisk_rt <<-'EORT'
     CREATE TABLE IF NOT EXISTS ps_endpoints (
         id VARCHAR(40) NOT NULL PRIMARY KEY,
         transport VARCHAR(40), aors VARCHAR(200), auth VARCHAR(40),
@@ -337,7 +357,7 @@ Driver      = MariaDB
 Server      = 127.0.0.1
 Port        = 3306
 Database    = asterisk_rt
-User        = root
+User        = voxa
 Password    = ${DB_PASS}
 Option      = 3
 EOF
@@ -466,14 +486,14 @@ DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=sip_manager
-DB_USERNAME=root
+DB_USERNAME=voxa
 DB_PASSWORD=${DB_PASS}
 
 DB_AST_CONNECTION=asterisk
 DB_AST_HOST=127.0.0.1
 DB_AST_PORT=3306
 DB_AST_DATABASE=asterisk_rt
-DB_AST_USERNAME=root
+DB_AST_USERNAME=voxa
 DB_AST_PASSWORD=${DB_PASS}
 
 ASTERISK_AMI_HOST=127.0.0.1
