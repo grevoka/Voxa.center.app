@@ -32,6 +32,7 @@ class TrunkRequest extends FormRequest
             'inbound_ips'     => 'nullable|array',
             'inbound_ips.*'   => 'nullable|string|max:50',
             'inbound_context' => 'nullable|string|max:50',
+            'outbound_proxy'  => 'nullable|string|max:255',
             'register'        => 'boolean',
             'retry_interval' => 'nullable|integer|min:10|max:3600',
             'expiration'     => 'nullable|integer|min:60|max:86400',

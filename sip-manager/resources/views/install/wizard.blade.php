@@ -31,17 +31,17 @@
         }
         .install-brand {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
         .install-brand img {
-            width: 80px;
-            height: 80px;
-            border-radius: 16px;
-            margin-bottom: 0.75rem;
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            margin-bottom: 0;
         }
         .install-brand h2 {
             font-weight: 800;
-            font-size: 1.6rem;
+            font-size: 1.1rem;
             margin: 0;
         }
         .install-brand h2 span { color: var(--accent); }
