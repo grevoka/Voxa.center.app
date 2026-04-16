@@ -164,6 +164,21 @@
 JsSIP.debug.enable('JsSIP:*');
 var _phone = null, _session = null, _timer = null, _seconds = 0, _iceServers = null, _callerIds = [], _defaultCallerId = null, _missedCalls = [];
 
+// Unlock audio autoplay on first user interaction
+(function() {
+    var unlocked = false;
+    function unlock() {
+        if (unlocked) return;
+        unlocked = true;
+        var a = document.getElementById('phoneRemoteAudio');
+        if (a) { a.play().then(function(){a.pause();}).catch(function(){}); }
+        document.removeEventListener('click', unlock);
+        document.removeEventListener('touchstart', unlock);
+    }
+    document.addEventListener('click', unlock);
+    document.addEventListener('touchstart', unlock);
+})();
+
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
     var txt = document.getElementById('phoneStatusText');
@@ -392,7 +407,7 @@ function phoneBindSession(session, number) {
     document.getElementById('phoneHangupBtn').style.display = 'block';
     document.getElementById('phoneCallInfo').style.display = 'block';
     document.getElementById('phoneCallNumber').textContent = number;
-    phoneSetStatus('busy', 'En );
+    phoneSetStatus('busy', 'En communication...');
 
     session.on('confirmed', function() {
         document.getElementById('phoneIncoming').style.display = 'none';
