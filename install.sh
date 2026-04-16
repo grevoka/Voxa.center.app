@@ -756,6 +756,25 @@ log "Service voxa-ai configure (demarre quand la cle OpenAI est configuree)."
 # ══════════════════════════════════════
 # Phase 11 : Fail2ban
 # ══════════════════════════════════════
+# Phase 12 : Cron (Laravel scheduler + CDR sync)
+# ══════════════════════════════════════
+log "Configuration du cron..."
+
+cat > /etc/cron.d/voxa-center << CRONEOF
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Laravel scheduler (every minute)
+* * * * * www-data cd ${INSTALL_DIR} && php8.4 artisan schedule:run >> /dev/null 2>&1
+
+# CDR sync (every minute)
+* * * * * www-data cd ${INSTALL_DIR} && php8.4 artisan cdr:sync >> /dev/null 2>&1
+CRONEOF
+
+chmod 644 /etc/cron.d/voxa-center
+log "Cron configure."
+
+# ══════════════════════════════════════
 log "Configuration de Fail2ban..."
 
 cat > /etc/fail2ban/filter.d/asterisk-sip.conf << 'F2BFILTER'
