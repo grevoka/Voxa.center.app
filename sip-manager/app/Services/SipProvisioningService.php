@@ -149,37 +149,9 @@ class SipProvisioningService
                     ]
                 );
 
-                if ($trunk->register && $trunk->username) {
-                    $regData = [
-                        'transport'                => $trunk->getTransportKey(),
-                        'outbound_auth'            => $authId,
-                        'server_uri'               => $trunk->getServerUri(),
-                        'client_uri'               => $trunk->getClientUri(),
-                        'retry_interval'           => $trunk->retry_interval,
-                        'expiration'               => $trunk->expiration,
-                        'contact_user'             => $trunk->username,
-                        'auth_rejection_permanent' => 'no',
-                    ];
-
-                    // Add outbound proxy if configured (e.g. OVH sip-proxy)
-                    // When proxy is set, server_uri/client_uri use the domain (for SIP headers)
-                    // but the actual REGISTER is sent to the proxy IP
-                    if ($trunk->outbound_proxy) {
-                        $proxy = $trunk->outbound_proxy;
-                        // Strip sip: prefix if present for normalization
-                        $proxy = preg_replace('#^sip:#', '', $proxy);
-                        // Ensure port is included
-                        if (!str_contains($proxy, ':')) {
-                            $proxy .= ':' . $trunk->port;
-                        }
-                        $regData['outbound_proxy'] = "sip:{$proxy}";
-                    }
-
-                    DB::connection($this->connection)->table('ps_registrations')->updateOrInsert(
-                        ['id' => $registrationId],
-                        $regData
-                    );
-                }
+                // Clean up any legacy Realtime registration
+                DB::connection($this->connection)->table('ps_registrations')
+                    ->where('id', $registrationId)->delete();
             });
 
             Log::info("Provisioned trunk", ['name' => $trunk->name, 'endpoint' => $id]);
@@ -255,10 +227,9 @@ class SipProvisioningService
 
     /**
      * Rewrite the auto-generated section of /etc/asterisk/pjsip.conf
-     * with static endpoint + identify sections for all trunks with inbound IPs.
-     * Static config is required because sorcery Realtime does not reliably
-     * handle IP identification at runtime, and #tryinclude doesn't work
-     * with sorcery's config wizard.
+     * with static identify + registration sections for all trunks.
+     * Registrations MUST be static because Realtime ODBC registration
+     * loading fails on many Asterisk 20 builds (xmldoc/sorcery bug).
      */
     public function writeIdentifyConf(): void
     {
@@ -275,15 +246,14 @@ class SipProvisioningService
             }
 
             $lines = [];
-            $trunks = Trunk::whereNotNull('inbound_ips')->get();
+            $allTrunks = Trunk::all();
 
-            foreach ($trunks as $trunk) {
+            // Identify sections (inbound IP matching)
+            foreach ($allTrunks as $trunk) {
                 $ips = $trunk->inbound_ips ?? [];
                 if (empty($ips)) continue;
 
                 $inboundId = $trunk->getInboundEndpointId();
-
-                // Only static identify (endpoint comes from Realtime DB)
                 $lines[] = '';
                 $lines[] = "[{$inboundId}-identify]";
                 $lines[] = 'type = identify';
@@ -296,13 +266,45 @@ class SipProvisioningService
                 }
             }
 
+            // Registration sections (outbound trunk registration)
+            foreach ($allTrunks as $trunk) {
+                if (!$trunk->register || !$trunk->username) continue;
+
+                $id = $trunk->getAsteriskEndpointId();
+                $authId = $id . '-auth';
+                $regId = $id . '-reg';
+
+                $lines[] = '';
+                $lines[] = "[{$regId}]";
+                $lines[] = 'type = registration';
+                $lines[] = "transport = {$trunk->getTransportKey()}";
+                $lines[] = "outbound_auth = {$authId}";
+                $lines[] = "server_uri = {$trunk->getServerUri()}";
+                $lines[] = "client_uri = {$trunk->getClientUri()}";
+                $lines[] = "retry_interval = " . ($trunk->retry_interval ?? 60);
+                $lines[] = "expiration = " . ($trunk->expiration ?? 3600);
+                $lines[] = "contact_user = {$trunk->username}";
+                $lines[] = 'auth_rejection_permanent = no';
+
+                if ($trunk->outbound_proxy) {
+                    $proxy = preg_replace('#^sip:#', '', $trunk->outbound_proxy);
+                    if (!str_contains($proxy, ':')) {
+                        $proxy .= ':' . $trunk->port;
+                    }
+                    $lines[] = "outbound_proxy = sip:{$proxy}";
+                }
+            }
+
             $output = $base . "\n\n" . $marker . "\n";
             $output .= "; Ne pas editer — gere par SipProvisioningService\n";
             $output .= implode("\n", $lines) . "\n";
 
             $this->writeAsteriskFile($pjsipPath, $output);
 
-            Log::info('Written pjsip.conf trunk sections', ['trunks' => $trunks->count()]);
+            // Reload PJSIP to pick up registration changes
+            exec('sudo /usr/sbin/asterisk -rx "module reload res_pjsip.so" 2>&1');
+
+            Log::info('Written pjsip.conf trunk sections', ['trunks' => $allTrunks->count()]);
         } catch (\Throwable $e) {
             Log::warning('Could not write pjsip.conf trunk sections', ['error' => $e->getMessage()]);
         }
@@ -341,6 +343,9 @@ class SipProvisioningService
             DB::connection($this->connection)->table('ps_auths')->where('id', $authId)->delete();
             DB::connection($this->connection)->table('ps_aors')->where('id', $id)->delete();
             DB::connection($this->connection)->table('ps_registrations')->where('id', $registrationId)->delete();
+
+            // Rewrite pjsip.conf to remove registration + identify
+            $this->writeIdentifyConf();
 
             // Clean up inbound endpoint + identify IPs
             DB::connection($this->connection)->table('ps_endpoint_id_ips')->where('endpoint', $inboundId)->delete();

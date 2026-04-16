@@ -390,7 +390,7 @@ auth=realtime,ps_auths
 aor=realtime,ps_aors
 domain_alias=realtime,ps_domain_aliases
 contact=astdb,registrar
-registration=realtime,ps_registrations
+; registration loaded from static pjsip.conf (Realtime ODBC unreliable)
 
 [res_pjsip_endpoint_identifier_ip]
 identify=realtime,ps_endpoint_id_ips
@@ -401,7 +401,7 @@ cat > /etc/asterisk/extconfig.conf << 'EXTEOF'
 ps_endpoints => odbc,asterisk,ps_endpoints
 ps_auths => odbc,asterisk,ps_auths
 ps_aors => odbc,asterisk,ps_aors
-ps_registrations => odbc,asterisk,ps_registrations
+; ps_registrations managed via static pjsip.conf
 ps_domain_aliases => odbc,asterisk,ps_domain_aliases
 ps_endpoint_id_ips => odbc,asterisk,ps_endpoint_id_ips
 EXTEOF
