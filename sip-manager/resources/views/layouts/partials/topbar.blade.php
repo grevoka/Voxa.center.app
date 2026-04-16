@@ -21,15 +21,21 @@
         </form>
         @endif
         <div class="dropdown" style="position:relative;">
-            <button class="btn-icon" title="{{ __('ui.language') }}" onclick="this.nextElementSibling.classList.toggle('show')" style="font-size:1rem;">
-                {{ app()->getLocale() === 'en' ? '🇬🇧' : '🇫🇷' }}
+            <button class="btn-icon" title="{{ __('ui.language') }}" onclick="this.nextElementSibling.classList.toggle('show')" style="padding:2px;">
+                @if(app()->getLocale() === 'en')
+                <svg width="22" height="16" viewBox="0 0 60 40" style="border-radius:3px;display:block;"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" stroke-width="6"/></svg>
+                @else
+                <svg width="22" height="16" viewBox="0 0 60 40" style="border-radius:3px;display:block;"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg>
+                @endif
             </button>
-            <div class="lang-dropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:100;min-width:130px;overflow:hidden;">
-                <a href="{{ route('lang.switch', 'fr') }}" class="lang-opt {{ app()->getLocale() === 'fr' ? 'active' : '' }}">
-                    🇫🇷 Francais
+            <div class="lang-dropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:100;min-width:140px;overflow:hidden;">
+                <a href="{{ route('lang.switch', 'fr') }}" class="lang-opt {{ app()->getLocale() === 'fr' ? 'active' : '' }}" style="display:flex;align-items:center;gap:8px;">
+                    <svg width="20" height="14" viewBox="0 0 60 40" style="border-radius:2px;flex-shrink:0;"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg>
+                    Francais
                 </a>
-                <a href="{{ route('lang.switch', 'en') }}" class="lang-opt {{ app()->getLocale() === 'en' ? 'active' : '' }}">
-                    🇬🇧 English
+                <a href="{{ route('lang.switch', 'en') }}" class="lang-opt {{ app()->getLocale() === 'en' ? 'active' : '' }}" style="display:flex;align-items:center;gap:8px;">
+                    <svg width="20" height="14" viewBox="0 0 60 40" style="border-radius:2px;flex-shrink:0;"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" stroke-width="6"/></svg>
+                    English
                 </a>
             </div>
         </div>
