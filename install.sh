@@ -457,6 +457,23 @@ systemctl daemon-reload
 systemctl enable asterisk
 systemctl start asterisk
 
+# ── CDR (Call Detail Records) to database ──
+cat > /etc/asterisk/cdr.conf << 'CDREOF'
+[general]
+enable = yes
+unanswered = yes
+
+[csv]
+usegmtime = no
+loguniqueid = yes
+CDREOF
+
+cat > /etc/asterisk/cdr_adaptive_odbc.conf << 'CDRODBCEOF'
+[voxa-cdr]
+connection = asterisk
+table = cdr
+CDRODBCEOF
+
 log "Asterisk configure et demarre."
 
 # ══════════════════════════════════════
