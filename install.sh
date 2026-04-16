@@ -98,7 +98,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install -yqq \
     mariadb-server redis-server \
     build-essential libssl-dev libncurses5-dev libnewt-dev libxml2-dev \
     libsqlite3-dev uuid-dev libjansson-dev libsrtp2-dev libcurl4-openssl-dev \
-    libedit-dev unixodbc-dev odbc-mariadb sox mpg123 ffmpeg coturn > /dev/null
+    libedit-dev unixodbc-dev odbc-mariadb sox mpg123 ffmpeg coturn \
+    python3-websockets python3-pip > /dev/null
 
 # ── PHP 8.4 via sury.org ──
 if ! php8.4 -v &>/dev/null; then
@@ -695,7 +696,65 @@ systemctl restart coturn
 log "Coturn TURN server configure."
 
 # ══════════════════════════════════════
-# Phase 9 : Fail2ban
+# Phase 9 : Piper TTS (local voice synthesis)
+# ══════════════════════════════════════
+if [ ! -f /opt/piper/piper ]; then
+    log "Installation de Piper TTS..."
+    mkdir -p /opt/piper
+    cd /opt/piper
+    PIPER_VERSION="2023.11.14-2"
+    wget -q "https://github.com/rhasspy/piper/releases/download/${PIPER_VERSION}/piper_linux_x86_64.tar.gz" -O piper.tar.gz || warn "Telechargement Piper echoue"
+    if [ -f piper.tar.gz ]; then
+        tar xzf piper.tar.gz --strip-components=1
+        rm -f piper.tar.gz
+        chmod +x piper
+        # Download French voice model (siwis)
+        mkdir -p /opt/piper/voices
+        wget -q "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx" -O /opt/piper/voices/fr_FR-siwis-medium.onnx 2>/dev/null || true
+        wget -q "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json" -O /opt/piper/voices/fr_FR-siwis-medium.onnx.json 2>/dev/null || true
+        # Create TTS cache directory
+        mkdir -p /var/lib/asterisk/sounds/tts
+        chown -R www-data:www-data /var/lib/asterisk/sounds/tts
+        log "Piper TTS installe avec voix francaise (siwis)."
+    else
+        warn "Piper TTS non installe — telechargement echoue."
+    fi
+    cd "$INSTALL_DIR"
+else
+    log "Piper TTS deja installe."
+fi
+
+# ══════════════════════════════════════
+# Phase 10 : voxa-ai (AudioSocket OpenAI Realtime)
+# ══════════════════════════════════════
+log "Configuration du service voxa-ai..."
+
+cat > /etc/systemd/system/voxa-ai.service << VOXAEOF
+[Unit]
+Description=Voxa AI AudioSocket Server (OpenAI Realtime)
+After=network.target asterisk.service
+Wants=asterisk.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${INSTALL_DIR}/scripts
+ExecStart=/usr/bin/python3 ${INSTALL_DIR}/scripts/audiosocket-openai.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+VOXAEOF
+
+systemctl daemon-reload
+systemctl enable voxa-ai
+# Will start when OPENAI_API_KEY is configured in settings
+log "Service voxa-ai configure (demarre quand la cle OpenAI est configuree)."
+
+# ══════════════════════════════════════
+# Phase 11 : Fail2ban
 # ══════════════════════════════════════
 log "Configuration de Fail2ban..."
 
@@ -749,6 +808,9 @@ echo -e "    MariaDB:        systemctl status mariadb"
 echo -e "    Redis:          systemctl status redis-server"
 echo -e "    PHP-FPM:        systemctl status php8.4-fpm"
 echo -e "    Nginx:          /ws → Asterisk:8088, / → PHP-FPM"
+echo -e "    Coturn TURN:    systemctl status coturn"
+echo -e "    Voxa AI:        systemctl status voxa-ai"
+echo -e "    Piper TTS:      /opt/piper/piper"
 echo ""
 echo -e "  Commandes utiles:"
 echo -e "    asterisk -rvvv"
