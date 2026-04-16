@@ -555,6 +555,7 @@ php8.4 artisan storage:link 2>/dev/null || true
 
 # ── Migrations ──
 php8.4 artisan migrate --force
+php8.4 artisan db:seed --force
 php8.4 artisan config:clear
 php8.4 artisan cache:clear
 
