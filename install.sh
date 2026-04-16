@@ -98,7 +98,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -yqq \
     mariadb-server redis-server \
     build-essential libssl-dev libncurses5-dev libnewt-dev libxml2-dev \
     libsqlite3-dev uuid-dev libjansson-dev libsrtp2-dev libcurl4-openssl-dev \
-    libedit-dev unixodbc-dev odbc-mariadb sox mpg123 ffmpeg > /dev/null
+    libedit-dev unixodbc-dev odbc-mariadb sox mpg123 ffmpeg coturn > /dev/null
 
 # ── PHP 8.4 via sury.org ──
 if ! php8.4 -v &>/dev/null; then
@@ -134,6 +134,7 @@ log "Configuration de MariaDB..."
 
 # Generate password
 DB_PASS=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 24)
+TURN_SECRET=$(head -c 32 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 32)
 
 # Detect MariaDB access method (unix_socket for fresh install, or ask password)
 MYSQL_CMD="mysql -u root"
@@ -527,6 +528,8 @@ ASTERISK_AMI_PORT=5038
 ASTERISK_AMI_USER=laravel_ami
 ASTERISK_AMI_SECRET=${AMI_PASS}
 
+TURN_SECRET=${TURN_SECRET}
+
 SESSION_DRIVER=redis
 SESSION_LIFETIME=120
 CACHE_STORE=redis
@@ -663,7 +666,36 @@ certbot --nginx -d "$HOSTNAME" --email "$LE_EMAIL" --agree-tos --non-interactive
 }
 
 # ══════════════════════════════════════
-# Phase 8 : Fail2ban
+# Phase 8 : TURN server (coturn)
+# ══════════════════════════════════════
+log "Configuration du serveur TURN (coturn)..."
+
+cat > /etc/turnserver.conf << TURNEOF
+listening-port=3478
+tls-listening-port=5349
+listening-ip=0.0.0.0
+relay-ip=${PUBLIC_IP}
+external-ip=${PUBLIC_IP}
+min-port=10000
+max-port=10100
+use-auth-secret
+static-auth-secret=${TURN_SECRET}
+realm=${HOSTNAME}
+no-tcp-relay
+no-tlsv1
+no-tlsv1_1
+cert=/etc/letsencrypt/live/${HOSTNAME}/fullchain.pem
+pkey=/etc/letsencrypt/live/${HOSTNAME}/privkey.pem
+syslog
+TURNEOF
+
+echo 'TURNSERVER_ENABLED=1' > /etc/default/coturn
+systemctl enable coturn
+systemctl restart coturn
+log "Coturn TURN server configure."
+
+# ══════════════════════════════════════
+# Phase 9 : Fail2ban
 # ══════════════════════════════════════
 log "Configuration de Fail2ban..."
 
