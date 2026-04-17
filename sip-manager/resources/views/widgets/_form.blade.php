@@ -31,13 +31,13 @@
                     <div class="d-flex gap-3 mb-2">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="target_type" value="callflow" id="targetCallflow"
-                                   {{ old('target_type', $widget->callflow_id ? 'callflow' : ($widget->extension ? 'extension' : 'callflow')) === 'callflow' ? 'checked' : '' }}
+                                   {{ old('target_type', ($widget->callflow_id ?? null) ? 'callflow' : (($widget->extension ?? null) ? 'extension' : 'callflow')) === 'callflow' ? 'checked' : '' }}
                                    onchange="document.getElementById('callflowGroup').style.display='';document.getElementById('extensionGroup').style.display='none';">
                             <label class="form-check-label" for="targetCallflow">Call Flow ({{ __('ui.scenarios') }})</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="target_type" value="extension" id="targetExtension"
-                                   {{ old('target_type', $widget->extension ? 'extension' : '') === 'extension' ? 'checked' : '' }}
+                                   {{ old('target_type', ($widget->extension ?? null) ? 'extension' : '') === 'extension' ? 'checked' : '' }}
                                    onchange="document.getElementById('extensionGroup').style.display='';document.getElementById('callflowGroup').style.display='none';">
                             <label class="form-check-label" for="targetExtension">{{ __('ui.extension') }}</label>
                         </div>

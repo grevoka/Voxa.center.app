@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxa Center — Widget Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0f1117;
+            color: #e2e4eb;
+            min-height: 100vh;
+        }
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: .5rem;
+        }
+        .hero h1 span { color: #58a6ff; }
+        .hero p {
+            color: #8b949e;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+        .card {
+            background: #1c1f26;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: .5rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .card h3 .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .card p { color: #8b949e; font-size: .85rem; line-height: 1.6; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 600;
+            background: #58a6ff20;
+            color: #58a6ff;
+            margin-top: .75rem;
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #484f58;
+            font-size: .8rem;
+            border-top: 1px solid #21262d;
+        }
+        .arrow {
+            text-align: center;
+            padding: 1rem;
+            color: #58a6ff;
+            font-size: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Bienvenue chez <span>Voxa</span></h1>
+        <p>Cliquez sur le bouton d'appel en bas a droite pour nous contacter directement depuis votre navigateur.</p>
+    </div>
+
+    <div class="arrow">&#8595; Le widget est en bas a droite &#8595;</div>
+
+    <div class="cards">
+        <div class="card">
+            <h3>
+                <div class="icon" style="background:#58a6ff20;color:#58a6ff;">&#9742;</div>
+                Appel WebRTC
+            </h3>
+            <p>Appelez directement depuis votre navigateur, sans installation ni compte. Un clic suffit.</p>
+            <span class="badge">WebRTC + SRTP</span>
+        </div>
+        <div class="card">
+            <h3>
+                <div class="icon" style="background:#3fb95020;color:#3fb950;">&#9889;</div>
+                Instantane
+            </h3>
+            <p>Connexion immediate via WebSocket securise. Audio HD avec codec Opus.</p>
+            <span class="badge">Opus HD</span>
+        </div>
+        <div class="card">
+            <h3>
+                <div class="icon" style="background:#d2992220;color:#d29922;">&#128274;</div>
+                Securise
+            </h3>
+            <p>Chiffrement DTLS-SRTP de bout en bout. Aucune donnee stockee cote visiteur.</p>
+            <span class="badge">DTLS-SRTP</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        Voxa Center — Widget d'appel WebRTC | Page de test
+    </div>
+
+    <!-- VOXA WIDGET -->
+    <script src="https://voxa-center.em-energie.fr/js/voxa-widget.js"
+            data-token="9e98dde49d24e1c628b0b83736686acbd3665866728cdafd"
+            data-mode="bubble"
+            data-color="#58a6ff"
+            data-position="bottom-right"></script>
+</body>
+</html>

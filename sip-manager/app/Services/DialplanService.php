@@ -138,14 +138,24 @@ class DialplanService
             // Widget guest calls context
             $content .= "\n; === WIDGET GUEST CALLS ===\n";
             $content .= "[from-widget]\n";
-            $content .= "exten => _X.,1,NoOp(=== Widget Call | type=\${WIDGET_TARGET_TYPE} target=\${WIDGET_TARGET} ===)\n";
-            $content .= " same => n,Set(CDR(direction)=inbound-widget)\n";
-            $content .= " same => n,GotoIf(\$[\"\${WIDGET_TARGET_TYPE}\" = \"callflow\"]?callflow)\n";
-            $content .= " same => n,GotoIf(\$[\"\${WIDGET_TARGET_TYPE}\" = \"extension\"]?ext)\n";
-            $content .= " same => n,Hangup()\n";
-            $content .= " same => n(callflow),Goto(\${WIDGET_TARGET},s,1)\n";
-            $content .= " same => n(ext),Dial(PJSIP/\${WIDGET_TARGET},30,tTm(default))\n";
-            $content .= " same => n,Hangup()\n\n";
+            // Generate a specific extension for each enabled widget token
+            $widgetTokens = \App\Models\WidgetToken::where('enabled', true)->get();
+            foreach ($widgetTokens as $wt) {
+                $targetType = $wt->getTargetType();
+                $targetValue = $wt->getTargetValue();
+                $safeName = addslashes($wt->name);
+                $content .= "exten => widget-{$wt->id},1,NoOp(=== Widget Call [{$wt->name}] ===)\n";
+                $content .= " same => n,Set(CDR(direction)=inbound-widget)\n";
+                $content .= " same => n,Set(CALLERID(name)=Widget: {$safeName})\n";
+                if ($targetType === 'callflow') {
+                    $content .= " same => n,Goto({$targetValue},s,1)\n";
+                } else {
+                    $content .= " same => n,Dial(PJSIP/{$targetValue},30,tTm(default))\n";
+                }
+                $content .= " same => n,Hangup()\n";
+            }
+            // Catch-all for unknown widget IDs
+            $content .= "exten => _widget-X.,1,Hangup()\n\n";
 
             // Conference rooms — separate context included from from-internal
             $conferences = ConferenceRoom::where('enabled', true)->get();

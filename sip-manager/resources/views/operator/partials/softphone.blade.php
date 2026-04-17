@@ -6,9 +6,28 @@
             <div id="phoneStatus" style="width:8px;height:8px;border-radius:50%;background:var(--text-secondary);"></div>
             <span id="phoneStatusText" style="font-size:0.7rem;color:var(--text-secondary);">{{ __("ui.phone_disconnected") }}</span>
         </div>
+        <button id="phoneSettingsBtn" onclick="phoneToggleSettings()" class="btn-icon" style="width:24px;height:24px;font-size:0.65rem;" title="Audio settings">
+            <i class="bi bi-gear"></i>
+        </button>
         <button id="phoneToggle" onclick="phoneToggleConnect()" class="btn-icon" style="width:24px;height:24px;font-size:0.65rem;" title="Connecter">
             <i class="bi bi-power"></i>
         </button>
+    </div>
+
+    {{-- Audio settings panel --}}
+    <div id="phoneSettingsPanel" style="display:none;padding:0.5rem;margin-bottom:0.4rem;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;">
+        <div style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:0.4rem;">
+            <i class="bi bi-mic me-1"></i> {{ __('ui.audio_input') ?? 'Microphone' }}
+        </div>
+        <select id="phoneAudioInput" class="form-select form-select-sm" style="font-size:0.72rem;margin-bottom:0.5rem;" onchange="phoneSaveAudioSettings()">
+            <option value="">{{ __('ui.default_callerid') ?? 'Default' }}</option>
+        </select>
+        <div style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:0.4rem;">
+            <i class="bi bi-volume-up me-1"></i> {{ __('ui.audio_output') ?? 'Speaker' }}
+        </div>
+        <select id="phoneAudioOutput" class="form-select form-select-sm" style="font-size:0.72rem;" onchange="phoneSaveAudioSettings()">
+            <option value="">{{ __('ui.default_callerid') ?? 'Default' }}</option>
+        </select>
     </div>
 
     {{-- Call info --}}
@@ -179,6 +198,104 @@ var _phone = null, _session = null, _timer = null, _seconds = 0, _iceServers = n
     document.addEventListener('touchstart', unlock);
 })();
 
+// ── Audio device management ──
+function phoneToggleSettings() {
+    var panel = document.getElementById('phoneSettingsPanel');
+    panel.style.display = panel.style.display === 'none' ? '' : 'none';
+    if (panel.style.display !== 'none') phoneEnumerateDevices();
+}
+
+function phoneEnumerateDevices() {
+    navigator.mediaDevices.enumerateDevices().then(function(devices) {
+        var inputSel = document.getElementById('phoneAudioInput');
+        var outputSel = document.getElementById('phoneAudioOutput');
+        var savedInput = localStorage.getItem('voxa_audio_input') || '';
+        var savedOutput = localStorage.getItem('voxa_audio_output') || '';
+
+        inputSel.innerHTML = '<option value="">Default</option>';
+        outputSel.innerHTML = '<option value="">Default</option>';
+
+        devices.forEach(function(d) {
+            if (d.kind === 'audioinput') {
+                var opt = document.createElement('option');
+                opt.value = d.deviceId;
+                opt.textContent = d.label || ('Mic ' + (inputSel.options.length));
+                if (d.deviceId === savedInput) opt.selected = true;
+                inputSel.appendChild(opt);
+            } else if (d.kind === 'audiooutput') {
+                var opt = document.createElement('option');
+                opt.value = d.deviceId;
+                opt.textContent = d.label || ('Speaker ' + (outputSel.options.length));
+                if (d.deviceId === savedOutput) opt.selected = true;
+                outputSel.appendChild(opt);
+            }
+        });
+    }).catch(function() {});
+}
+
+function phoneSaveAudioSettings() {
+    var inputId = document.getElementById('phoneAudioInput').value;
+    var outputId = document.getElementById('phoneAudioOutput').value;
+    localStorage.setItem('voxa_audio_input', inputId);
+    localStorage.setItem('voxa_audio_output', outputId);
+    phoneApplyOutputDevice();
+}
+
+function phoneApplyOutputDevice() {
+    var outputId = localStorage.getItem('voxa_audio_output') || '';
+    var audio = document.getElementById('phoneRemoteAudio');
+    if (audio && typeof audio.setSinkId === 'function' && outputId) {
+        audio.setSinkId(outputId).catch(function(e) {
+            console.warn('Cannot set audio output:', e.message);
+        });
+    }
+}
+
+function phoneGetInputConstraints() {
+    var inputId = localStorage.getItem('voxa_audio_input') || '';
+    if (inputId) {
+        return { audio: { deviceId: { exact: inputId } } };
+    }
+    return { audio: true };
+}
+
+// Apply saved output device on load
+document.addEventListener('DOMContentLoaded', function() {
+    phoneApplyOutputDevice();
+});
+
+// ── Ringtone (Web Audio API) ──
+var _ringCtx = null, _ringInterval = null, _ringGain = null;
+function phoneStartRing() {
+    try {
+        if (_ringInterval) return;
+        _ringCtx = new (window.AudioContext || window.webkitAudioContext)();
+        _ringGain = _ringCtx.createGain();
+        _ringGain.gain.value = 0.15;
+        _ringGain.connect(_ringCtx.destination);
+        function playTone() {
+            var o1 = _ringCtx.createOscillator();
+            var o2 = _ringCtx.createOscillator();
+            var g = _ringCtx.createGain();
+            o1.type = 'sine'; o1.frequency.value = 440;
+            o2.type = 'sine'; o2.frequency.value = 523;
+            g.gain.setValueAtTime(0.3, _ringCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, _ringCtx.currentTime + 0.8);
+            o1.connect(g); o2.connect(g); g.connect(_ringGain);
+            o1.start(_ringCtx.currentTime);
+            o2.start(_ringCtx.currentTime);
+            o1.stop(_ringCtx.currentTime + 0.8);
+            o2.stop(_ringCtx.currentTime + 0.8);
+        }
+        playTone();
+        _ringInterval = setInterval(playTone, 2000);
+    } catch(e) {}
+}
+function phoneStopRing() {
+    if (_ringInterval) { clearInterval(_ringInterval); _ringInterval = null; }
+    if (_ringCtx) { try { _ringCtx.close(); } catch(e){} _ringCtx = null; }
+}
+
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
     var txt = document.getElementById('phoneStatusText');
@@ -290,8 +407,9 @@ function phoneCall() {
         extraHeaders.push('X-Voxa-CallerID: ' + selectedCid);
     }
 
+    var inputConstraints = phoneGetInputConstraints();
     var opts = {
-        mediaConstraints: {audio: true, video: false},
+        mediaConstraints: {audio: inputConstraints.audio, video: false},
         pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]},
         extraHeaders: extraHeaders
     };
@@ -305,13 +423,15 @@ function phoneHangup() {
 }
 
 function phoneAnswer() {
+    phoneStopRing();
     // Pre-warm the audio element with user gesture context
     var audio = document.getElementById('phoneRemoteAudio');
     audio.play().catch(function(){});
 
     if (_session) {
+        var inputConstraints = phoneGetInputConstraints();
         _session.answer({
-            mediaConstraints: {audio: true, video: false},
+            mediaConstraints: {audio: inputConstraints.audio, video: false},
             pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]}
         });
     }
@@ -332,6 +452,7 @@ function phoneOnIncoming(session) {
     document.getElementById('phoneIncomingNumber').textContent = caller;
     document.getElementById('phoneIncoming').style.display = 'block';
     document.getElementById('phoneDialpad').style.display = 'none';
+    phoneStartRing();
     phoneBindSession(session, caller);
 
     session.on('confirmed', function() { session._voxaAnswered = true; });
@@ -397,6 +518,7 @@ function phoneAttachStream(pc) {
         var stream = new MediaStream([receivers[0].track]);
         console.log('Attaching remote stream, track:', receivers[0].track.kind, receivers[0].track.readyState);
         audio.srcObject = stream;
+        phoneApplyOutputDevice();
         audio.play().catch(function(err) { console.warn('Audio play retry needed:', err.message); });
         startVuMeter(stream, 'vuRemote');
     }
@@ -447,7 +569,7 @@ function phoneBindSession(session, number) {
             audio.play().catch(function(){});
         };
 
-        navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
+        navigator.mediaDevices.getUserMedia(phoneGetInputConstraints()).then(function(stream) {
             startVuMeter(stream, 'vuLocal');
         }).catch(function() {});
 
@@ -510,6 +632,7 @@ function stopVuMeter() {
 }
 
 function phoneResetUI() {
+    phoneStopRing();
     _session = null;
     if (_timer) { clearInterval(_timer); _timer = null; }
     _seconds = 0;

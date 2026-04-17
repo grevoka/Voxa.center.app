@@ -21,7 +21,8 @@ class WidgetGuestService
 
         $targetType = $widget->getTargetType();
         $targetValue = $widget->getTargetValue();
-        $setVar = "WIDGET_TOKEN_ID={$widget->id},WIDGET_TARGET_TYPE={$targetType},WIDGET_TARGET={$targetValue}";
+        $widgetName = str_replace([',', '=', '"'], '', $widget->name);
+        $setVar = "WIDGET_TOKEN_ID={$widget->id},WIDGET_TARGET_TYPE={$targetType},WIDGET_TARGET={$targetValue},WIDGET_NAME={$widgetName}";
 
         try {
             DB::connection($this->connection)->transaction(function () use ($id, $password, $setVar) {
