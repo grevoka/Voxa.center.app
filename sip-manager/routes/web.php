@@ -219,6 +219,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Codecs (page statique depuis config)
         Route::view('codecs', 'codecs.index')->name('codecs.index');
+
+        // Widget d'appel WebRTC
+        Route::resource('widgets', \App\Http\Controllers\WidgetTokenController::class)->except(['show']);
+        Route::post('widgets/{widget}/toggle', [\App\Http\Controllers\WidgetTokenController::class, 'toggle'])->name('widgets.toggle');
+        Route::post('widgets/{widget}/regenerate', [\App\Http\Controllers\WidgetTokenController::class, 'regenerate'])->name('widgets.regenerate');
     });
 });
 

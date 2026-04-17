@@ -184,7 +184,8 @@ $MYSQL_APP asterisk_rt <<-'EORT'
         media_use_received_transport VARCHAR(3),
         dtls_auto_generate_cert VARCHAR(3), dtls_verify VARCHAR(20),
         dtls_setup VARCHAR(20), media_address VARCHAR(40),
-        bind_rtp_to_media_address VARCHAR(3)
+        bind_rtp_to_media_address VARCHAR(3),
+        set_var TEXT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
     CREATE TABLE IF NOT EXISTS ps_auths (
@@ -786,6 +787,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # CDR sync (every minute)
 * * * * * www-data cd ${INSTALL_DIR} && php8.4 artisan cdr:sync >> /dev/null 2>&1
+
+# Widget guest cleanup (every 5 minutes)
+*/5 * * * * www-data cd ${INSTALL_DIR} && php8.4 artisan widget:cleanup >> /dev/null 2>&1
 CRONEOF
 
 chmod 644 /etc/cron.d/voxa-center

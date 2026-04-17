@@ -135,6 +135,18 @@ class DialplanService
                 }
             }
 
+            // Widget guest calls context
+            $content .= "\n; === WIDGET GUEST CALLS ===\n";
+            $content .= "[from-widget]\n";
+            $content .= "exten => _X.,1,NoOp(=== Widget Call | type=\${WIDGET_TARGET_TYPE} target=\${WIDGET_TARGET} ===)\n";
+            $content .= " same => n,Set(CDR(direction)=inbound-widget)\n";
+            $content .= " same => n,GotoIf(\$[\"\${WIDGET_TARGET_TYPE}\" = \"callflow\"]?callflow)\n";
+            $content .= " same => n,GotoIf(\$[\"\${WIDGET_TARGET_TYPE}\" = \"extension\"]?ext)\n";
+            $content .= " same => n,Hangup()\n";
+            $content .= " same => n(callflow),Goto(\${WIDGET_TARGET},s,1)\n";
+            $content .= " same => n(ext),Dial(PJSIP/\${WIDGET_TARGET},30,tTm(default))\n";
+            $content .= " same => n,Hangup()\n\n";
+
             // Conference rooms — separate context included from from-internal
             $conferences = ConferenceRoom::where('enabled', true)->get();
             if ($conferences->isNotEmpty()) {

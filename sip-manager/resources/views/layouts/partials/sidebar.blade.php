@@ -34,6 +34,10 @@
                     <i class="bi bi-person-vcard-fill"></i> {{ __("ui.caller_id") }}
                     <span class="nav-badge">{{ \App\Models\CallerId::where('is_active', true)->count() }}</span>
                 </a>
+                <a class="nav-item-custom {{ request()->routeIs('widgets.*') ? 'active' : '' }}" href="{{ route('widgets.index') }}">
+                    <i class="bi bi-window-dock"></i> Call Widget
+                    <span class="nav-badge">{{ \App\Models\WidgetToken::where('enabled', true)->count() }}</span>
+                </a>
             </div>
         </div>
 
