@@ -39,7 +39,11 @@ class WebPhoneController extends Controller
             'ice_servers' => [
                 ['urls' => 'stun:stun.l.google.com:19302'],
                 [
-                    'urls' => "turn:{$host}:3478",
+                    'urls' => [
+                        "turn:{$host}:3478?transport=udp",
+                        "turn:{$host}:3478?transport=tcp",
+                        "turns:{$host}:5349?transport=tcp",
+                    ],
                     'username' => $turnUser,
                     'credential' => $turnPass,
                 ],
