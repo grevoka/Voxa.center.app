@@ -37,7 +37,6 @@ class WebPhoneController extends Controller
             'ws_uri'     => $this->getWsUri(),
             'realm'      => $host,
             'ice_servers' => [
-                ['urls' => 'stun:stun.l.google.com:19302'],
                 [
                     'urls' => [
                         "turn:{$host}:3478?transport=udp",

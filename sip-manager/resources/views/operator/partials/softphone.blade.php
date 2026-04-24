@@ -410,7 +410,10 @@ function phoneCall() {
     var inputConstraints = phoneGetInputConstraints();
     var opts = {
         mediaConstraints: {audio: inputConstraints.audio, video: false},
-        pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]},
+        pcConfig: {
+            iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}],
+            iceTransportPolicy: 'relay',
+        },
         extraHeaders: extraHeaders
     };
     _session = _phone.call('sip:' + num + '@' + '{{ request()->getHost() }}', opts);
@@ -432,7 +435,10 @@ function phoneAnswer() {
         var inputConstraints = phoneGetInputConstraints();
         _session.answer({
             mediaConstraints: {audio: inputConstraints.audio, video: false},
-            pcConfig: {iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}]}
+            pcConfig: {
+                iceServers: _iceServers || [{urls: 'stun:stun.l.google.com:19302'}],
+                iceTransportPolicy: 'relay',
+            }
         });
     }
     document.getElementById('phoneIncoming').style.display = 'none';

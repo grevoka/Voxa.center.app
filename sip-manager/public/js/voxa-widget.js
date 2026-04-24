@@ -298,7 +298,10 @@
 
                     var callOptions = {
                         mediaConstraints: { audio: true, video: false },
-                        pcConfig: { iceServers: cfg.ice_servers || [{ urls: 'stun:stun.l.google.com:19302' }] },
+                        pcConfig: {
+                            iceServers: cfg.ice_servers || [{ urls: 'stun:stun.l.google.com:19302' }],
+                            iceTransportPolicy: 'relay',
+                        },
                         eventHandlers: {
                             peerconnection: function(data) {
                                 var pc = data.peerconnection;

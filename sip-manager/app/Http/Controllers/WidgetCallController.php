@@ -66,7 +66,6 @@ class WidgetCallController extends Controller
             'realm'       => $host,
             'dial_target' => 'widget-' . $widget->id,
             'ice_servers'  => [
-                ['urls' => 'stun:stun.l.google.com:19302'],
                 [
                     'urls' => [
                         "turn:{$host}:3478?transport=udp",
