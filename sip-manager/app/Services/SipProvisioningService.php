@@ -161,6 +161,10 @@ class SipProvisioningService
 
         // Provision inbound endpoint (identify by IP) if IPs are configured
         $this->provisionTrunkInbound($trunk);
+
+        // Always regenerate pjsip.conf: registration sections live there, and
+        // provisionTrunkInbound() returns early when inbound_ips is empty.
+        $this->writeIdentifyConf();
     }
 
     public function provisionTrunkInbound(Trunk $trunk): void
@@ -291,7 +295,10 @@ class SipProvisioningService
                     if (!str_contains($proxy, ':')) {
                         $proxy .= ':' . $trunk->port;
                     }
-                    $lines[] = "outbound_proxy = sip:{$proxy}";
+                    // \;lr: \ escapes ; from asterisk conf parser (comment), ;lr tells PJSIP
+                    // to treat the URI as a preloaded Route header instead of overriding
+                    // the Request-URI (required by Cirpack/OVH SIP-Proxy et al.).
+                    $lines[] = "outbound_proxy = sip:{$proxy}\\;lr";
                 }
             }
 
