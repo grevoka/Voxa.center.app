@@ -421,8 +421,17 @@ class CallFlow extends Model
                     break;
 
                 case 'time_condition':
-                    $timeStart = $step['time_start'] ?? '09:00';
-                    $timeEnd   = $step['time_end'] ?? '18:00';
+                    // Two ways to specify hours:
+                    //   - time_ranges: ["08:00-12:00", "14:00-17:00"]  (preferred, multi-range)
+                    //   - time_start + time_end (legacy single range)
+                    $ranges = $step['time_ranges'] ?? null;
+                    if (!is_array($ranges) || empty($ranges)) {
+                        $timeStart = $step['time_start'] ?? '09:00';
+                        $timeEnd   = $step['time_end'] ?? '18:00';
+                        $ranges = ["{$timeStart}-{$timeEnd}"];
+                    }
+                    // GotoIfTime accepts multiple ranges separated by '&'.
+                    $timeSpec = implode('&', $ranges);
                     $days      = $step['days'] ?? 'mon-fri';
                     $branchTargets = $step['branch_targets'] ?? [];
 
@@ -435,9 +444,10 @@ class CallFlow extends Model
                     $astDays = $dayMap[$days] ?? $days;
 
                     $tcLabel = 'tc_' . $stepIndex;
+                    $tz = $step['tz'] ?? 'Europe/Paris';
 
-                    $lines[] = " same => n,NoOp(Horaires: {$timeStart}-{$timeEnd} {$astDays})";
-                    $lines[] = " same => n,GotoIfTime({$timeStart}-{$timeEnd},{$astDays},*,*?{$tcLabel}_open)";
+                    $lines[] = " same => n,NoOp(Horaires: {$timeSpec} {$astDays} {$tz})";
+                    $lines[] = " same => n,GotoIfTime({$timeSpec},{$astDays},*,*,{$tz}?{$tcLabel}_open)";
 
                     // Closed branch: if branch_targets has 'closed', the visual branch handles it
                     // Otherwise fallback to legacy inline behavior
