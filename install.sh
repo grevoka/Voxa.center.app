@@ -716,24 +716,32 @@ log "Coturn TURN server configure."
 # ══════════════════════════════════════
 # Phase 9 : Piper TTS (local voice synthesis)
 # ══════════════════════════════════════
-if [ ! -f /opt/piper/piper ]; then
+if [ ! -f /opt/piper/piper/piper ]; then
     log "Installation de Piper TTS..."
-    mkdir -p /opt/piper
-    cd /opt/piper
+    # Paths must match TtsController:
+    #   piperBin  = /opt/piper/piper/piper
+    #   model     = /opt/piper/models/<voice>.onnx
+    #   cacheDir  = /var/spool/asterisk/tts_cache
+    mkdir -p /opt/piper/piper /opt/piper/models
+    cd /opt/piper/piper
     PIPER_VERSION="2023.11.14-2"
     wget -q "https://github.com/rhasspy/piper/releases/download/${PIPER_VERSION}/piper_linux_x86_64.tar.gz" -O piper.tar.gz || warn "Telechargement Piper echoue"
     if [ -f piper.tar.gz ]; then
         tar xzf piper.tar.gz --strip-components=1
         rm -f piper.tar.gz
         chmod +x piper
-        # Download French voice model (siwis)
-        mkdir -p /opt/piper/voices
-        wget -q "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx" -O /opt/piper/voices/fr_FR-siwis-medium.onnx 2>/dev/null || true
-        wget -q "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/siwis/medium/fr_FR-siwis-medium.onnx.json" -O /opt/piper/voices/fr_FR-siwis-medium.onnx.json 2>/dev/null || true
-        # Create TTS cache directory
-        mkdir -p /var/lib/asterisk/sounds/tts
-        chown -R www-data:www-data /var/lib/asterisk/sounds/tts
-        log "Piper TTS installe avec voix francaise (siwis)."
+        # Download French voice models referenced by TtsController::$voices
+        VOICES_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR"
+        for v in "siwis/medium/fr_FR-siwis-medium" "upmc/medium/fr_FR-upmc-medium" "mls/medium/fr_FR-mls-medium"; do
+            name="$(basename "$v")"
+            wget -q "${VOICES_BASE}/${v}.onnx"      -O "/opt/piper/models/${name}.onnx"      2>/dev/null || true
+            wget -q "${VOICES_BASE}/${v}.onnx.json" -O "/opt/piper/models/${name}.onnx.json" 2>/dev/null || true
+        done
+        # Cache directory for generated TTS WAVs (Asterisk reads them, www-data writes)
+        mkdir -p /var/spool/asterisk/tts_cache
+        chown www-data:www-data /var/spool/asterisk/tts_cache
+        chmod 0755 /var/spool/asterisk/tts_cache
+        log "Piper TTS installe (voix siwis, upmc, mls)."
     else
         warn "Piper TTS non installe — telechargement echoue."
     fi
@@ -850,7 +858,7 @@ echo -e "    PHP-FPM:        systemctl status php8.4-fpm"
 echo -e "    Nginx:          /ws → Asterisk:8088, / → PHP-FPM"
 echo -e "    Coturn TURN:    systemctl status coturn"
 echo -e "    Voxa AI:        systemctl status voxa-ai"
-echo -e "    Piper TTS:      /opt/piper/piper"
+echo -e "    Piper TTS:      /opt/piper/piper/piper"
 echo ""
 echo -e "  Commandes utiles:"
 echo -e "    asterisk -rvvv"
