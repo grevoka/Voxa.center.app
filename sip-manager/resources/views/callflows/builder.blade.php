@@ -1320,7 +1320,7 @@ const DEFAULTS = {
     forward:      { dest_type:'extension', destination:'', timeout:20 },
     goto:         { target_context:'default' },
     ivr:          { sound:'custom/menu', timeout:5, options: { '1': '', '2': '', '3': '' } },
-    time_condition: { time_start:'09:00', time_end:'18:00', days:'mon-fri', closed_sound:'custom/ferme', closed_action:'voicemail', closed_target:'1000' },
+    time_condition: { time_ranges:['09:00-12:00','14:00-18:00'], days:'mon-fri', closed_action:'voicemail', closed_target:'1000', closed_tts_text:'', closed_tts_voice:'siwis' },
     ai_agent:     { ai_prompt:'Tu es un assistant telephonique professionnel pour notre entreprise. Reponds en francais de maniere concise et utile.', ai_voice:'alloy' },
     did_filter:   { match_number:'' },
     cid_filter:   { match_number:'' },
@@ -1586,7 +1586,7 @@ function wizStepDesc(s) {
         case 'goto': return 'Vers ' + (s.target_context || 'default');
         case 'ivr': return 'Touches ' + Object.keys(s.options || {}).join(', ');
         case 'ai_agent': return 'Agent IA (' + (s.ai_voice || 'alloy') + ')';
-        case 'time_condition': return (s.time_start||'09:00') + '-' + (s.time_end||'18:00') + ' ' + (s.days||'lun-ven');
+        case 'time_condition': return ((s.time_ranges && s.time_ranges.length) ? s.time_ranges.join(', ') : ((s.time_start||'09:00')+'-'+(s.time_end||'18:00'))) + ' ' + (s.days||'lun-ven');
         default: return '';
     }
 }
@@ -1936,7 +1936,7 @@ function nodeDetail(n){
         case 'goto':      return `→ ${n.data.target_context||'default'}`;
         case 'ivr':       return `Menu: ${Object.keys(n.data.options||{}).join(', ')} (x${n.data.max_loops||3})`;
         case 'ai_agent':  return `<span style="color:#10b981;">OpenAI</span> ${(n.data.ai_voice||'alloy')}`;
-        case 'time_condition': return `${n.data.time_start||'09:00'}-${n.data.time_end||'18:00'} ${n.data.days||'mon-fri'}`;
+        case 'time_condition': return `${(n.data.time_ranges && n.data.time_ranges.length) ? n.data.time_ranges.join(', ') : ((n.data.time_start||'09:00')+'-'+(n.data.time_end||'18:00'))} ${n.data.days||'mon-fri'}`;
         case 'did_filter': return `<span style="color:#00bcd4;">DID</span> ${n.data.match_number||'*'}`;
         case 'cid_filter': return `<span style="color:#e91e63;">CID</span> ${n.data.match_number||'*'}`;
         case 'hangup':    return T.end;
@@ -2439,15 +2439,37 @@ function renderProps(){
                     <i class="bi bi-plus me-1"></i>{{ __("ui.add") }}</button>
             </div>`;
             break;
-        case 'time_condition':
-            h += cfgF(T.openHour, `<input type="time" class="form-control form-control-sm" value="${n.data.time_start||'09:00'}" onchange="setProp(${n.id},'time_start',this.value)">`);
-            h += cfgF(T.closeHour, `<input type="time" class="form-control form-control-sm" value="${n.data.time_end||'18:00'}" onchange="setProp(${n.id},'time_end',this.value)">`);
+        case 'time_condition': {
+            // Migrate legacy {time_start, time_end} → time_ranges array on the fly
+            if (!n.data.time_ranges || !n.data.time_ranges.length) {
+                n.data.time_ranges = [`${n.data.time_start||'09:00'}-${n.data.time_end||'18:00'}`];
+                delete n.data.time_start; delete n.data.time_end;
+            }
+            let rangesHtml = n.data.time_ranges.map((r, i) => {
+                const [s, e] = (r || '09:00-18:00').split('-');
+                return `<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
+                    <input type="time" class="form-control form-control-sm" value="${s||'09:00'}" onchange="updateTimeRange(${n.id},${i},'start',this.value)" style="flex:1;">
+                    <span style="color:var(--text-secondary);">–</span>
+                    <input type="time" class="form-control form-control-sm" value="${e||'18:00'}" onchange="updateTimeRange(${n.id},${i},'end',this.value)" style="flex:1;">
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeTimeRange(${n.id},${i})" style="padding:2px 8px;font-size:.7rem;" ${n.data.time_ranges.length<=1?'disabled':''}>−</button>
+                </div>`;
+            }).join('');
+            rangesHtml += `<button class="btn btn-sm btn-outline-primary" onclick="addTimeRange(${n.id})" style="font-size:.7rem;width:100%;margin-top:4px;">+ Ajouter une plage</button>`;
+            h += cfgF('Plages horaires', rangesHtml);
             h += cfgF(T.days, `<select class="form-select form-select-sm" onchange="setProp(${n.id},'days',this.value)">
                 <option value="mon-fri" ${(n.data.days||'mon-fri')==='mon-fri'?'selected':''}>Mon — Fri</option>
                 <option value="mon-sat" ${(n.data.days)==='mon-sat'?'selected':''}>Mon — Sat</option>
                 <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Mon — Sun (all)</option>
                 <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sat — Sun</option>
             </select>`);
+            h += cfgF('Annonce de fermeture', `<textarea class="form-control form-control-sm" rows="3" placeholder="Bonjour, les bureaux sont fermés..." style="font-size:.75rem;" onchange="setProp(${n.id},'closed_tts_text',this.value)">${n.data.closed_tts_text||''}</textarea>
+                <select class="form-select form-select-sm mt-1" style="font-size:.7rem;" onchange="setProp(${n.id},'closed_tts_voice',this.value)">
+                    <option value="siwis"   ${(n.data.closed_tts_voice||'siwis')==='siwis'?'selected':''}>Sophie (Femme)</option>
+                    <option value="jessica" ${n.data.closed_tts_voice==='jessica'?'selected':''}>Jessica (Femme)</option>
+                    <option value="pierre"  ${n.data.closed_tts_voice==='pierre'?'selected':''}>Pierre (Homme)</option>
+                    <option value="tom"     ${n.data.closed_tts_voice==='tom'?'selected':''}>Tom (Homme)</option>
+                </select>`);
+            }
             {
                 h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
                 h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">${T.branches}</label>`;
@@ -2585,6 +2607,36 @@ function setProp(id, prop, val){
     else { n.data[prop] = val; }
     render();
     renderProps();
+}
+
+// ════════════════════════════════════════
+// TIME_CONDITION — multi-range helpers
+// ════════════════════════════════════════
+function _ensureRanges(n) {
+    if (!n.data.time_ranges || !n.data.time_ranges.length) {
+        n.data.time_ranges = [`${n.data.time_start||'09:00'}-${n.data.time_end||'18:00'}`];
+    }
+    delete n.data.time_start; delete n.data.time_end;
+}
+function addTimeRange(nodeId){
+    const n = nodes.find(x => x.id === nodeId); if (!n) return;
+    _ensureRanges(n);
+    n.data.time_ranges.push('14:00-18:00');
+    render(); renderProps();
+}
+function removeTimeRange(nodeId, idx){
+    const n = nodes.find(x => x.id === nodeId); if (!n) return;
+    _ensureRanges(n);
+    if (n.data.time_ranges.length <= 1) return;
+    n.data.time_ranges.splice(idx, 1);
+    render(); renderProps();
+}
+function updateTimeRange(nodeId, idx, side, value){
+    const n = nodes.find(x => x.id === nodeId); if (!n) return;
+    _ensureRanges(n);
+    const [s, e] = (n.data.time_ranges[idx] || '09:00-18:00').split('-');
+    n.data.time_ranges[idx] = (side === 'start') ? `${value}-${e}` : `${s}-${value}`;
+    render();
 }
 
 // ════════════════════════════════════════
