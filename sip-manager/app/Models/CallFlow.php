@@ -149,6 +149,10 @@ class CallFlow extends Model
                     $destType = $step['dest_type'] ?? 'extension';
                     $destination = $step['destination'] ?? '';
                     $timeout = $step['timeout'] ?? 20;
+                    // Optional schedule filter (e.g. only_days = 'sat'): forward fires
+                    // only when the day matches; otherwise the call falls through.
+                    $onlyDays = $step['only_days'] ?? '';
+                    $tz = $step['tz'] ?? 'Europe/Paris';
                     if ($destination !== '') {
                         if ($destType === 'extension') {
                             $target = "PJSIP/{$destination}";
@@ -157,9 +161,20 @@ class CallFlow extends Model
                             $trunkId = $trunk ? $trunk->getAsteriskEndpointId() : 'trunk';
                             $target = "PJSIP/{$destination}@{$trunkId}";
                         }
+                        $skipLabel = '';
+                        if ($onlyDays !== '') {
+                            $skipLabel = 'fwd_skip_' . $stepIndex;
+                            $doLabel   = 'fwd_do_'   . $stepIndex;
+                            $lines[] = " same => n,GotoIfTime(*,{$onlyDays},*,*,{$tz}?{$doLabel})";
+                            $lines[] = " same => n,Goto({$skipLabel})";
+                            $lines[] = " same => n({$doLabel}),NoOp(Forward fenetre {$onlyDays} active)";
+                        }
                         $lines[] = " same => n,Dial({$target},{$timeout},tTm(default))";
                         $lines[] = " same => n,GotoIf(\$[\"\${DIALSTATUS}\" = \"ANSWER\"]?hangup)";
                         $lines[] = " same => n,NoOp(Forward to {$destination} failed: \${DIALSTATUS} — continuing)";
+                        if ($skipLabel) {
+                            $lines[] = " same => n({$skipLabel}),NoOp(Forward saute — jour hors fenetre)";
+                        }
                     }
                     break;
 
