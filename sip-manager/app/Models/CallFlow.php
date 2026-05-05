@@ -47,7 +47,12 @@ class CallFlow extends Model
             'tom'     => ['model' => 'fr_FR-tom-medium'],
         ];
         $cfg = $map[$voice] ?? $map['siwis'];
-        $args = '"' . addslashes($text) . '",' . $cfg['model'];
+        // Asterisk dialplan commands must fit on a single line. Collapse any
+        // newlines/tabs/carriage returns to a single space, then strip quotes
+        // and parentheses that would break Application argument parsing.
+        $clean = preg_replace('/\s+/', ' ', $text);
+        $clean = trim(strtr($clean, ['"' => '', '(' => '', ')' => '', ',' => ' ']));
+        $args = '"' . $clean . '",' . $cfg['model'];
         if (isset($cfg['speaker'])) {
             $args .= ',' . $cfg['speaker'];
         }
