@@ -94,12 +94,13 @@ apt-get update -qq
 
 log "Installation des dependances de base..."
 DEBIAN_FRONTEND=noninteractive apt-get install -yqq \
-    nginx certbot python3-certbot-nginx git fail2ban curl wget \
+    nginx certbot python3-certbot-nginx git fail2ban curl wget cron \
     mariadb-server redis-server \
     build-essential libssl-dev libncurses5-dev libnewt-dev libxml2-dev \
     libsqlite3-dev uuid-dev libjansson-dev libsrtp2-dev libcurl4-openssl-dev \
     libedit-dev unixodbc-dev odbc-mariadb sox mpg123 ffmpeg coturn \
     python3-websockets python3-pip > /dev/null
+systemctl enable --now cron 2>/dev/null || true
 
 # ── PHP 8.4 via sury.org ──
 if ! php8.4 -v &>/dev/null; then

@@ -19,18 +19,26 @@ class OperatorDashboardController extends Controller
 
         $ext = $line->extension;
 
-        // Today's stats
+        // An "operator-touched" call is any call where this extension appears
+        // either as src/dst directly, or in the dial leg (dst_channel = PJSIP/<ext>-...).
+        // The latter covers queue-distributed calls whose dst is the inbound number.
+        $touched = function ($q) use ($ext) {
+            $q->where('src', $ext)
+              ->orWhere('dst', $ext)
+              ->orWhere('dst_channel', 'LIKE', "PJSIP/{$ext}-%")
+              ->orWhere('channel', 'LIKE', "PJSIP/{$ext}-%");
+        };
         $today = now()->startOfDay();
         $todayStats = [
-            'total'    => CallLog::whereDate('started_at', $today)->where(fn($q) => $q->where('src', $ext)->orWhere('dst', $ext))->count(),
-            'answered' => CallLog::whereDate('started_at', $today)->where('disposition', 'ANSWERED')->where(fn($q) => $q->where('src', $ext)->orWhere('dst', $ext))->count(),
-            'missed'   => CallLog::whereDate('started_at', $today)->where('disposition', 'NO ANSWER')->where(fn($q) => $q->where('dst', $ext))->count(),
+            'total'    => CallLog::whereDate('started_at', $today)->where($touched)->count(),
+            'answered' => CallLog::whereDate('started_at', $today)->where('disposition', 'ANSWERED')->where($touched)->count(),
+            'missed'   => CallLog::whereDate('started_at', $today)->where('disposition', 'NO ANSWER')->where($touched)->count(),
             'outbound' => CallLog::whereDate('started_at', $today)->where('direction', 'outbound')->where('src', $ext)->count(),
-            'inbound'  => CallLog::whereDate('started_at', $today)->where('direction', 'inbound')->where('dst', $ext)->count(),
+            'inbound'  => CallLog::whereDate('started_at', $today)->where('direction', 'inbound')->where($touched)->count(),
         ];
 
         // Recent calls
-        $recentCalls = CallLog::where(fn($q) => $q->where('src', $ext)->orWhere('dst', $ext))
+        $recentCalls = CallLog::where($touched)
             ->latest('started_at')
             ->take(15)
             ->get();
