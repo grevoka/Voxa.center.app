@@ -1926,7 +1926,7 @@ function mkNode(n){
 function nodeDetail(n){
     switch(n.type){
         case 'answer':    return `${T.wait} ${n.data.wait||1}s`;
-        case 'forward':   return `${n.data.dest_type==='external'?T.externalNum:T.internalExt}: ${n.data.destination||'—'} (${n.data.timeout||20}s)`;
+        case 'forward':   return `${n.data.dest_type==='external'?T.externalNum:T.internalExt}: ${n.data.destination||'—'} (${n.data.timeout||20}s)${n.data.only_days?` <span style="color:#f0883e;">[${n.data.only_days}]</span>`:''}`;
         case 'ring':      return (n.data.extensions||[]).length ? `${T.exts}: ${n.data.extensions.join(', ')}` : '<i>—</i>';
         case 'queue':     return n.data.queue_name || '<i>Aucune file</i>';
         case 'voicemail': return `${T.box} ${n.data.mailbox||'1000'}`;
@@ -2354,7 +2354,20 @@ function renderProps(){
                 h += cfgF(T.number, `<input type="tel" class="form-control form-control-sm" value="${n.data.destination||''}" placeholder="0612345678" onchange="setProp(${n.id},'destination',this.value)" style="font-family:'JetBrains Mono',monospace;">`);
             }
             h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||20}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
-            h += `<div style="margin-top:.5rem;font-size:.72rem;color:var(--text-secondary);"><i class="bi bi-info-circle me-1"></i>Si pas de reponse apres le timeout, le scenario continue au bloc suivant.</div>`;
+            h += cfgF('Jours actifs', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'only_days',this.value)">
+                <option value=""        ${!n.data.only_days?'selected':''}>Tous les jours</option>
+                <option value="mon-fri" ${n.data.only_days==='mon-fri'?'selected':''}>Lundi — Vendredi</option>
+                <option value="mon-sat" ${n.data.only_days==='mon-sat'?'selected':''}>Lundi — Samedi</option>
+                <option value="sat-sun" ${n.data.only_days==='sat-sun'?'selected':''}>Samedi — Dimanche</option>
+                <option value="mon"     ${n.data.only_days==='mon'?'selected':''}>Lundi seulement</option>
+                <option value="tue"     ${n.data.only_days==='tue'?'selected':''}>Mardi seulement</option>
+                <option value="wed"     ${n.data.only_days==='wed'?'selected':''}>Mercredi seulement</option>
+                <option value="thu"     ${n.data.only_days==='thu'?'selected':''}>Jeudi seulement</option>
+                <option value="fri"     ${n.data.only_days==='fri'?'selected':''}>Vendredi seulement</option>
+                <option value="sat"     ${n.data.only_days==='sat'?'selected':''}>Samedi seulement</option>
+                <option value="sun"     ${n.data.only_days==='sun'?'selected':''}>Dimanche seulement</option>
+            </select>`);
+            h += `<div style="margin-top:.5rem;font-size:.72rem;color:var(--text-secondary);"><i class="bi bi-info-circle me-1"></i>Si pas de reponse apres le timeout, ou jour hors fenetre, le scenario continue au bloc suivant.</div>`;
             break;
         case 'ring':
             h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||25}" min="5" max="120" onchange="setProp(${n.id},'timeout',+this.value)">`);
