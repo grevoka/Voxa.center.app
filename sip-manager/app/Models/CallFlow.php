@@ -449,29 +449,34 @@ class CallFlow extends Model
                     $lines[] = " same => n,NoOp(Horaires: {$timeSpec} {$astDays} {$tz})";
                     $lines[] = " same => n,GotoIfTime({$timeSpec},{$astDays},*,*,{$tz}?{$tcLabel}_open)";
 
-                    // Closed branch: if branch_targets has 'closed', the visual branch handles it
-                    // Otherwise fallback to legacy inline behavior
-                    if (empty($branchTargets)) {
+                    // If a visual 'closed' branch is wired, defer to the next visual block.
+                    // Otherwise handle closed inline (optional TTS/sound, then voicemail/hangup).
+                    $hasClosedBranch = !empty($branchTargets['closed']);
+                    if ($hasClosedBranch) {
+                        $lines[] = " same => n,NoOp(Ferme — branche vers bloc suivant)";
+                        $lines[] = " same => n,Hangup()";
+                    } else {
                         $closedAction = $step['closed_action'] ?? 'voicemail';
                         $closedSound  = $step['closed_sound'] ?? '';
+                        $closedTts    = $step['closed_tts_text'] ?? '';
+                        $closedVoice  = $step['closed_tts_voice'] ?? 'siwis';
                         $closedTarget = $step['closed_target'] ?? '1000';
-                        if ($closedSound) {
+                        if ($closedTts || $closedSound) {
                             $lines[] = " same => n,Answer()";
+                            $lines[] = " same => n,Wait(1)";
+                        }
+                        if ($closedTts) {
+                            $lines[] = $this->piperAgiLine($closedTts, $closedVoice);
+                        } elseif ($closedSound) {
                             $lines[] = " same => n,Playback({$closedSound})";
                         }
                         if ($closedAction === 'voicemail') {
                             $lines[] = " same => n,VoiceMail({$closedTarget}@default,u)";
                         }
                         $lines[] = " same => n,Hangup()";
-                        // Open: continue to next steps
-                        $lines[] = " same => n({$tcLabel}_open),NoOp(Ouvert — on continue)";
-                    } else {
-                        // Closed: handled by visual branch → just hangup here (the branch node will handle)
-                        $lines[] = " same => n,NoOp(Ferme — branche vers bloc suivant)";
-                        $lines[] = " same => n,Hangup()";
-                        // Open: continue to next steps
-                        $lines[] = " same => n({$tcLabel}_open),NoOp(Ouvert — on continue)";
                     }
+                    // Open: label for GotoIfTime to jump to, then continue with next steps
+                    $lines[] = " same => n({$tcLabel}_open),NoOp(Ouvert — on continue)";
                     break;
             }
         }
