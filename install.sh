@@ -743,7 +743,13 @@ if [ ! -f /opt/piper/piper/piper ]; then
         mkdir -p /var/spool/asterisk/tts_cache
         chown www-data:www-data /var/spool/asterisk/tts_cache
         chmod 0755 /var/spool/asterisk/tts_cache
-        log "Piper TTS installe (Sophie, Jessica, Pierre, Tom)."
+        # Install the AGI script that the dialplan calls (CallFlow::piperAgiLine)
+        mkdir -p /var/lib/asterisk/agi-bin
+        cp "$INSTALL_DIR/sip-manager/scripts/piper-tts.sh" /var/lib/asterisk/agi-bin/piper-tts.sh
+        chmod 0755 /var/lib/asterisk/agi-bin/piper-tts.sh
+        # sox is required for the 22050→8kHz conversion done by the AGI script
+        apt-get install -y sox >/dev/null 2>&1 || warn "sox install failed (TTS playback may degrade)"
+        log "Piper TTS installe (Sophie, Jessica, Pierre, Tom) + AGI piper-tts.sh."
     else
         warn "Piper TTS non installe — telechargement echoue."
     fi

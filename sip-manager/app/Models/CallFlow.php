@@ -35,6 +35,26 @@ class CallFlow extends Model
     }
 
     /**
+     * Build the AGI(piper-tts.sh, ...) line for a given voice key.
+     * Voice map mirrors TtsController::$voices (siwis/jessica/pierre/tom).
+     */
+    private function piperAgiLine(string $text, ?string $voice): string
+    {
+        $map = [
+            'siwis'   => ['model' => 'fr_FR-siwis-medium'],
+            'jessica' => ['model' => 'fr_FR-upmc-medium', 'speaker' => 0],
+            'pierre'  => ['model' => 'fr_FR-upmc-medium', 'speaker' => 1],
+            'tom'     => ['model' => 'fr_FR-tom-medium'],
+        ];
+        $cfg = $map[$voice] ?? $map['siwis'];
+        $args = '"' . addslashes($text) . '",' . $cfg['model'];
+        if (isset($cfg['speaker'])) {
+            $args .= ',' . $cfg['speaker'];
+        }
+        return " same => n,AGI(piper-tts.sh,{$args})";
+    }
+
+    /**
      * Generate Asterisk extensions.conf dialplan from the visual steps.
      */
     public function toDialplan(): string
@@ -95,9 +115,7 @@ class CallFlow extends Model
                 case 'playback':
                     $ttsText = $step['tts_text'] ?? '';
                     if (!empty($ttsText)) {
-                        $voice = $step['tts_voice'] ?? 'siwis';
-                        $voiceMap = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
-                        $lines[] = " same => n,AGI(piper-tts.sh,\"" . addslashes($ttsText) . "\"," . ($voiceMap[$voice] ?? $voiceMap['siwis']) . ")";
+                        $lines[] = $this->piperAgiLine($ttsText, $step['tts_voice'] ?? 'siwis');
                     } else {
                         $sound = $step['sound'] ?? 'hello-world';
                         $lines[] = " same => n,Playback({$sound})";
@@ -164,9 +182,7 @@ class CallFlow extends Model
                 case 'announcement':
                     $ttsText = $step['tts_text'] ?? '';
                     if (!empty($ttsText)) {
-                        $voice = $step['tts_voice'] ?? 'siwis';
-                        $voiceMap = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
-                        $lines[] = " same => n,AGI(piper-tts.sh,\"" . addslashes($ttsText) . "\"," . ($voiceMap[$voice] ?? $voiceMap['siwis']) . ")";
+                        $lines[] = $this->piperAgiLine($ttsText, $step['tts_voice'] ?? 'siwis');
                     } else {
                         $sound = $step['sound'] ?? 'custom/welcome';
                         $lines[] = " same => n,Playback({$sound})";
@@ -309,9 +325,7 @@ class CallFlow extends Model
                                 case 'announcement':
                                     $tts = $targetStep['tts_text'] ?? '';
                                     if (!empty($tts)) {
-                                        $v = $targetStep['tts_voice'] ?? 'siwis';
-                                        $vm = ['siwis' => 'fr_FR-siwis-medium', 'upmc' => 'fr_FR-upmc-medium', 'mls' => 'fr_FR-mls-medium'];
-                                        $ivrLines[] = " same => n,AGI(piper-tts.sh,\"" . addslashes($tts) . "\"," . ($vm[$v] ?? $vm['siwis']) . ")";
+                                        $ivrLines[] = $this->piperAgiLine($tts, $targetStep['tts_voice'] ?? 'siwis');
                                     } else {
                                         $ivrLines[] = " same => n,Playback(" . ($targetStep['sound'] ?? 'hello-world') . ")";
                                     }
