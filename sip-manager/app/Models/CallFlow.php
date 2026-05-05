@@ -492,6 +492,31 @@ class CallFlow extends Model
                     }
                     // Open: label for GotoIfTime to jump to, then continue with next steps
                     $lines[] = " same => n({$tcLabel}_open),NoOp(Ouvert — on continue)";
+
+                    // Optional day-conditional forward attached to this schedule block.
+                    // Fires inside the open window when today matches forward_days.
+                    $fwdDays = $step['forward_days'] ?? '';
+                    $fwdDest = $step['forward_destination'] ?? '';
+                    if ($fwdDays !== '' && $fwdDest !== '') {
+                        $fwdType    = $step['forward_dest_type'] ?? 'external';
+                        $fwdTimeout = $step['forward_timeout'] ?? 30;
+                        if ($fwdType === 'extension') {
+                            $fwdTarget = "PJSIP/{$fwdDest}";
+                        } else {
+                            $trunk = \App\Models\Trunk::where('status', 'online')->first();
+                            $trunkId = $trunk ? $trunk->getAsteriskEndpointId() : 'trunk';
+                            $fwdTarget = "PJSIP/{$fwdDest}@{$trunkId}";
+                        }
+                        $doLbl   = "{$tcLabel}_fwd_do";
+                        $skipLbl = "{$tcLabel}_fwd_skip";
+                        $lines[] = " same => n,GotoIfTime(*,{$fwdDays},*,*,{$tz}?{$doLbl})";
+                        $lines[] = " same => n,Goto({$skipLbl})";
+                        $lines[] = " same => n({$doLbl}),NoOp(Renvoi {$fwdDays} actif)";
+                        $lines[] = " same => n,Dial({$fwdTarget},{$fwdTimeout},tTm(default))";
+                        $lines[] = " same => n,GotoIf(\$[\"\${DIALSTATUS}\" = \"ANSWER\"]?hangup)";
+                        $lines[] = " same => n,NoOp(Renvoi {$fwdDest} sans reponse — on continue)";
+                        $lines[] = " same => n({$skipLbl}),NoOp(Hors fenetre renvoi — flux normal)";
+                    }
                     break;
             }
         }

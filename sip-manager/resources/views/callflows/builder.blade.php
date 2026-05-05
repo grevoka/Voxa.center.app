@@ -2482,6 +2482,19 @@ function renderProps(){
                     <option value="pierre"  ${n.data.closed_tts_voice==='pierre'?'selected':''}>Pierre (Homme)</option>
                     <option value="tom"     ${n.data.closed_tts_voice==='tom'?'selected':''}>Tom (Homme)</option>
                 </select>`);
+            h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
+            h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Renvoi conditionnel (en heures ouvrees)</label>`;
+            h += cfgF('Jours du renvoi', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'forward_days',this.value)">
+                <option value=""        ${!n.data.forward_days?'selected':''}>Aucun renvoi</option>
+                <option value="mon-fri" ${n.data.forward_days==='mon-fri'?'selected':''}>Lundi — Vendredi</option>
+                <option value="mon-sat" ${n.data.forward_days==='mon-sat'?'selected':''}>Lundi — Samedi</option>
+                <option value="sat-sun" ${n.data.forward_days==='sat-sun'?'selected':''}>Samedi — Dimanche</option>
+                <option value="sat"     ${n.data.forward_days==='sat'?'selected':''}>Samedi seulement</option>
+                <option value="sun"     ${n.data.forward_days==='sun'?'selected':''}>Dimanche seulement</option>
+            </select>`);
+            h += cfgF('Numero de renvoi', `<input type="tel" class="form-control form-control-sm" value="${n.data.forward_destination||''}" placeholder="0612345678" onchange="setProp(${n.id},'forward_destination',this.value)" style="font-family:'JetBrains Mono',monospace;">`);
+            h += cfgF('Timeout renvoi (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.forward_timeout||30}" min="5" max="120" onchange="setProp(${n.id},'forward_timeout',+this.value)">`);
+            h += `<div style="margin-top:.4rem;font-size:.7rem;color:var(--text-secondary);"><i class="bi bi-info-circle me-1"></i>Si pas de reponse, le scenario continue (file, messagerie...).</div>`;
             }
             {
                 h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
