@@ -11,9 +11,10 @@ class TtsController extends Controller
     private string $cacheDir = '/var/spool/asterisk/tts_cache';
 
     private array $voices = [
-        'siwis'  => ['id' => 'fr_FR-siwis-medium', 'label' => 'Femme (Siwis)'],
-        'upmc'   => ['id' => 'fr_FR-upmc-medium',  'label' => 'Homme (UPMC)'],
-        'mls'    => ['id' => 'fr_FR-mls-medium',    'label' => 'Femme 2 (MLS)'],
+        'siwis'   => ['id' => 'fr_FR-siwis-medium', 'label' => 'Sophie (Femme)'],
+        'jessica' => ['id' => 'fr_FR-upmc-medium', 'speaker' => 0, 'label' => 'Jessica (Femme)'],
+        'pierre'  => ['id' => 'fr_FR-upmc-medium', 'speaker' => 1, 'label' => 'Pierre (Homme)'],
+        'tom'     => ['id' => 'fr_FR-tom-medium', 'label' => 'Tom (Homme)'],
     ];
 
     public function voices()
@@ -29,10 +30,12 @@ class TtsController extends Controller
             return response()->json(['error' => 'Aucun texte'], 400);
         }
 
-        $voiceModel = $this->voices[$voice]['id'] ?? $this->voices['siwis']['id'];
+        $voiceCfg = $this->voices[$voice] ?? $this->voices['siwis'];
+        $voiceModel = $voiceCfg['id'];
+        $speakerId = $voiceCfg['speaker'] ?? null;
         $modelPath = "/opt/piper/models/{$voiceModel}.onnx";
 
-        $hash = md5("{$voiceModel}:{$text}");
+        $hash = md5("{$voiceModel}:" . ($speakerId ?? '') . ":{$text}");
         $wavFile = "{$this->cacheDir}/{$hash}_preview.wav";
 
         // Generate if not cached
@@ -41,12 +44,14 @@ class TtsController extends Controller
                 mkdir($this->cacheDir, 0755, true);
             }
 
+            $cmd = [$this->piperBin, '--model', $modelPath, '--output_file', $wavFile];
+            if ($speakerId !== null) {
+                $cmd[] = '--speaker';
+                $cmd[] = (string) $speakerId;
+            }
+
             $process = proc_open(
-                [
-                    $this->piperBin,
-                    '--model', $modelPath,
-                    '--output_file', $wavFile,
-                ],
+                $cmd,
                 [
                     0 => ['pipe', 'r'],
                     1 => ['pipe', 'w'],

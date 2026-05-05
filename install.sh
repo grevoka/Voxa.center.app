@@ -732,7 +732,9 @@ if [ ! -f /opt/piper/piper/piper ]; then
         chmod +x piper
         # Download French voice models referenced by TtsController::$voices
         VOICES_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR"
-        for v in "siwis/medium/fr_FR-siwis-medium" "upmc/medium/fr_FR-upmc-medium" "mls/medium/fr_FR-mls-medium"; do
+        # siwis (Sophie, F), upmc (Jessica F + Pierre M, multi-speaker), tom (M).
+        # mls is intentionally skipped: 125 random LibriSpeech speakers, erratic quality.
+        for v in "siwis/medium/fr_FR-siwis-medium" "upmc/medium/fr_FR-upmc-medium" "tom/medium/fr_FR-tom-medium"; do
             name="$(basename "$v")"
             wget -q "${VOICES_BASE}/${v}.onnx"      -O "/opt/piper/models/${name}.onnx"      2>/dev/null || true
             wget -q "${VOICES_BASE}/${v}.onnx.json" -O "/opt/piper/models/${name}.onnx.json" 2>/dev/null || true
@@ -741,7 +743,7 @@ if [ ! -f /opt/piper/piper/piper ]; then
         mkdir -p /var/spool/asterisk/tts_cache
         chown www-data:www-data /var/spool/asterisk/tts_cache
         chmod 0755 /var/spool/asterisk/tts_cache
-        log "Piper TTS installe (voix siwis, upmc, mls)."
+        log "Piper TTS installe (Sophie, Jessica, Pierre, Tom)."
     else
         warn "Piper TTS non installe — telechargement echoue."
     fi
