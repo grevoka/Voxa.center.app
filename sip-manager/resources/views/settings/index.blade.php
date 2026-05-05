@@ -360,9 +360,10 @@
                             <label class="form-label" style="font-size:0.78rem;">{{ __('ui.default_voice') }}</label>
                             <select name="piper_default_voice" class="form-select form-select-sm">
                                 @php $curPiper = \App\Models\SipSetting::get('piper_default_voice', 'siwis'); @endphp
-                                <option value="siwis" {{ $curPiper === 'siwis' ? 'selected' : '' }}>{{ __('ui.voice_female') }} (Siwis)</option>
-                                <option value="upmc" {{ $curPiper === 'upmc' ? 'selected' : '' }}>{{ __('ui.voice_male') }} (UPMC)</option>
-                                <option value="mls" {{ $curPiper === 'mls' ? 'selected' : '' }}>{{ __('ui.voice_female2') }} (MLS)</option>
+                                <option value="siwis"   {{ $curPiper === 'siwis' ? 'selected' : '' }}>Sophie ({{ __('ui.voice_female') }})</option>
+                                <option value="jessica" {{ $curPiper === 'jessica' ? 'selected' : '' }}>Jessica ({{ __('ui.voice_female') }})</option>
+                                <option value="pierre"  {{ $curPiper === 'pierre' ? 'selected' : '' }}>Pierre ({{ __('ui.voice_male') }})</option>
+                                <option value="tom"     {{ $curPiper === 'tom' ? 'selected' : '' }}>Tom ({{ __('ui.voice_male') }})</option>
                             </select>
                             <small style="color:var(--text-secondary);font-size:0.65rem;">{{ __('ui.free_local_tts') }}</small>
                         </div>

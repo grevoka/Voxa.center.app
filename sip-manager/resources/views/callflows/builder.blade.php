@@ -2595,9 +2595,10 @@ function ttsField(nodeId, text, voice) {
         style="font-size:.75rem;" onchange="setProp(${nodeId},'tts_text',this.value)">${text||''}</textarea>
         <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
             <select class="form-select form-select-sm" style="font-size:.7rem;flex:1;" onchange="setProp(${nodeId},'tts_voice',this.value)">
-                <option value="siwis" ${(voice||'siwis')==='siwis'?'selected':''}>Female (Siwis)</option>
-                <option value="upmc" ${voice==='upmc'?'selected':''}>Male (UPMC)</option>
-                <option value="mls" ${voice==='mls'?'selected':''}>Female 2 (MLS)</option>
+                <option value="siwis"   ${(voice||'siwis')==='siwis'?'selected':''}>Sophie (Femme)</option>
+                <option value="jessica" ${voice==='jessica'?'selected':''}>Jessica (Femme)</option>
+                <option value="pierre"  ${voice==='pierre'?'selected':''}>Pierre (Homme)</option>
+                <option value="tom"     ${voice==='tom'?'selected':''}>Tom (Homme)</option>
             </select>
             <button id="ttsBtn_${nodeId}" class="btn-tts-preview" onclick="ttsPreview(${nodeId})"><i class="bi bi-play-fill me-1"></i>Ecouter</button>
         </div>`;
