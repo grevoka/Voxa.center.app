@@ -2475,13 +2475,16 @@ function renderProps(){
                 <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Mon — Sun (all)</option>
                 <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sat — Sun</option>
             </select>`);
-            h += cfgF('Annonce de fermeture', `<textarea class="form-control form-control-sm" rows="3" placeholder="Bonjour, les bureaux sont fermés..." style="font-size:.75rem;" onchange="setProp(${n.id},'closed_tts_text',this.value)">${n.data.closed_tts_text||''}</textarea>
-                <select class="form-select form-select-sm mt-1" style="font-size:.7rem;" onchange="setProp(${n.id},'closed_tts_voice',this.value)">
-                    <option value="siwis"   ${(n.data.closed_tts_voice||'siwis')==='siwis'?'selected':''}>Sophie (Femme)</option>
-                    <option value="jessica" ${n.data.closed_tts_voice==='jessica'?'selected':''}>Jessica (Femme)</option>
-                    <option value="pierre"  ${n.data.closed_tts_voice==='pierre'?'selected':''}>Pierre (Homme)</option>
-                    <option value="tom"     ${n.data.closed_tts_voice==='tom'?'selected':''}>Tom (Homme)</option>
-                </select>`);
+            h += cfgF('Annonce de fermeture', `<textarea class="form-control form-control-sm" rows="3" placeholder="Bonjour, les bureaux sont fermés..." style="font-size:.75rem;" data-tts-node="${n.id}" data-tts-key="closed_tts_text" onchange="setProp(${n.id},'closed_tts_text',this.value)">${n.data.closed_tts_text||''}</textarea>
+                <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
+                    <select class="form-select form-select-sm" style="font-size:.7rem;flex:1;" onchange="setProp(${n.id},'closed_tts_voice',this.value)">
+                        <option value="siwis"   ${(n.data.closed_tts_voice||'siwis')==='siwis'?'selected':''}>Sophie (Femme)</option>
+                        <option value="jessica" ${n.data.closed_tts_voice==='jessica'?'selected':''}>Jessica (Femme)</option>
+                        <option value="pierre"  ${n.data.closed_tts_voice==='pierre'?'selected':''}>Pierre (Homme)</option>
+                        <option value="tom"     ${n.data.closed_tts_voice==='tom'?'selected':''}>Tom (Homme)</option>
+                    </select>
+                    <button id="ttsBtnClosed_${n.id}" class="btn-tts-preview" onclick="ttsPreview(${n.id},'closed_tts_text','closed_tts_voice','ttsBtnClosed_${n.id}')"><i class="bi bi-play-fill me-1"></i>Ecouter</button>
+                </div>`);
             h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
             h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Renvoi conditionnel (en heures ouvrees)</label>`;
             h += cfgF('Jours du renvoi', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'forward_days',this.value)">
@@ -2670,7 +2673,7 @@ function updateTimeRange(nodeId, idx, side, value){
 // ════════════════════════════════════════
 function ttsField(nodeId, text, voice) {
     return `<textarea class="form-control form-control-sm" rows="2" placeholder="Texte a synthetiser..."
-        style="font-size:.75rem;" onchange="setProp(${nodeId},'tts_text',this.value)">${text||''}</textarea>
+        style="font-size:.75rem;" data-tts-node="${nodeId}" data-tts-key="tts_text" onchange="setProp(${nodeId},'tts_text',this.value)">${text||''}</textarea>
         <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
             <select class="form-select form-select-sm" style="font-size:.7rem;flex:1;" onchange="setProp(${nodeId},'tts_voice',this.value)">
                 <option value="siwis"   ${(voice||'siwis')==='siwis'?'selected':''}>Sophie (Femme)</option>
@@ -2683,9 +2686,17 @@ function ttsField(nodeId, text, voice) {
 }
 
 let _ttsAudio = null;
-function ttsPreview(nodeId) {
+function ttsPreview(nodeId, textKey, voiceKey, btnId) {
+    textKey = textKey || 'tts_text';
+    voiceKey = voiceKey || 'tts_voice';
+    btnId = btnId || ('ttsBtn_' + nodeId);
     const n = nodes.find(x => x.id === nodeId);
-    if (!n || !n.data.tts_text || !n.data.tts_text.trim()) {
+    if (!n) return;
+    // Read live value from the visible textarea (onchange may not have fired yet)
+    const ta = document.querySelector(`textarea[data-tts-node="${nodeId}"][data-tts-key="${textKey}"]`);
+    const liveText = ta ? ta.value : (n.data[textKey] || '');
+    if (ta) { n.data[textKey] = liveText; }
+    if (!liveText.trim()) {
         alert('Saisissez un texte dans le champ TTS.');
         return;
     }
@@ -2693,8 +2704,10 @@ function ttsPreview(nodeId) {
     if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; }
 
     // Update button state
-    const btn = document.getElementById('ttsBtn_' + nodeId);
+    const btn = document.getElementById(btnId);
     if (btn) { btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generation...'; btn.disabled = true; }
+
+    const restore = function(){ if (btn) { btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId, textKey, voiceKey, btnId); }; } };
 
     fetch('{{ route("tts.preview") }}', {
         method: 'POST',
@@ -2703,7 +2716,7 @@ function ttsPreview(nodeId) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'audio/wav'
         },
-        body: JSON.stringify({ text: n.data.tts_text, voice: n.data.tts_voice || 'siwis' })
+        body: JSON.stringify({ text: liveText, voice: n.data[voiceKey] || 'siwis' })
     })
     .then(r => {
         if (!r.ok) throw new Error('Erreur ' + r.status);
@@ -2716,15 +2729,13 @@ function ttsPreview(nodeId) {
         if (btn) {
             btn.innerHTML = '<i class="bi bi-stop-fill me-1"></i>Arreter';
             btn.disabled = false;
-            btn.onclick = function() { _ttsAudio.pause(); _ttsAudio = null; btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId); }; };
+            btn.onclick = function() { _ttsAudio.pause(); _ttsAudio = null; restore(); };
         }
-        _ttsAudio.onended = function() {
-            if (btn) { btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId); }; }
-        };
+        _ttsAudio.onended = restore;
     })
     .catch(err => {
         console.error('TTS preview error:', err);
-        if (btn) { btn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Erreur'; btn.disabled = false; setTimeout(() => { btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>Ecouter'; btn.onclick = function(){ ttsPreview(nodeId); }; }, 2000); }
+        if (btn) { btn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Erreur'; btn.disabled = false; setTimeout(restore, 2000); }
     });
 }
 

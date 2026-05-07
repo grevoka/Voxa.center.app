@@ -36,7 +36,13 @@ class CallFlowController extends Controller
      */
     private function checkDidConflicts(int $trunkId, array $steps, ?int $excludeFlowId = null): ?string
     {
-        $myDids = $this->extractDidsFromSteps($steps);
+        // DIDs come from two sources: visual `did_filter` steps AND the flow's
+        // column-level `did_filter` (set programmatically or via API).
+        $self = $excludeFlowId ? CallFlow::find($excludeFlowId) : null;
+        $myDids = array_values(array_unique(array_merge(
+            $this->extractDidsFromSteps($steps),
+            $self ? ($self->did_filter ?? []) : []
+        )));
         $hasDidFilter = !empty($myDids);
 
         $otherFlows = CallFlow::where('trunk_id', $trunkId)
@@ -45,7 +51,10 @@ class CallFlowController extends Controller
             ->get();
 
         foreach ($otherFlows as $other) {
-            $otherDids = $this->extractDidsFromSteps($other->steps ?? []);
+            $otherDids = array_values(array_unique(array_merge(
+                $this->extractDidsFromSteps($other->steps ?? []),
+                $other->did_filter ?? []
+            )));
             $otherHasFilter = !empty($otherDids);
 
             if (!$hasDidFilter && !$otherHasFilter) {
