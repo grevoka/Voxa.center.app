@@ -75,6 +75,9 @@ class CallFlow extends Model
         $priority++;
         $lines[] = " same => n,Set(CDR(direction)=inbound)";
         $lines[] = " same => n,Set(CDR(trunk)={$this->trunk->name})";
+        // Surface the dialed DID to the operator: encode it in the SIP From
+        // display-name so JsSIP exposes it via session.remote_identity.display_name.
+        $lines[] = " same => n,Set(CALLERID(name)=->\${EXTEN})";
 
         // Recording opt-out feature name
         $optoutKey = $this->record_optout_key ?: '8';

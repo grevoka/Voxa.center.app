@@ -77,7 +77,8 @@
     {{-- Incoming call --}}
     <div id="phoneIncoming" style="display:none;text-align:center;">
         <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.3rem;">{{ __("ui.phone_incoming") }}</div>
-        <div id="phoneIncomingNumber" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;"></div>
+        <div id="phoneIncomingNumber" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;margin-bottom:0.15rem;"></div>
+        <div id="phoneIncomingDid" style="display:none;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.4rem;"></div>
         <div class="d-flex gap-2">
             <button onclick="phoneAnswer()" style="flex:1;background:var(--success);color:#fff;border:none;border-radius:8px;padding:0.45rem;font-size:0.82rem;font-weight:600;cursor:pointer;">
                 <i class="bi bi-telephone-fill me-1"></i>Repondre
@@ -449,6 +450,15 @@ function phoneOnIncoming(session) {
     session._voxaCaller = caller;
     session._voxaAnswered = false;
     document.getElementById('phoneIncomingNumber').textContent = caller;
+    // Show the dialed DID (encoded in CALLERID(name) at the flow entry as "->DID")
+    var displayName = (session.remote_identity.display_name || '').trim();
+    var didEl = document.getElementById('phoneIncomingDid');
+    if (displayName.startsWith('->')) {
+        didEl.textContent = 'pour ' + displayName.substring(2).trim();
+        didEl.style.display = 'block';
+    } else {
+        didEl.style.display = 'none';
+    }
     document.getElementById('phoneIncoming').style.display = 'block';
     document.getElementById('phoneDialpad').style.display = 'none';
     phoneStartRing();
