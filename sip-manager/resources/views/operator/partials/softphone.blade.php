@@ -367,24 +367,17 @@ function phonePopulateCallerIds() {
     btnsDiv.innerHTML = '';
     if (_callerIds.length === 0) return;
 
-    // Default button
-    var defBtn = document.createElement('button');
-    defBtn.className = 'cid-btn active';
-    defBtn.dataset.value = '';
-    defBtn.innerHTML = '<i class="bi bi-phone" style="font-size:0.6rem;"></i> Par defaut';
-    defBtn.onclick = function() { cidSelect('', this); };
-    btnsDiv.appendChild(defBtn);
-
-    // Caller ID buttons
-    _callerIds.forEach(function(c) {
+    // Caller ID buttons — the first one is selected by default
+    _callerIds.forEach(function(c, idx) {
         var btn = document.createElement('button');
-        btn.className = 'cid-btn';
+        btn.className = 'cid-btn' + (idx === 0 ? ' active' : '');
         btn.dataset.value = c.number;
         btn.innerHTML = c.label;
         btn.title = c.number + (c.trunk ? ' (' + c.trunk + ')' : '');
         btn.onclick = function() { cidSelect(c.number, this); };
         btnsDiv.appendChild(btn);
     });
+    document.getElementById('phoneCidSelect').value = _callerIds[0].number;
 
     container.style.display = 'block';
 }
