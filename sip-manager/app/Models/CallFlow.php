@@ -35,6 +35,23 @@ class CallFlow extends Model
     }
 
     /**
+     * All format variants Asterisk might see for a French number.
+     * Used to match incoming EXTEN against stored caller_ids regardless of
+     * the prefix the carrier chose to deliver (0033, +33, 33 or 0).
+     */
+    private function numberVariants(string $num): array
+    {
+        $d = preg_replace('/\D/', '', $num);
+        $core = '';
+        if (str_starts_with($d, '0033') && strlen($d) === 13) $core = substr($d, 4);
+        elseif (str_starts_with($d, '33') && strlen($d) === 11) $core = substr($d, 2);
+        elseif (str_starts_with($d, '0') && strlen($d) === 10) $core = substr($d, 1);
+        elseif (strlen($d) === 9) $core = $d;
+        if ($core === '') return [$d];
+        return ["0{$core}", "+33{$core}", "0033{$core}", "33{$core}"];
+    }
+
+    /**
      * Build the AGI(piper-tts.sh, ...) line for a given voice key.
      * Voice map mirrors TtsController::$voices (siwis/jessica/pierre/tom).
      */
@@ -77,7 +94,17 @@ class CallFlow extends Model
         $lines[] = " same => n,Set(CDR(trunk)={$this->trunk->name})";
         // Surface the dialed DID to the operator: encode it in the SIP From
         // display-name so JsSIP exposes it via session.remote_identity.display_name.
+        // Default = raw DID; overridden below if a CallerId entry maps it to a label.
         $lines[] = " same => n,Set(CALLERID(name)=->\${EXTEN})";
+        $callerIds = \App\Models\CallerId::where('is_active', true)->get(['number', 'label']);
+        foreach ($callerIds as $cid) {
+            $label = preg_replace('/[",;()\\\\\[\]\$]/', '', $cid->label);
+            $label = trim(preg_replace('/\s+/', ' ', $label));
+            if ($label === '') continue;
+            foreach ($this->numberVariants($cid->number) as $variant) {
+                $lines[] = " same => n,ExecIf(\$[\"\${EXTEN}\" = \"{$variant}\"]?Set(CALLERID(name)=->{$label}))";
+            }
+        }
 
         // Recording opt-out feature name
         $optoutKey = $this->record_optout_key ?: '8';

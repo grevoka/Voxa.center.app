@@ -775,6 +775,7 @@
         <input type="hidden" name="record_optout_key" id="hidOptoutKey">
         <input type="hidden" name="positions" id="hidPositions">
         <input type="hidden" name="queue_members" id="hidQueueMembers">
+        <input type="hidden" name="did_filter" id="hidDidFilter">
     </form>
 
     <div class="builder-wrap" style="display:none;">
@@ -867,6 +868,12 @@
                         <label>{{ __('ui.priority') }}</label>
                         <input type="number" class="form-control form-control-sm" id="cfgPrio"
                                value="{{ old('priority', $callflow->priority ?? 1) }}" min="1" max="100">
+                    </div>
+                    <div class="cfg-section">
+                        <label>Filtre DID <span style="color:var(--text-secondary);font-weight:400;font-size:0.7rem;">(numeros separes par virgule)</span></label>
+                        <input type="text" class="form-control form-control-sm" id="cfgDidFilter"
+                               value="{{ old('did_filter_csv', is_array($callflow->did_filter ?? null) ? implode(', ', $callflow->did_filter) : '') }}"
+                               placeholder="0352745112, 0033352745112">
                     </div>
                     <div class="cfg-section">
                         <div class="form-check form-switch">
@@ -2634,6 +2641,11 @@ function setProp(id, prop, val){
     if (!n) return;
     if (prop === '__unlink') { n.next = null; }
     else { n.data[prop] = val; }
+    // TTS text/voice edits fire onchange when focus moves to the Ecouter
+    // button — re-rendering would destroy the button mid-playback, so we
+    // skip the redraw for those fields. The data is already updated.
+    const isTtsField = ['tts_text', 'closed_tts_text', 'tts_voice', 'closed_tts_voice'].includes(prop);
+    if (isTtsField) return;
     render();
     renderProps();
 }
@@ -2901,6 +2913,10 @@ document.getElementById('btnSave').addEventListener('click', () => {
     document.getElementById('hidRecord').value = document.getElementById('cfgRecord').checked ? '1' : '0';
     document.getElementById('hidOptout').value = document.getElementById('cfgOptout').checked ? '1' : '0';
     document.getElementById('hidOptoutKey').value = document.getElementById('cfgOptoutKey').value;
+    // Filtre DID: parse comma-separated input into a JSON array.
+    const didCsv = (document.getElementById('cfgDidFilter').value || '').trim();
+    const didArr = didCsv ? didCsv.split(/[,;\s]+/).map(s => s.trim()).filter(Boolean) : [];
+    document.getElementById('hidDidFilter').value = JSON.stringify(didArr);
     document.getElementById('flowForm').submit();
 });
 

@@ -34,14 +34,19 @@ class CallFlowController extends Controller
     /**
      * Check for DID conflicts with other enabled scenarios on the same trunk.
      */
-    private function checkDidConflicts(int $trunkId, array $steps, ?int $excludeFlowId = null): ?string
+    private function checkDidConflicts(int $trunkId, array $steps, ?int $excludeFlowId = null, ?array $columnDidFilter = null): ?string
     {
         // DIDs come from two sources: visual `did_filter` steps AND the flow's
-        // column-level `did_filter` (set programmatically or via API).
-        $self = $excludeFlowId ? CallFlow::find($excludeFlowId) : null;
+        // column-level `did_filter`. For the flow being saved, prefer the
+        // about-to-be-persisted value (caller passes it); otherwise fall back
+        // to whatever is currently in DB.
+        $selfCol = $columnDidFilter;
+        if ($selfCol === null && $excludeFlowId) {
+            $selfCol = CallFlow::find($excludeFlowId)?->did_filter ?? [];
+        }
         $myDids = array_values(array_unique(array_merge(
             $this->extractDidsFromSteps($steps),
-            $self ? ($self->did_filter ?? []) : []
+            $selfCol ?? []
         )));
         $hasDidFilter = !empty($myDids);
 
@@ -171,7 +176,7 @@ class CallFlowController extends Controller
         unset($data['queue_members']);
 
         // Check for DID conflicts — if conflict, create disabled + warning
-        $conflict = $this->checkDidConflicts((int) $data['trunk_id'], $data['steps']);
+        $conflict = $this->checkDidConflicts((int) $data['trunk_id'], $data['steps'], null, $data['did_filter']);
         if ($conflict) {
             $data['enabled'] = false;
         }
@@ -216,6 +221,7 @@ class CallFlowController extends Controller
             'record_optout'      => 'nullable|boolean',
             'record_optout_key'  => 'nullable|string|size:1|regex:/^[0-9*#]$/',
             'caller_id_filter'   => 'nullable|json',
+            'did_filter'         => 'nullable|json',
             'positions'          => 'nullable|json',
             'priority'           => 'nullable|integer|min:1|max:100',
         ]);
@@ -223,13 +229,14 @@ class CallFlowController extends Controller
         $data['steps'] = json_decode($data['steps'], true);
         $data['positions'] = !empty($data['positions']) ? json_decode($data['positions'], true) : null;
         $data['caller_id_filter'] = !empty($data['caller_id_filter']) ? json_decode($data['caller_id_filter'], true) : null;
+        $data['did_filter'] = !empty($data['did_filter']) ? json_decode($data['did_filter'], true) : null;
         $data['enabled'] = $request->boolean('enabled', true);
         $data['record_calls'] = $request->boolean('record_calls');
         $data['record_optout'] = $request->boolean('record_optout');
         $data['record_optout_key'] = $request->input('record_optout_key') ?? '8';
 
         // Check for DID conflicts — if conflict, force disable + warning
-        $conflict = $this->checkDidConflicts((int) $data['trunk_id'], $data['steps'], $callflow->id);
+        $conflict = $this->checkDidConflicts((int) $data['trunk_id'], $data['steps'], $callflow->id, $data['did_filter']);
         if ($conflict && $request->boolean('enabled', true)) {
             $data['enabled'] = false;
         }
