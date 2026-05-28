@@ -66,7 +66,10 @@ class CallContext extends Model
         // Default trunk
         $lines[] = " same => n,Set(TRUNK_EP={$defaultEndpoint})";
 
-        // Per-extension trunk override
+        // The softphone sends the picked caller-ID signature in X-Voxa-CallerID.
+        $lines[] = " same => n,Set(SELCID=\${PJSIP_HEADER(read,X-Voxa-CallerID)})";
+
+        // Per-extension trunk override (fallback when no signature is picked)
         $extOverrides = SipLine::whereNotNull('outbound_trunk_id')
             ->with('outboundTrunk')
             ->get();
@@ -78,9 +81,23 @@ class CallContext extends Model
             }
         }
 
+        // Per-signature trunk routing — the caller ID chosen in the softphone
+        // wins over the extension default. Each CallerId maps to the trunk that
+        // owns its number, so picking "LILLE" sends the call out OVH-3, "REIMS"
+        // out OVH-2, and the presented number follows the trunk's identity.
+        $callerIds = \App\Models\CallerId::where('is_active', true)->with('trunk')->get();
+        foreach ($callerIds as $cid) {
+            if ($cid->trunk) {
+                $cidEndpoint = $cid->trunk->getAsteriskEndpointId();
+                $lines[] = " same => n,ExecIf(\$[\"\${SELCID}\" = \"{$cid->number}\"]?Set(TRUNK_EP={$cidEndpoint}))";
+            }
+        }
+
         if ($this->caller_id_override) {
             $lines[] = " same => n,Set(CALLERID(num)={$this->caller_id_override})";
         }
+        // Honour the picked signature as the presented caller ID number.
+        $lines[] = " same => n,ExecIf(\$[\"\${SELCID}\" != \"\"]?Set(CALLERID(num)=\${SELCID}))";
         // Pass caller ID to trunk via SIP headers
         $lines[] = " same => n,Set(PJSIP_HEADER(add,P-Asserted-Identity)=<sip:\${CALLERID(num)}@\${TRUNK_EP}>)";
 
