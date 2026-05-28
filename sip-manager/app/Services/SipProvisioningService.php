@@ -102,69 +102,17 @@ class SipProvisioningService
         $registrationId = $id . '-reg';
 
         try {
-            DB::connection($this->connection)->transaction(function () use ($trunk, $id, $authId, $registrationId) {
-                $codecs = $trunk->codecs ? implode(',', $trunk->codecs) : 'alaw,ulaw';
+            // The main trunk endpoint + auth + aor are written to STATIC
+            // pjsip.conf by writeIdentifyConf() (outbound_proxy needs a '\;lr'
+            // loose-route param that the Realtime loader mangles). Remove any
+            // legacy Realtime rows so they don't collide with the static defs.
+            DB::connection($this->connection)->table('ps_endpoints')->where('id', $id)->delete();
+            DB::connection($this->connection)->table('ps_auths')->where('id', $authId)->delete();
+            DB::connection($this->connection)->table('ps_aors')->where('id', $id)->delete();
+            DB::connection($this->connection)->table('ps_registrations')->where('id', $registrationId)->delete();
 
-                // Outbound proxy (SIP URI) routes packets to the SBC while the
-                // Request-URI keeps the registrar domain ($trunk->host). Stored
-                // with a literal ';lr' (no backslash — that escape is only for
-                // the flat-file pjsip.conf parser, not Realtime column values).
-                $endpointProxy = null;
-                if ($trunk->outbound_proxy) {
-                    $p = preg_replace('#^sip:#', '', $trunk->outbound_proxy);
-                    if (!str_contains($p, ':')) $p .= ':' . $trunk->port;
-                    $endpointProxy = "sip:{$p};lr";
-                }
-
-                DB::connection($this->connection)->table('ps_endpoints')->updateOrInsert(
-                    ['id' => $id],
-                    [
-                        'transport'       => $trunk->getTransportKey(),
-                        'aors'            => $id,
-                        'auth'            => $authId,
-                        'outbound_auth'   => $authId,
-                        'outbound_proxy'  => $endpointProxy,
-                        'context'         => $trunk->context,
-                        'disallow'        => 'all',
-                        'allow'           => $codecs,
-                        'direct_media'    => 'no',
-                        'force_rport'     => 'yes',
-                        'rewrite_contact' => 'yes',
-                        'callerid'        => $trunk->caller_id ?? '',
-                        'from_user'       => $trunk->username ?? '',
-                        'from_domain'     => $trunk->host,
-                        'dtmf_mode'       => 'rfc4733',
-                        'trust_id_inbound' => 'yes',
-                    ]
-                );
-
-                DB::connection($this->connection)->table('ps_auths')->updateOrInsert(
-                    ['id' => $authId],
-                    [
-                        'auth_type' => 'userpass',
-                        'username'  => $trunk->username,
-                        'password'  => $trunk->decrypted_secret,
-                    ]
-                );
-
-                // AOR contact uses the registrar host so the Request-URI domain
-                // is what the carrier expects (e.g. sip-domain.io). Actual packet
-                // routing to the SBC is handled by the endpoint outbound_proxy
-                // above. qualify_frequency=0 because the host domain is not
-                // DNS-resolvable on its own (OPTIONS would otherwise fail).
-                DB::connection($this->connection)->table('ps_aors')->updateOrInsert(
-                    ['id' => $id],
-                    [
-                        'contact'            => "sip:{$trunk->host}:{$trunk->port}",
-                        'qualify_frequency'  => $trunk->outbound_proxy ? '0' : '60',
-                        'default_expiration' => $trunk->expiration,
-                    ]
-                );
-
-                // Clean up any legacy Realtime registration
-                DB::connection($this->connection)->table('ps_registrations')
-                    ->where('id', $registrationId)->delete();
-            });
+            // Emit static endpoint/auth/aor/registration + inbound identify.
+            $this->writeIdentifyConf();
 
             Log::info("Provisioned trunk", ['name' => $trunk->name, 'endpoint' => $id]);
         } catch (\Throwable $e) {
@@ -279,6 +227,59 @@ class SipProvisioningService
                     if (!empty($ip)) {
                         $lines[] = "match = {$ip}";
                     }
+                }
+            }
+
+            // Main trunk endpoint + auth + aor (STATIC).
+            // These live in pjsip.conf rather than Realtime because the
+            // outbound_proxy needs a '\;lr' (loose-route) parameter, and the
+            // Realtime/sorcery loader splits the value on ';' (breaking it into
+            // an invalid 'lr' URI). The flat-file parser handles '\;' correctly.
+            foreach ($allTrunks as $trunk) {
+                if (!$trunk->username) continue;
+
+                $id      = $trunk->getAsteriskEndpointId();
+                $authId  = $id . '-auth';
+                $codecs  = $trunk->codecs ? implode(',', $trunk->codecs) : 'alaw,ulaw';
+
+                $lines[] = '';
+                $lines[] = "[{$authId}]";
+                $lines[] = 'type = auth';
+                $lines[] = 'auth_type = userpass';
+                $lines[] = "username = {$trunk->username}";
+                $lines[] = "password = {$trunk->decrypted_secret}";
+
+                $lines[] = '';
+                $lines[] = "[{$id}]";
+                $lines[] = 'type = aor';
+                $lines[] = "contact = sip:{$trunk->host}:{$trunk->port}";
+                $lines[] = 'qualify_frequency = 0';
+
+                $lines[] = '';
+                $lines[] = "[{$id}]";
+                $lines[] = 'type = endpoint';
+                $lines[] = "transport = {$trunk->getTransportKey()}";
+                $lines[] = "context = {$trunk->context}";
+                $lines[] = 'disallow = all';
+                $lines[] = "allow = {$codecs}";
+                $lines[] = "outbound_auth = {$authId}";
+                $lines[] = "aors = {$id}";
+                $lines[] = "from_user = {$trunk->username}";
+                $lines[] = "from_domain = {$trunk->host}";
+                $lines[] = 'direct_media = no';
+                $lines[] = 'force_rport = yes';
+                $lines[] = 'rewrite_contact = yes';
+                $lines[] = 'dtmf_mode = rfc4733';
+                $lines[] = 'trust_id_inbound = yes';
+                if ($trunk->caller_id) {
+                    $lines[] = "callerid = {$trunk->caller_id}";
+                }
+                if ($trunk->outbound_proxy) {
+                    $proxy = preg_replace('#^sip:#', '', $trunk->outbound_proxy);
+                    if (!str_contains($proxy, ':')) {
+                        $proxy .= ':' . $trunk->port;
+                    }
+                    $lines[] = "outbound_proxy = sip:{$proxy}\\;lr";
                 }
             }
 
