@@ -105,6 +105,17 @@ class SipProvisioningService
             DB::connection($this->connection)->transaction(function () use ($trunk, $id, $authId, $registrationId) {
                 $codecs = $trunk->codecs ? implode(',', $trunk->codecs) : 'alaw,ulaw';
 
+                // Outbound proxy (SIP URI) routes packets to the SBC while the
+                // Request-URI keeps the registrar domain ($trunk->host). Stored
+                // with a literal ';lr' (no backslash — that escape is only for
+                // the flat-file pjsip.conf parser, not Realtime column values).
+                $endpointProxy = null;
+                if ($trunk->outbound_proxy) {
+                    $p = preg_replace('#^sip:#', '', $trunk->outbound_proxy);
+                    if (!str_contains($p, ':')) $p .= ':' . $trunk->port;
+                    $endpointProxy = "sip:{$p};lr";
+                }
+
                 DB::connection($this->connection)->table('ps_endpoints')->updateOrInsert(
                     ['id' => $id],
                     [
@@ -112,6 +123,7 @@ class SipProvisioningService
                         'aors'            => $id,
                         'auth'            => $authId,
                         'outbound_auth'   => $authId,
+                        'outbound_proxy'  => $endpointProxy,
                         'context'         => $trunk->context,
                         'disallow'        => 'all',
                         'allow'           => $codecs,
@@ -135,16 +147,16 @@ class SipProvisioningService
                     ]
                 );
 
-                // AOR contact: use proxy if configured (domain may not be DNS-resolvable)
-                $aorContact = $trunk->outbound_proxy
-                    ? "sip:{$trunk->outbound_proxy}:{$trunk->port}"
-                    : "sip:{$trunk->host}:{$trunk->port}";
-
+                // AOR contact uses the registrar host so the Request-URI domain
+                // is what the carrier expects (e.g. sip-domain.io). Actual packet
+                // routing to the SBC is handled by the endpoint outbound_proxy
+                // above. qualify_frequency=0 because the host domain is not
+                // DNS-resolvable on its own (OPTIONS would otherwise fail).
                 DB::connection($this->connection)->table('ps_aors')->updateOrInsert(
                     ['id' => $id],
                     [
-                        'contact'            => $aorContact,
-                        'qualify_frequency'  => '60',
+                        'contact'            => "sip:{$trunk->host}:{$trunk->port}",
+                        'qualify_frequency'  => $trunk->outbound_proxy ? '0' : '60',
                         'default_expiration' => $trunk->expiration,
                     ]
                 );
