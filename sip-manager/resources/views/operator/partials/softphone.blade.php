@@ -655,22 +655,31 @@ function phoneAttachStream(pc) {
 function phoneBindSession(session, number) {
     document.getElementById('phoneCallBtn').style.display = 'none';
     document.getElementById('phoneHangupBtn').style.display = 'block';
-    document.getElementById('phoneCallInfo').style.display = 'block';
+    // For an incoming session the ringing UI (phoneIncoming + phoneIncomingContact)
+    // is already on screen. Keep phoneCallInfo hidden until the call is
+    // answered so we don't show the contact name twice.
+    var isOutbound = session.direction !== 'incoming';
+    if (isOutbound) document.getElementById('phoneCallInfo').style.display = 'block';
     document.getElementById('phoneCallNumber').textContent = number;
-    // Contact name on the active-call view.
+    // Contact name on the active-call view — preloaded so it's ready when the
+    // panel becomes visible on 'confirmed'.
     var callContactEl = document.getElementById('phoneCallContact');
     if (callContactEl) {
         callContactEl.style.display = 'none';
         callContactEl.textContent = '';
         phoneContactLookup(number).then(function(name) {
-            if (name) { callContactEl.textContent = name; callContactEl.style.display = 'block'; }
+            if (!name) return;
+            callContactEl.textContent = name;
+            if (isOutbound) callContactEl.style.display = 'block';
         });
     }
-    phoneSetStatus('busy', 'En communication...');
+    phoneSetStatus('busy', isOutbound ? 'En communication...' : 'Appel entrant');
 
     session.on('confirmed', function() {
         document.getElementById('phoneIncoming').style.display = 'none';
         document.getElementById('phoneDialpad').style.display = 'block';
+        document.getElementById('phoneCallInfo').style.display = 'block';
+        if (callContactEl && callContactEl.textContent) callContactEl.style.display = 'block';
         _seconds = 0;
         _timer = setInterval(function() {
             _seconds++;
