@@ -515,9 +515,14 @@ function phoneOnIncoming(session) {
 function phoneMissedAdd(number) {
     // Avoid duplicates
     if (_missedCalls.find(function(m) { return m.number === number; })) return;
-    _missedCalls.unshift({ number: number, time: new Date() });
+    var entry = { number: number, time: new Date(), name: '' };
+    _missedCalls.unshift(entry);
     if (_missedCalls.length > 5) _missedCalls.pop();
     phoneMissedRender();
+    // Resolve against contacts directory and refresh once the name comes back.
+    phoneContactLookup(number).then(function(name) {
+        if (name) { entry.name = name; phoneMissedRender(); }
+    });
 }
 
 function phoneMissedRender() {
@@ -534,8 +539,11 @@ function phoneMissedRender() {
         var timeStr = (h < 10 ? '0' : '') + h + ':' + (min < 10 ? '0' : '') + min;
         var div = document.createElement('div');
         div.className = 'missed-item';
+        var numCell = m.name
+            ? '<span class="missed-num" style="line-height:1.15;"><strong style="color:var(--accent);font-size:0.72rem;">' + m.name + '</strong><br><small style="font-weight:400;color:var(--text-secondary);font-size:0.62rem;">' + m.number + '</small></span>'
+            : '<span class="missed-num">' + m.number + '</span>';
         div.innerHTML = '<i class="bi bi-telephone-x" style="color:#f85149;font-size:0.65rem;"></i>' +
-            '<span class="missed-num">' + m.number + '</span>' +
+            numCell +
             '<span class="missed-time">' + timeStr + '</span>' +
             '<button class="missed-call-btn" title="Rappeler" onclick="phoneCallback(\'' + m.number + '\',' + i + ')"><i class="bi bi-telephone-fill"></i></button>' +
             '<button class="missed-dismiss" title="Effacer" onclick="phoneMissedDismiss(' + i + ')"><i class="bi bi-x-lg"></i></button>';
@@ -585,9 +593,11 @@ function renderMissedModal() {
         var li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center';
         li.style.cssText = 'background:var(--surface-2);color:var(--text-primary);border-color:var(--border);cursor:pointer;padding:0.6rem 1rem;';
-        var sub = m.time + (m.name ? ' — ' + m.name : '');
-        li.innerHTML = '<div><div style="font-family:JetBrains Mono,monospace;font-weight:700;">' + m.number + '</div>'
-                     + '<div style="font-size:0.7rem;color:var(--text-secondary);">' + sub + '</div></div>'
+        var top = m.name
+            ? '<div style="font-weight:700;color:var(--accent);">' + m.name + '</div>'
+              + '<div style="font-family:JetBrains Mono,monospace;font-size:0.78rem;color:var(--text-secondary);">' + m.number + '</div>'
+            : '<div style="font-family:JetBrains Mono,monospace;font-weight:700;">' + m.number + '</div>';
+        li.innerHTML = '<div>' + top + '<div style="font-size:0.7rem;color:var(--text-secondary);">' + m.time + '</div></div>'
                      + '<button class="btn btn-sm btn-success"><i class="bi bi-telephone-fill me-1"></i>Rappeler</button>';
         li.onclick = function() { triggerMissedCallback(m); };
         list.appendChild(li);
