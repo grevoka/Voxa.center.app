@@ -32,6 +32,7 @@
 
     {{-- Call info --}}
     <div id="phoneCallInfo" style="display:none;text-align:center;margin-bottom:0.5rem;">
+        <div id="phoneCallContact" style="display:none;font-size:0.85rem;font-weight:700;color:var(--accent);margin-bottom:0.1rem;"></div>
         <div id="phoneCallNumber" style="font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;"></div>
         <div id="phoneCallTimer" style="font-size:0.72rem;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;">00:00</div>
     </div>
@@ -77,6 +78,7 @@
     {{-- Incoming call --}}
     <div id="phoneIncoming" style="display:none;text-align:center;">
         <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.3rem;">{{ __("ui.phone_incoming") }}</div>
+        <div id="phoneIncomingContact" style="display:none;font-size:0.95rem;font-weight:700;color:var(--accent);margin-bottom:0.15rem;"></div>
         <div id="phoneIncomingNumber" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;margin-bottom:0.15rem;"></div>
         <div id="phoneIncomingDid" style="display:none;font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.4rem;"></div>
         <div class="d-flex gap-2">
@@ -444,12 +446,34 @@ function phoneReject() {
     phoneResetUI();
 }
 
+// Resolve a phone number against the contacts directory. Returns a Promise
+// that resolves to a name string or '' if no match.
+function phoneContactLookup(number) {
+    if (!number || number === 'Inconnu') return Promise.resolve('');
+    return fetch('{{ route('operator.contact-lookup') }}?number=' + encodeURIComponent(number), {
+        credentials: 'same-origin', headers: { 'Accept': 'application/json' }
+    })
+    .then(function(r) { return r.ok ? r.json() : { contact: null }; })
+    .then(function(d) {
+        if (d && d.contact) return (d.contact.prenom + ' ' + d.contact.nom).trim();
+        return '';
+    })
+    .catch(function() { return ''; });
+}
+
 function phoneOnIncoming(session) {
     _session = session;
     var caller = session.remote_identity.uri.user || 'Inconnu';
     session._voxaCaller = caller;
     session._voxaAnswered = false;
     document.getElementById('phoneIncomingNumber').textContent = caller;
+    // Resolve the caller against the contacts directory and show the name.
+    var contactEl = document.getElementById('phoneIncomingContact');
+    contactEl.style.display = 'none';
+    contactEl.textContent = '';
+    phoneContactLookup(caller).then(function(name) {
+        if (name) { contactEl.textContent = name; contactEl.style.display = 'block'; }
+    });
     // Show the dialed DID (encoded in CALLERID(name) at the flow entry as "->DID").
     // Try several places JsSIP versions surface the From display-name.
     var dn = '';
@@ -623,6 +647,15 @@ function phoneBindSession(session, number) {
     document.getElementById('phoneHangupBtn').style.display = 'block';
     document.getElementById('phoneCallInfo').style.display = 'block';
     document.getElementById('phoneCallNumber').textContent = number;
+    // Contact name on the active-call view.
+    var callContactEl = document.getElementById('phoneCallContact');
+    if (callContactEl) {
+        callContactEl.style.display = 'none';
+        callContactEl.textContent = '';
+        phoneContactLookup(number).then(function(name) {
+            if (name) { callContactEl.textContent = name; callContactEl.style.display = 'block'; }
+        });
+    }
     phoneSetStatus('busy', 'En communication...');
 
     session.on('confirmed', function() {
@@ -736,6 +769,8 @@ function phoneResetUI() {
     document.getElementById('phoneIncoming').style.display = 'none';
     document.getElementById('phoneDialpad').style.display = 'block';
     document.getElementById('phoneCallTimer').textContent = '00:00';
+    var pc = document.getElementById('phoneCallContact');     if (pc) { pc.style.display = 'none'; pc.textContent = ''; }
+    var ic = document.getElementById('phoneIncomingContact'); if (ic) { ic.style.display = 'none'; ic.textContent = ''; }
     if (_phone && _phone.isRegistered()) phoneSetStatus('online', 'En ligne');
     else phoneSetStatus('offline', 'Deconnecte');
 }

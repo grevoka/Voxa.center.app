@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CallLog;
 use App\Models\CallQueue;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 
 class OperatorDashboardController extends Controller
@@ -56,6 +57,23 @@ class OperatorDashboardController extends Controller
     }
 
     /**
+     * Resolve a phone number against the contacts directory. Returns the
+     * matching prenom/nom or null. Normalisation collapses French prefix
+     * variants (0033xx, +33xx, 33xx, 0xx) before comparing.
+     */
+    public function contactLookup(Request $request)
+    {
+        $raw = trim((string) $request->input('number', ''));
+        if ($raw === '') return response()->json(['contact' => null]);
+        $norm = Contact::normalizePhone($raw);
+        if (strlen($norm) < 8) return response()->json(['contact' => null]);
+        $c = Contact::where('phone_normalized', $norm)->first(['prenom', 'nom']);
+        return response()->json([
+            'contact' => $c ? ['prenom' => $c->prenom, 'nom' => $c->nom] : null,
+        ]);
+    }
+
+    /**
      * Missed inbound calls that this operator hasn't called back yet.
      * Resolved as soon as an ANSWERED outbound from this operator to the same
      * number (matched on the last 9 digits to absorb 0/+33/0033 variants)
@@ -102,6 +120,15 @@ class OperatorDashboardController extends Controller
             }
         }
 
+        // Preload contacts for the numbers we'll surface (one query, not N).
+        $candidateNorms = $missed->map(fn ($m) => Contact::normalizePhone($m->src))
+            ->filter(fn ($n) => strlen($n) >= 8)
+            ->unique()
+            ->values();
+        $contactsByNorm = Contact::whereIn('phone_normalized', $candidateNorms)
+            ->get(['prenom', 'nom', 'phone_normalized'])
+            ->keyBy('phone_normalized');
+
         $seen = [];
         $result = [];
         foreach ($missed as $m) {
@@ -109,10 +136,13 @@ class OperatorDashboardController extends Controller
             if ($k === '' || isset($seen[$k])) continue;
             $seen[$k] = true;
             if (isset($resolvedAt[$k]) && $resolvedAt[$k] > $m->started_at) continue;
+            $norm = Contact::normalizePhone($m->src);
+            $contact = $contactsByNorm->get($norm);
+            $name = $contact ? trim($contact->prenom . ' ' . $contact->nom) : ($m->src_name ?: null);
             $result[] = [
                 'id'     => $m->id,
                 'number' => $m->src,
-                'name'   => $m->src_name,
+                'name'   => $name,
                 'time'   => $m->started_at->format('d/m H:i'),
             ];
         }
