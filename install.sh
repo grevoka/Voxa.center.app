@@ -98,7 +98,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -yqq \
     mariadb-server redis-server \
     build-essential libssl-dev libncurses5-dev libnewt-dev libxml2-dev \
     libsqlite3-dev uuid-dev libjansson-dev libsrtp2-dev libcurl4-openssl-dev \
-    libedit-dev unixodbc-dev odbc-mariadb sox mpg123 ffmpeg coturn \
+    libedit-dev unixodbc-dev odbc-mariadb sox libsox-fmt-mp3 mpg123 ffmpeg coturn \
     python3-websockets python3-pip > /dev/null
 systemctl enable --now cron 2>/dev/null || true
 
@@ -428,6 +428,14 @@ AMIEOF
 
 # ── Permissions ──
 chown -R root:root /etc/asterisk /var/lib/asterisk /var/log/asterisk /var/spool/asterisk
+
+# Audio upload destinations need to be writable by the webapp (www-data).
+# Asterisk runs as root and can read everything regardless; setgid makes new
+# files inherit the group so uploads stay writable.
+mkdir -p /var/lib/asterisk/moh /var/lib/asterisk/sounds/custom
+chgrp -R www-data /var/lib/asterisk/moh /var/lib/asterisk/sounds/custom
+chmod -R 775 /var/lib/asterisk/moh /var/lib/asterisk/sounds/custom
+find /var/lib/asterisk/moh /var/lib/asterisk/sounds/custom -type d -exec chmod g+s {} \;
 chmod -R o+r /var/log/asterisk
 
 # ── Sudoers for www-data ──
