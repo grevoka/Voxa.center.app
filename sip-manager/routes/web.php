@@ -20,6 +20,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\FirewallController;
 use App\Http\Controllers\RecordingController;
 use App\Http\Controllers\CallerIdController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\OperatorDashboardController;
 use App\Http\Controllers\ImpersonateController;
@@ -149,6 +150,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('asterisk/logs', [AsteriskLogController::class, 'index'])->name('asterisk.logs');
         Route::get('asterisk/logs/tail', [AsteriskLogController::class, 'tail'])->name('asterisk.logs.tail');
         Route::get('asterisk/command', [AsteriskLogController::class, 'command'])->name('asterisk.command');
+
+        // Carnet de contacts
+        Route::get('contacts', [ContactController::class, 'index'])->name('contacts.index');
+        Route::post('contacts', [ContactController::class, 'store'])->name('contacts.store');
+        Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+        Route::get('contacts/import', [ContactController::class, 'import'])->name('contacts.import');
+        Route::post('contacts/import', [ContactController::class, 'importStore'])->name('contacts.import.store');
 
         // Parametres
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
