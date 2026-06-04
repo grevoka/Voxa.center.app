@@ -23,6 +23,12 @@
         <a class="nav-item-custom {{ request()->routeIs('operator.calls') ? 'active' : '' }}" href="{{ route('operator.calls') }}">
             <i class="bi bi-journal-text"></i> Journal d'appels
         </a>
+        @if(auth()->user()->sipLine)
+        <a id="missedNav" class="nav-item-custom" href="#" data-bs-toggle="modal" data-bs-target="#missedModal" style="display:none;">
+            <i class="bi bi-telephone-x-fill" style="color:var(--danger);"></i> Appels manqu&eacute;s
+            <span id="missedBadge" class="nav-badge" style="background:var(--danger);color:#fff;">0</span>
+        </a>
+        @endif
         <a class="nav-item-custom {{ request()->routeIs('operator.voicemail*') ? 'active' : '' }}" href="{{ route('operator.voicemail') }}">
             <i class="bi bi-voicemail"></i> Messagerie vocale
         </a>

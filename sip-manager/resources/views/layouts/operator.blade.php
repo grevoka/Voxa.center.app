@@ -44,14 +44,7 @@
         @include('operator.partials.softphone')
     </div>
 
-    {{-- Missed-calls floating button --}}
-    <button id="missedFab" type="button" data-bs-toggle="modal" data-bs-target="#missedModal"
-            style="display:none;position:fixed;bottom:1.5rem;left:1.5rem;z-index:8999;background:var(--danger);color:#fff;border:none;border-radius:24px;padding:0.55rem 1rem;font-size:0.78rem;font-weight:700;box-shadow:0 4px 16px rgba(248,81,73,0.4);cursor:pointer;">
-        <i class="bi bi-telephone-x-fill me-1"></i><span>Appels manqu&eacute;s</span>
-        <span id="missedBadge" class="badge bg-light text-danger ms-1" style="font-size:0.7rem;">0</span>
-    </button>
-
-    {{-- Missed-calls modal --}}
+    {{-- Missed-calls modal (entry point lives in the operator sidebar) --}}
     <div class="modal fade" id="missedModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">

@@ -546,14 +546,14 @@ function loadMissedServer() {
 }
 
 function renderMissedModal() {
-    var fab = document.getElementById('missedFab');
+    var nav = document.getElementById('missedNav');
     var badge = document.getElementById('missedBadge');
     var list = document.getElementById('missedList');
     var empty = document.getElementById('missedListEmpty');
-    if (!fab || !list) return;
+    if (!nav || !list) return;
     var visible = _missedServer.filter(function(m) { return !_missedHidden.has(m.id); });
     badge.textContent = visible.length;
-    fab.style.display = visible.length > 0 ? 'inline-flex' : 'none';
+    nav.style.display = visible.length > 0 ? '' : 'none';
     list.innerHTML = '';
     if (visible.length === 0) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
