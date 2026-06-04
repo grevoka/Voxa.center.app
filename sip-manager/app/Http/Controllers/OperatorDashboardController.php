@@ -55,6 +55,71 @@ class OperatorDashboardController extends Controller
         return view('operator.dashboard', compact('line', 'todayStats', 'recentCalls', 'queues', 'vmCount'));
     }
 
+    /**
+     * Missed inbound calls that this operator hasn't called back yet.
+     * Resolved as soon as an ANSWERED outbound from this operator to the same
+     * number (matched on the last 9 digits to absorb 0/+33/0033 variants)
+     * appears after the missed call.
+     */
+    public function missedCalls(Request $request)
+    {
+        $line = auth()->user()->sipLine;
+        if (!$line) return response()->json(['missed' => []]);
+        $ext = $line->extension;
+
+        $since = now()->subDays(14);
+
+        $touched = function ($q) use ($ext) {
+            $q->where('src', $ext)
+              ->orWhere('dst', $ext)
+              ->orWhere('dst_channel', 'LIKE', "PJSIP/{$ext}-%")
+              ->orWhere('channel', 'LIKE', "PJSIP/{$ext}-%");
+        };
+
+        $missed = CallLog::where('started_at', '>=', $since)
+            ->where('disposition', 'NO ANSWER')
+            ->where('direction', 'inbound')
+            ->where($touched)
+            ->orderByDesc('started_at')
+            ->get(['id', 'src', 'src_name', 'started_at']);
+
+        $callbacks = CallLog::where('src', $ext)
+            ->where('disposition', 'ANSWERED')
+            ->where('direction', 'outbound')
+            ->where('started_at', '>=', $since)
+            ->get(['dst', 'started_at']);
+
+        $tail9 = function ($s) {
+            $d = preg_replace('/\D/', '', (string) $s);
+            return strlen($d) >= 9 ? substr($d, -9) : $d;
+        };
+
+        $resolvedAt = [];
+        foreach ($callbacks as $cb) {
+            $k = $tail9($cb->dst);
+            if (!isset($resolvedAt[$k]) || $resolvedAt[$k] < $cb->started_at) {
+                $resolvedAt[$k] = $cb->started_at;
+            }
+        }
+
+        $seen = [];
+        $result = [];
+        foreach ($missed as $m) {
+            $k = $tail9($m->src);
+            if ($k === '' || isset($seen[$k])) continue;
+            $seen[$k] = true;
+            if (isset($resolvedAt[$k]) && $resolvedAt[$k] > $m->started_at) continue;
+            $result[] = [
+                'id'     => $m->id,
+                'number' => $m->src,
+                'name'   => $m->src_name,
+                'time'   => $m->started_at->format('d/m H:i'),
+            ];
+        }
+
+        return response()->json(['missed' => $result]);
+    }
+
     public function calls(Request $request)
     {
         $line = auth()->user()->sipLine;

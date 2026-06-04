@@ -450,11 +450,22 @@ function phoneOnIncoming(session) {
     session._voxaCaller = caller;
     session._voxaAnswered = false;
     document.getElementById('phoneIncomingNumber').textContent = caller;
-    // Show the dialed DID (encoded in CALLERID(name) at the flow entry as "->DID")
-    var displayName = (session.remote_identity.display_name || '').trim();
+    // Show the dialed DID (encoded in CALLERID(name) at the flow entry as "->DID").
+    // Try several places JsSIP versions surface the From display-name.
+    var dn = '';
+    try { dn = (session.remote_identity && session.remote_identity.display_name) || ''; } catch (e) {}
+    if (!dn) { try { dn = (session.request && session.request.from && session.request.from.display_name) || ''; } catch (e) {} }
+    if (!dn) {
+        try {
+            var fromHdr = session.request && session.request.getHeader && session.request.getHeader('From');
+            if (fromHdr) { var m = fromHdr.match(/^"?([^"<]+?)"?\s*</); if (m) dn = m[1].trim(); }
+        } catch (e) {}
+    }
+    console.log('[Voxa] incoming display_name=', dn, 'caller=', caller);
     var didEl = document.getElementById('phoneIncomingDid');
-    if (displayName.startsWith('->')) {
-        didEl.textContent = 'pour ' + displayName.substring(2).trim();
+    var arrow = dn.indexOf('->');
+    if (arrow !== -1) {
+        didEl.textContent = 'pour ' + dn.substring(arrow + 2).trim();
         didEl.style.display = 'block';
     } else {
         didEl.style.display = 'none';
@@ -519,6 +530,80 @@ function phoneMissedDismiss(index) {
     _missedCalls.splice(index, 1);
     phoneMissedRender();
 }
+
+// ────────────────────────────────────────
+// Server-side missed-calls modal
+// ────────────────────────────────────────
+var _missedServer = [];
+var _missedHidden = new Set();   // ids currently being called back (optimistic)
+var _missedLastPick = null;      // the entry the user just clicked
+
+function loadMissedServer() {
+    fetch('{{ route('operator.missed-calls') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.ok ? r.json() : { missed: [] }; })
+        .then(function(d) { _missedServer = d.missed || []; renderMissedModal(); })
+        .catch(function() {});
+}
+
+function renderMissedModal() {
+    var fab = document.getElementById('missedFab');
+    var badge = document.getElementById('missedBadge');
+    var list = document.getElementById('missedList');
+    var empty = document.getElementById('missedListEmpty');
+    if (!fab || !list) return;
+    var visible = _missedServer.filter(function(m) { return !_missedHidden.has(m.id); });
+    badge.textContent = visible.length;
+    fab.style.display = visible.length > 0 ? 'inline-flex' : 'none';
+    list.innerHTML = '';
+    if (visible.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    visible.forEach(function(m) {
+        var li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.style.cssText = 'background:var(--surface-2);color:var(--text-primary);border-color:var(--border);cursor:pointer;padding:0.6rem 1rem;';
+        var sub = m.time + (m.name ? ' — ' + m.name : '');
+        li.innerHTML = '<div><div style="font-family:JetBrains Mono,monospace;font-weight:700;">' + m.number + '</div>'
+                     + '<div style="font-size:0.7rem;color:var(--text-secondary);">' + sub + '</div></div>'
+                     + '<button class="btn btn-sm btn-success"><i class="bi bi-telephone-fill me-1"></i>Rappeler</button>';
+        li.onclick = function() { triggerMissedCallback(m); };
+        list.appendChild(li);
+    });
+}
+
+function triggerMissedCallback(missed) {
+    _missedHidden.add(missed.id);
+    _missedLastPick = missed;
+    renderMissedModal();
+    // Close modal + bring up the softphone with the number pre-filled.
+    var modalEl = document.getElementById('missedModal');
+    if (modalEl && window.bootstrap) {
+        var inst = bootstrap.Modal.getInstance(modalEl); if (inst) inst.hide();
+    }
+    var pop = document.getElementById('softphonePopup');
+    if (pop) pop.style.display = 'block';
+    document.getElementById('phoneInput').value = missed.number;
+    phoneCall();
+
+    // Watch the new session. If it never reaches 'confirmed', put the entry
+    // back into the list — the call didn't succeed, the user should retry.
+    setTimeout(function() {
+        if (!_session) { _missedHidden.delete(missed.id); renderMissedModal(); return; }
+        var answered = false;
+        _session.on('confirmed', function() { answered = true; setTimeout(loadMissedServer, 4000); });
+        _session.on('ended', function() {
+            if (!answered) { _missedHidden.delete(missed.id); renderMissedModal(); }
+            else { loadMissedServer(); }
+        });
+        _session.on('failed', function() {
+            _missedHidden.delete(missed.id); renderMissedModal();
+        });
+    }, 50);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMissedServer();
+    setInterval(loadMissedServer, 60000);
+});
 
 function phoneAttachStream(pc) {
     var audio = document.getElementById('phoneRemoteAudio');

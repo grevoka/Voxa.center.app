@@ -43,6 +43,35 @@
         </div>
         @include('operator.partials.softphone')
     </div>
+
+    {{-- Missed-calls floating button --}}
+    <button id="missedFab" type="button" data-bs-toggle="modal" data-bs-target="#missedModal"
+            style="display:none;position:fixed;bottom:1.5rem;left:1.5rem;z-index:8999;background:var(--danger);color:#fff;border:none;border-radius:24px;padding:0.55rem 1rem;font-size:0.78rem;font-weight:700;box-shadow:0 4px 16px rgba(248,81,73,0.4);cursor:pointer;">
+        <i class="bi bi-telephone-x-fill me-1"></i><span>Appels manqu&eacute;s</span>
+        <span id="missedBadge" class="badge bg-light text-danger ms-1" style="font-size:0.7rem;">0</span>
+    </button>
+
+    {{-- Missed-calls modal --}}
+    <div class="modal fade" id="missedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);">
+                <div class="modal-header" style="border-bottom:1px solid var(--border);">
+                    <h6 class="modal-title" style="font-weight:700;"><i class="bi bi-telephone-x-fill me-1" style="color:var(--danger);"></i>Appels manqu&eacute;s</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:0;">
+                    <div id="missedListEmpty" style="display:none;padding:1.5rem;text-align:center;color:var(--text-secondary);font-size:0.85rem;">
+                        <i class="bi bi-check2-circle" style="font-size:1.6rem;color:var(--success);"></i><br>
+                        Aucun appel manqu&eacute; non rappel&eacute;.
+                    </div>
+                    <ul id="missedList" class="list-group list-group-flush" style="max-height:60vh;overflow-y:auto;"></ul>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--border);font-size:0.7rem;color:var(--text-secondary);">
+                    Cliquez sur un appel pour rappeler. L'entr&eacute;e dispara&icirc;t d&egrave;s que le rappel d&eacute;croche.
+                </div>
+            </div>
+        </div>
+    </div>
     @endif
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>

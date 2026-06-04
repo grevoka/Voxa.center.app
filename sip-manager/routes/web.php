@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('operator')->prefix('operator')->name('operator.')->group(function () {
         Route::get('/', [OperatorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/calls', [OperatorDashboardController::class, 'calls'])->name('calls');
+        Route::get('/missed-calls', [OperatorDashboardController::class, 'missedCalls'])->name('missed-calls');
         Route::get('/voicemail', [OperatorDashboardController::class, 'voicemail'])->name('voicemail');
         Route::get('/voicemail/{folder}/{file}/play', [OperatorDashboardController::class, 'playVoicemail'])->name('voicemail.play');
         Route::delete('/voicemail/{folder}/{file}', [OperatorDashboardController::class, 'destroyVoicemail'])->name('voicemail.destroy');
