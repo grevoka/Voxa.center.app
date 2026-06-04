@@ -39,9 +39,11 @@ class AudioController extends Controller
         $baseName = Str::slug($request->input('name')) . '-' . Str::random(6);
         $wavName  = $baseName . '.wav';
 
-        // Save uploaded file to temp
+        // Save uploaded file to temp. Resolve the absolute path through the
+        // disk so it works whether the 'local' root is storage/app or
+        // storage/app/private (Laravel 11 default).
         $tmpUpload = $file->store('uploads', 'local');
-        $tmpPath   = storage_path("app/{$tmpUpload}");
+        $tmpPath   = \Illuminate\Support\Facades\Storage::disk('local')->path($tmpUpload);
 
         // Convert to Asterisk-compatible WAV (8kHz, 16-bit, mono PCM)
         $targetDir = $category === 'moh' ? $this->mohDir : $this->soundsDir;
