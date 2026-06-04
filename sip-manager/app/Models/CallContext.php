@@ -60,6 +60,14 @@ class CallContext extends Model
         $defaultEndpoint = $trunk ? $trunk->getAsteriskEndpointId() : 'unknown';
         $lines = [];
 
+        // International "00" alias: 0033xxx → +33xxx then reenter via _+X.
+        // Lets the operator dial either 0671852797 (national) or 0033671852797
+        // / +33671852797 (international) for the same destination.
+        if ($pattern === '_+X.') {
+            $lines[] = "exten => _00X.,1,Goto({$this->name},+\${EXTEN:2},1)";
+            $lines[] = '';
+        }
+
         $lines[] = "exten => {$pattern},1,NoOp(Appel sortant via {$this->name})";
         $lines[] = " same => n,Set(CDR(direction)=outbound)";
 
