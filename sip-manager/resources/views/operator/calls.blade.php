@@ -1,7 +1,7 @@
 @extends('layouts.operator')
 
-@section('title', 'Journal d\')
-@section('page-title', 'Journal d\')
+@section('title', "Journal d'appels")
+@section('page-title', "Journal d'appels")
 
 @section('content')
     <div class="section-header">
