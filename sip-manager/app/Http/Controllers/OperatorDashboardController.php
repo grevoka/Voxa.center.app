@@ -157,7 +157,15 @@ class OperatorDashboardController extends Controller
 
         $ext = $line->extension;
 
-        $query = CallLog::where(fn($q) => $q->where('src', $ext)->orWhere('dst', $ext));
+        // Queue-distributed calls only carry the operator's extension in the
+        // channel/dst_channel ("PJSIP/<ext>-..."), not in src/dst. Match all
+        // four so the journal surfaces inbound queue legs too.
+        $query = CallLog::where(function ($q) use ($ext) {
+            $q->where('src', $ext)
+              ->orWhere('dst', $ext)
+              ->orWhere('dst_channel', 'LIKE', "PJSIP/{$ext}-%")
+              ->orWhere('channel', 'LIKE', "PJSIP/{$ext}-%");
+        });
 
         if ($request->filled('search')) {
             $s = $request->search;
