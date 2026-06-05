@@ -28,6 +28,10 @@
         <select id="phoneAudioOutput" class="form-select form-select-sm" style="font-size:0.72rem;" onchange="phoneSaveAudioSettings()">
             <option value="">{{ __('ui.default_callerid') ?? 'Default' }}</option>
         </select>
+        <div style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:0.5rem 0 0.3rem;">
+            <i class="bi bi-bell me-1"></i> Volume sonnerie <span id="phoneRingVolPct" style="color:var(--accent);font-weight:700;">50%</span>
+        </div>
+        <input id="phoneRingVolume" type="range" min="0" max="100" step="5" value="50" style="width:100%;" oninput="phoneSetRingVolume(this.value, true)">
     </div>
 
     {{-- Call info --}}
@@ -269,12 +273,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ── Ringtone (Web Audio API) ──
 var _ringCtx = null, _ringInterval = null, _ringGain = null;
+// 0..1 multiplier on top of the per-tone envelope. Persisted in localStorage.
+var _ringVolume = (function() {
+    var v = parseFloat(localStorage.getItem('voxa.ringVolume'));
+    return isFinite(v) && v >= 0 && v <= 1 ? v : 0.5;
+})();
 function phoneStartRing() {
     try {
         if (_ringInterval) return;
         _ringCtx = new (window.AudioContext || window.webkitAudioContext)();
         _ringGain = _ringCtx.createGain();
-        _ringGain.gain.value = 0.15;
+        _ringGain.gain.value = _ringVolume;
         _ringGain.connect(_ringCtx.destination);
         function playTone() {
             var o1 = _ringCtx.createOscillator();
@@ -282,7 +291,8 @@ function phoneStartRing() {
             var g = _ringCtx.createGain();
             o1.type = 'sine'; o1.frequency.value = 440;
             o2.type = 'sine'; o2.frequency.value = 523;
-            g.gain.setValueAtTime(0.3, _ringCtx.currentTime);
+            // Per-tone envelope; the master _ringGain scales the result.
+            g.gain.setValueAtTime(0.6, _ringCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.001, _ringCtx.currentTime + 0.8);
             o1.connect(g); o2.connect(g); g.connect(_ringGain);
             o1.start(_ringCtx.currentTime);
@@ -298,6 +308,19 @@ function phoneStopRing() {
     if (_ringInterval) { clearInterval(_ringInterval); _ringInterval = null; }
     if (_ringCtx) { try { _ringCtx.close(); } catch(e){} _ringCtx = null; }
 }
+// Slider hook — also live-applies to a ring already in progress.
+function phoneSetRingVolume(pct, persist) {
+    var f = Math.max(0, Math.min(100, parseInt(pct, 10) || 0)) / 100;
+    _ringVolume = f;
+    if (persist) localStorage.setItem('voxa.ringVolume', String(f));
+    var label = document.getElementById('phoneRingVolPct');
+    if (label) label.textContent = Math.round(f * 100) + '%';
+    var slider = document.getElementById('phoneRingVolume');
+    if (slider && slider.value != Math.round(f * 100)) slider.value = Math.round(f * 100);
+    if (_ringGain) { try { _ringGain.gain.value = f; } catch(e) {} }
+}
+// Restore stored volume into the slider on load.
+document.addEventListener('DOMContentLoaded', function() { phoneSetRingVolume(Math.round(_ringVolume * 100), false); });
 
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
