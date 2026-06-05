@@ -1393,24 +1393,48 @@ function audioSelect(nodeId, prop, currentVal, category = null) {
 // Listen to a chosen audio file in-place. Uses /audio/{id}/play which streams
 // the WAV converted by AudioController. Custom (manually-typed) paths can't be
 // previewed since they don't have an AudioFile row.
-var _audioPreviewEl = null;
+// State is held globally so re-renders of the properties panel can resync the
+// buttons (panel re-render would otherwise leave a stale play icon while the
+// audio keeps streaming).
+var _audioPreview = { el: null, btnId: null };
+
+function audioPreviewSyncButtons() {
+    document.querySelectorAll('[id^="audioPrevBtn_"]').forEach(function(b) {
+        b.innerHTML = (_audioPreview.btnId === b.id)
+            ? '<i class="bi bi-stop-fill"></i>'
+            : '<i class="bi bi-play-fill"></i>';
+    });
+}
+
+function audioPreviewStop() {
+    if (_audioPreview.el) { try { _audioPreview.el.pause(); } catch(e){} }
+    _audioPreview = { el: null, btnId: null };
+    audioPreviewSyncButtons();
+}
+
 function audioPreview(nodeId, prop, btnId) {
+    // Clicking the active button stops playback.
+    if (_audioPreview.btnId === btnId && _audioPreview.el) { audioPreviewStop(); return; }
+    // Otherwise stop whatever else is playing, then start the new one.
+    audioPreviewStop();
+
     const n = nodes.find(x => x.id === nodeId); if (!n) return;
     const ref = n.data[prop] || '';
     if (!ref || ref === '__custom__') { alert('Selectionnez d\'abord un fichier audio.'); return; }
     const file = AUDIO_FILES.find(a => a.ref === ref);
     if (!file) { alert('Apercu indisponible pour les chemins personnalises (saisie manuelle).'); return; }
-    if (_audioPreviewEl) { try { _audioPreviewEl.pause(); } catch(e){} _audioPreviewEl = null; }
-    const btn = document.getElementById(btnId);
-    const restore = () => { if (btn) { btn.innerHTML = '<i class="bi bi-play-fill"></i>'; btn.onclick = () => audioPreview(nodeId, prop, btnId); } };
-    _audioPreviewEl = new Audio('/audio/' + file.id + '/play');
-    _audioPreviewEl.play().catch(err => { console.warn('audio preview play:', err); restore(); });
-    if (btn) {
-        btn.innerHTML = '<i class="bi bi-stop-fill"></i>';
-        btn.onclick = () => { if (_audioPreviewEl) { _audioPreviewEl.pause(); _audioPreviewEl = null; } restore(); };
-    }
-    _audioPreviewEl.onended = restore;
+    const audio = new Audio('/audio/' + file.id + '/play');
+    _audioPreview = { el: audio, btnId: btnId };
+    audio.onended = audioPreviewStop;
+    audio.onerror  = audioPreviewStop;
+    audio.play().catch(function(err) { console.warn('audio preview play:', err); audioPreviewStop(); });
+    audioPreviewSyncButtons();
 }
+
+// Esc kills any preview in progress regardless of which button is on screen.
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && _audioPreview.el) audioPreviewStop();
+});
 function handleAudioSelect(nodeId, prop, sel) {
     const ci = document.getElementById('audio-custom-'+nodeId+'-'+prop);
     if (sel.value === '__custom__') {
@@ -2656,6 +2680,8 @@ function renderProps(){
 
     panel.innerHTML = h;
     if (fsPanel) fsPanel.innerHTML = h;
+    // Re-paint the play/stop state on freshly rendered audio preview buttons.
+    if (typeof audioPreviewSyncButtons === 'function') audioPreviewSyncButtons();
 }
 
 function cfgF(label, input){
