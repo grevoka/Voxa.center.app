@@ -1380,10 +1380,36 @@ function audioSelect(nodeId, prop, currentVal, category = null) {
         opts += `<option value="${a.ref}" ${currentVal === a.ref ? 'selected' : ''}>${a.name} (${a.ref})</option>`;
     });
     opts += `<option value="__custom__" ${(currentVal && !filtered.find(a => a.ref === currentVal)) ? 'selected' : ''}>Saisie manuelle…</option>`;
-    let h = `<select class="form-select form-select-sm" onchange="handleAudioSelect(${nodeId},'${prop}',this)">` + opts + `</select>`;
+    const btnId = `audioPrevBtn_${nodeId}_${prop}`;
+    let h = `<div style="display:flex;gap:4px;align-items:stretch;">`;
+    h += `<select class="form-select form-select-sm" style="flex:1;" onchange="handleAudioSelect(${nodeId},'${prop}',this)">` + opts + `</select>`;
+    h += `<button type="button" id="${btnId}" class="btn-tts-preview" title="Ecouter" onclick="audioPreview(${nodeId},'${prop}','${btnId}')"><i class="bi bi-play-fill"></i></button>`;
+    h += `</div>`;
     const isCustom = currentVal && !filtered.find(a => a.ref === currentVal);
     h += `<input type="text" class="form-control form-control-sm mt-1 audio-custom-input" id="audio-custom-${nodeId}-${prop}" value="${isCustom ? currentVal : ''}" placeholder="ex: custom/welcome" onchange="setProp(${nodeId},'${prop}',this.value)" style="display:${isCustom ? '' : 'none'}">`;
     return h;
+}
+
+// Listen to a chosen audio file in-place. Uses /audio/{id}/play which streams
+// the WAV converted by AudioController. Custom (manually-typed) paths can't be
+// previewed since they don't have an AudioFile row.
+var _audioPreviewEl = null;
+function audioPreview(nodeId, prop, btnId) {
+    const n = nodes.find(x => x.id === nodeId); if (!n) return;
+    const ref = n.data[prop] || '';
+    if (!ref || ref === '__custom__') { alert('Selectionnez d\'abord un fichier audio.'); return; }
+    const file = AUDIO_FILES.find(a => a.ref === ref);
+    if (!file) { alert('Apercu indisponible pour les chemins personnalises (saisie manuelle).'); return; }
+    if (_audioPreviewEl) { try { _audioPreviewEl.pause(); } catch(e){} _audioPreviewEl = null; }
+    const btn = document.getElementById(btnId);
+    const restore = () => { if (btn) { btn.innerHTML = '<i class="bi bi-play-fill"></i>'; btn.onclick = () => audioPreview(nodeId, prop, btnId); } };
+    _audioPreviewEl = new Audio('/audio/' + file.id + '/play');
+    _audioPreviewEl.play().catch(err => { console.warn('audio preview play:', err); restore(); });
+    if (btn) {
+        btn.innerHTML = '<i class="bi bi-stop-fill"></i>';
+        btn.onclick = () => { if (_audioPreviewEl) { _audioPreviewEl.pause(); _audioPreviewEl = null; } restore(); };
+    }
+    _audioPreviewEl.onended = restore;
 }
 function handleAudioSelect(nodeId, prop, sel) {
     const ci = document.getElementById('audio-custom-'+nodeId+'-'+prop);
