@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CallLog;
 use App\Models\CallQueue;
+use App\Models\CallerId;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 
@@ -99,7 +100,7 @@ class OperatorDashboardController extends Controller
             ->where('direction', 'inbound')
             ->where($touched)
             ->orderByDesc('started_at')
-            ->get(['id', 'src', 'src_name', 'started_at']);
+            ->get(['id', 'src', 'src_name', 'dst', 'started_at']);
 
         $callbacks = CallLog::where('src', $ext)
             ->where('disposition', 'ANSWERED')
@@ -129,6 +130,16 @@ class OperatorDashboardController extends Controller
             ->get(['prenom', 'nom', 'phone_normalized'])
             ->keyBy('phone_normalized');
 
+        // Map CallerIds (REIMS / LILLE …) by normalised number so we can hint
+        // the softphone which signature to pick before dialling back. The
+        // operator must own this caller_id (group membership) — otherwise we
+        // don't surface it; the softphone falls back to its current selection.
+        $allowedCidNumbers = auth()->user()->availableCallerIds()->pluck('number');
+        $cidByNorm = CallerId::whereIn('number', $allowedCidNumbers)
+            ->where('is_active', true)
+            ->get(['number'])
+            ->keyBy(fn ($c) => Contact::normalizePhone($c->number));
+
         $seen = [];
         $result = [];
         foreach ($missed as $m) {
@@ -139,11 +150,17 @@ class OperatorDashboardController extends Controller
             $norm = Contact::normalizePhone($m->src);
             $contact = $contactsByNorm->get($norm);
             $name = $contact ? trim($contact->prenom . ' ' . $contact->nom) : ($m->src_name ?: null);
+            // Find the CallerId that owns the dialled DID — the softphone
+            // will pre-select that signature so the callback goes out on the
+            // matching trunk (e.g. LILLE call back → OVH-3 not OVH-2).
+            $dstNorm = Contact::normalizePhone($m->dst);
+            $cid = $cidByNorm->get($dstNorm);
             $result[] = [
-                'id'     => $m->id,
-                'number' => $m->src,
-                'name'   => $name,
-                'time'   => $m->started_at->format('d/m H:i'),
+                'id'         => $m->id,
+                'number'     => $m->src,
+                'name'       => $name,
+                'time'       => $m->started_at->format('d/m H:i'),
+                'cid_number' => $cid?->number,
             ];
         }
 

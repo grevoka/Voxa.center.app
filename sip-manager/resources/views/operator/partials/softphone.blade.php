@@ -414,6 +414,36 @@ function cidSelect(value, btn) {
     btn.classList.add('active');
 }
 
+// Switch the selected outbound signature programmatically (used by missed-call
+// callbacks). Normalises the input so 0033xx / +33xx / 0xx all match a button.
+function phoneSelectCidByNumber(number) {
+    if (!number) return false;
+    var norm = String(number).replace(/\D/g, '');
+    if (norm.startsWith('0033') && norm.length === 13) norm = '0' + norm.slice(4);
+    else if (norm.startsWith('33') && norm.length === 11) norm = '0' + norm.slice(2);
+    var match = _callerIds.find(function(c) {
+        var n = String(c.number).replace(/\D/g, '');
+        if (n.startsWith('0033') && n.length === 13) n = '0' + n.slice(4);
+        else if (n.startsWith('33') && n.length === 11) n = '0' + n.slice(2);
+        return n === norm;
+    });
+    if (!match) return false;
+    document.getElementById('phoneCidSelect').value = match.number;
+    document.querySelectorAll('.cid-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.value === match.number);
+    });
+    return true;
+}
+
+// Find the signature whose label matches the DID label the caller dialled.
+// "LILLE - CM" on the inbound CALLERID(name) -> the LILLE button.
+function phoneSelectCidByLabel(label) {
+    if (!label) return false;
+    var clean = label.replace(/^->/, '').trim();
+    var match = _callerIds.find(function(c) { return c.label === clean; });
+    return match ? phoneSelectCidByNumber(match.number) : false;
+}
+
 function phoneCall() {
     if (!_phone || !_phone.isRegistered()) return;
     var num = document.getElementById('phoneInput').value.trim();
@@ -510,13 +540,16 @@ function phoneOnIncoming(session) {
     }
     console.log('[Voxa] incoming display_name=', dn, 'caller=', caller);
     var didEl = document.getElementById('phoneIncomingDid');
+    var didLabel = '';
     var arrow = dn.indexOf('->');
     if (arrow !== -1) {
-        didEl.textContent = 'pour ' + dn.substring(arrow + 2).trim();
+        didLabel = dn.substring(arrow + 2).trim();
+        didEl.textContent = 'pour ' + didLabel;
         didEl.style.display = 'block';
     } else {
         didEl.style.display = 'none';
     }
+    session._voxaDidLabel = didLabel;
     document.getElementById('phoneIncoming').style.display = 'block';
     document.getElementById('phoneDialpad').style.display = 'none';
     phoneStartRing();
@@ -525,20 +558,20 @@ function phoneOnIncoming(session) {
     session.on('confirmed', function() { session._voxaAnswered = true; });
     session.on('failed', function(e) {
         if (!session._voxaAnswered && caller && caller !== 'Inconnu') {
-            phoneMissedAdd(caller);
+            phoneMissedAdd(caller, didLabel);
         }
     });
     session.on('ended', function() {
         if (!session._voxaAnswered && caller && caller !== 'Inconnu') {
-            phoneMissedAdd(caller);
+            phoneMissedAdd(caller, didLabel);
         }
     });
 }
 
-function phoneMissedAdd(number) {
+function phoneMissedAdd(number, didLabel) {
     // Avoid duplicates
     if (_missedCalls.find(function(m) { return m.number === number; })) return;
-    var entry = { number: number, time: new Date(), name: '' };
+    var entry = { number: number, time: new Date(), name: '', didLabel: didLabel || '' };
     _missedCalls.unshift(entry);
     if (_missedCalls.length > 5) _missedCalls.pop();
     phoneMissedRender();
@@ -575,7 +608,10 @@ function phoneMissedRender() {
 }
 
 function phoneCallback(number, index) {
+    var entry = _missedCalls[index];
     document.getElementById('phoneInput').value = number;
+    // Match the signature to the DID that received the missed call.
+    if (entry && entry.didLabel) phoneSelectCidByLabel(entry.didLabel);
     _missedCalls.splice(index, 1);
     phoneMissedRender();
     phoneCall();
@@ -639,6 +675,10 @@ function triggerMissedCallback(missed) {
     var pop = document.getElementById('softphonePopup');
     if (pop) pop.style.display = 'block';
     document.getElementById('phoneInput').value = missed.number;
+    // Pre-select the signature matching the DID the caller dialled so the
+    // callback goes out on the right trunk (LILLE call → LILLE / OVH-3,
+    // REIMS call → REIMS / OVH-2). Backend computes cid_number from dst.
+    if (missed.cid_number) phoneSelectCidByNumber(missed.cid_number);
     phoneCall();
 
     // Watch the new session. If it never reaches 'confirmed', put the entry
