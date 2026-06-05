@@ -1397,6 +1397,11 @@ function audioSelect(nodeId, prop, currentVal, category = null) {
 // buttons (panel re-render would otherwise leave a stale play icon while the
 // audio keeps streaming).
 var _audioPreview = { el: null, btnId: null };
+// Every preview audio we ever instantiate is tracked here so we can kill any
+// leak — rapid double-clicks, races between async play() and a stop click, or
+// a stale audio element still buffering after pause(). Belt-and-suspenders.
+var _allPreviewAudios = [];
+var _audioPreviewBusy = false;
 
 function audioPreviewSyncButtons() {
     document.querySelectorAll('[id^="audioPrevBtn_"]').forEach(function(b) {
@@ -1407,28 +1412,42 @@ function audioPreviewSyncButtons() {
 }
 
 function audioPreviewStop() {
-    if (_audioPreview.el) { try { _audioPreview.el.pause(); } catch(e){} }
+    // Kill every audio we ever created — pause() alone isn't always enough if
+    // the network stream is still loading; clearing src forces a full unload.
+    _allPreviewAudios.forEach(function(a) {
+        try { a.pause(); a.onended = null; a.onerror = null; a.src = ''; a.load && a.load(); } catch(e){}
+    });
+    _allPreviewAudios = [];
     _audioPreview = { el: null, btnId: null };
     audioPreviewSyncButtons();
 }
 
 function audioPreview(nodeId, prop, btnId) {
-    // Clicking the active button stops playback.
-    if (_audioPreview.btnId === btnId && _audioPreview.el) { audioPreviewStop(); return; }
-    // Otherwise stop whatever else is playing, then start the new one.
-    audioPreviewStop();
+    // Debounce reentrancy from rapid clicks (the play promise is async and a
+    // second click can fire before the first has settled).
+    if (_audioPreviewBusy) return;
+    _audioPreviewBusy = true;
+    try {
+        if (_audioPreview.btnId === btnId && _audioPreview.el) { audioPreviewStop(); return; }
+        audioPreviewStop();
 
-    const n = nodes.find(x => x.id === nodeId); if (!n) return;
-    const ref = n.data[prop] || '';
-    if (!ref || ref === '__custom__') { alert('Selectionnez d\'abord un fichier audio.'); return; }
-    const file = AUDIO_FILES.find(a => a.ref === ref);
-    if (!file) { alert('Apercu indisponible pour les chemins personnalises (saisie manuelle).'); return; }
-    const audio = new Audio('/audio/' + file.id + '/play');
-    _audioPreview = { el: audio, btnId: btnId };
-    audio.onended = audioPreviewStop;
-    audio.onerror  = audioPreviewStop;
-    audio.play().catch(function(err) { console.warn('audio preview play:', err); audioPreviewStop(); });
-    audioPreviewSyncButtons();
+        const n = nodes.find(x => x.id === nodeId); if (!n) return;
+        const ref = n.data[prop] || '';
+        if (!ref || ref === '__custom__') { alert('Selectionnez d\'abord un fichier audio.'); return; }
+        const file = AUDIO_FILES.find(a => a.ref === ref);
+        if (!file) { alert('Apercu indisponible pour les chemins personnalises (saisie manuelle).'); return; }
+        const audio = new Audio('/audio/' + file.id + '/play');
+        _audioPreview = { el: audio, btnId: btnId };
+        _allPreviewAudios.push(audio);
+        audio.onended = audioPreviewStop;
+        audio.onerror  = audioPreviewStop;
+        audio.play().catch(function(err) { console.warn('audio preview play:', err); audioPreviewStop(); });
+        audioPreviewSyncButtons();
+    } finally {
+        // Release the lock on the next tick so the play promise has time to
+        // attach but rapid same-tick double-clicks are absorbed.
+        setTimeout(function() { _audioPreviewBusy = false; }, 150);
+    }
 }
 
 // Esc kills any preview in progress regardless of which button is on screen.
