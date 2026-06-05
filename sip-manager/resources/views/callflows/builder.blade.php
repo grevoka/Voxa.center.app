@@ -2482,7 +2482,14 @@ function renderProps(){
                 <option value="mon-sun" ${(n.data.days)==='mon-sun'?'selected':''}>Mon — Sun (all)</option>
                 <option value="sat-sun" ${(n.data.days)==='sat-sun'?'selected':''}>Sat — Sun</option>
             </select>`);
-            h += cfgF('Annonce de fermeture', `<textarea class="form-control form-control-sm" rows="3" placeholder="Bonjour, les bureaux sont fermés..." style="font-size:.75rem;" data-tts-node="${n.id}" data-tts-key="closed_tts_text" onchange="setProp(${n.id},'closed_tts_text',this.value)">${n.data.closed_tts_text||''}</textarea>
+            // Closed-announcement mode: TTS or audio file. If a sound is set
+            // but no explicit mode, infer 'audio'; otherwise default to 'tts'.
+            var closedMode = n.data.closed_mode || (n.data.closed_sound ? 'audio' : 'tts');
+            var modeToggle = `<div style="display:flex;gap:4px;margin-bottom:6px;">
+                <button class="btn btn-sm ${closedMode==='tts' ? 'btn-accent' : 'btn-outline-secondary'}" onclick="setClosedMode(${n.id},'tts')" style="flex:1;font-size:0.72rem;"><i class="bi bi-mic-fill me-1"></i>Voix g&eacute;n&eacute;r&eacute;e</button>
+                <button class="btn btn-sm ${closedMode==='audio' ? 'btn-accent' : 'btn-outline-secondary'}" onclick="setClosedMode(${n.id},'audio')" style="flex:1;font-size:0.72rem;"><i class="bi bi-file-earmark-music me-1"></i>Fichier audio</button>
+            </div>`;
+            var ttsBody = `<textarea class="form-control form-control-sm" rows="3" placeholder="Bonjour, les bureaux sont fermés..." style="font-size:.75rem;" data-tts-node="${n.id}" data-tts-key="closed_tts_text" onchange="setProp(${n.id},'closed_tts_text',this.value)">${n.data.closed_tts_text||''}</textarea>
                 <div style="display:flex;gap:4px;margin-top:4px;align-items:center;">
                     <select class="form-select form-select-sm" style="font-size:.7rem;flex:1;" onchange="setProp(${n.id},'closed_tts_voice',this.value)">
                         <option value="siwis"   ${(n.data.closed_tts_voice||'siwis')==='siwis'?'selected':''}>Sophie (Femme)</option>
@@ -2491,7 +2498,9 @@ function renderProps(){
                         <option value="tom"     ${n.data.closed_tts_voice==='tom'?'selected':''}>Tom (Homme)</option>
                     </select>
                     <button id="ttsBtnClosed_${n.id}" class="btn-tts-preview" onclick="ttsPreview(${n.id},'closed_tts_text','closed_tts_voice','ttsBtnClosed_${n.id}')"><i class="bi bi-play-fill me-1"></i>Ecouter</button>
-                </div>`);
+                </div>`;
+            var audioBody = audioSelect(n.id, 'closed_sound', n.data.closed_sound || '', 'sound');
+            h += cfgF('Annonce de fermeture', modeToggle + (closedMode === 'tts' ? ttsBody : audioBody));
             h += `<hr style="border-color:var(--border);margin:.75rem 0;">`;
             h += `<label style="font-weight:600;font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:.3rem;">Renvoi conditionnel (en heures ouvrees)</label>`;
             h += cfgF('Jours du renvoi', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'forward_days',this.value)">
@@ -2646,6 +2655,20 @@ function setProp(id, prop, val){
     // skip the redraw for those fields. The data is already updated.
     const isTtsField = ['tts_text', 'closed_tts_text', 'tts_voice', 'closed_tts_voice'].includes(prop);
     if (isTtsField) return;
+    render();
+    renderProps();
+}
+
+// Toggle the closed-announcement mode of a time_condition block. Clears the
+// inactive field so CallFlow::toDialplan picks the right branch (Playback vs
+// AGI(piper-tts.sh)) — the model's TTS-takes-precedence logic relies on the
+// unused field being empty.
+function setClosedMode(nodeId, mode) {
+    const n = nodes.find(x => x.id === nodeId);
+    if (!n) return;
+    n.data.closed_mode = mode;
+    if (mode === 'tts')   n.data.closed_sound    = '';
+    if (mode === 'audio') n.data.closed_tts_text = '';
     render();
     renderProps();
 }
