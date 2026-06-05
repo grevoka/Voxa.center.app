@@ -67,6 +67,16 @@
                                     <i class="bi bi-power"></i>
                                 </button>
                             </form>
+                            <form action="{{ route('trunks.toggle-record', $trunk) }}" method="POST" class="d-inline" title="{{ $trunk->record_calls ? 'Desactiver l\'enregistrement' : 'Activer l\'enregistrement' }}">
+                                @csrf
+                                <button type="submit" class="btn-icon me-1">
+                                    @if($trunk->record_calls)
+                                        <i class="bi bi-record-circle-fill" style="color:#ef4444;"></i>
+                                    @else
+                                        <i class="bi bi-record-circle" style="opacity:0.45;"></i>
+                                    @endif
+                                </button>
+                            </form>
                             <a href="{{ route('trunks.edit', $trunk) }}" class="btn-icon me-1" title="{{ __('ui.edit') }}">
                                 <i class="bi bi-pencil"></i>
                             </a>

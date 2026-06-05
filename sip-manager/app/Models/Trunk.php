@@ -16,15 +16,16 @@ class Trunk extends Model
         'username', 'secret', 'max_channels', 'codecs',
         'caller_id', 'context', 'inbound_ips', 'inbound_context',
         'outbound_proxy',
-        'status', 'register',
+        'status', 'register', 'record_calls',
         'retry_interval', 'expiration', 'notes', 'created_by',
     ];
 
     protected $casts = [
-        'codecs'      => 'array',
-        'inbound_ips' => 'array',
-        'register'    => 'boolean',
-        'port'        => 'integer',
+        'codecs'       => 'array',
+        'inbound_ips'  => 'array',
+        'register'     => 'boolean',
+        'record_calls' => 'boolean',
+        'port'         => 'integer',
     ];
 
     protected $hidden = ['secret'];

@@ -130,4 +130,20 @@ class TrunkController extends Controller
             : "Trunk \"{$trunk->name}\" : desinscription en cours…";
         return back()->with('success', $message)->with('trunk_toggled', true);
     }
+
+    public function toggleRecord(Trunk $trunk, \App\Services\DialplanService $dialplan)
+    {
+        $trunk->update(['record_calls' => !$trunk->record_calls]);
+
+        ActivityLog::log(
+            'Enregistrement ' . ($trunk->record_calls ? 'active' : 'desactive') . ' sur trunk',
+            $trunk->name,
+            'info',
+            $trunk,
+        );
+
+        $dialplan->writeExtensions();
+
+        return back()->with('success', "Enregistrement " . ($trunk->record_calls ? 'active' : 'desactive') . " pour le trunk \"{$trunk->name}\" — dialplan recharge.");
+    }
 }

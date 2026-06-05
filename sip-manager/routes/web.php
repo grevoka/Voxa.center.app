@@ -100,6 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Trunks
         Route::resource('trunks', TrunkController::class)->except(['show']);
         Route::post('trunks/{trunk}/toggle', [TrunkController::class, 'toggle'])->name('trunks.toggle');
+        Route::post('trunks/{trunk}/toggle-record', [TrunkController::class, 'toggleRecord'])->name('trunks.toggle-record');
 
         // Contextes d'appel
         Route::resource('contexts', CallContextController::class)->except(['show']);

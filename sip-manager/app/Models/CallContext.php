@@ -119,7 +119,18 @@ class CallContext extends Model
             $lines[] = " same => n,Set(OUTNUM={$this->prefix_add}\${EXTEN})";
         }
 
-        if ($this->record_calls) {
+        // Per-trunk recording: MixMonitor only when the trunk selected via
+        // TRUNK_EP has record_calls=true. Falls back to the context-level flag
+        // when no trunk in the system opts in.
+        $recordTrunks = Trunk::where('record_calls', true)->get(['name']);
+        if ($recordTrunks->isNotEmpty()) {
+            $lines[] = " same => n,Set(REC=0)";
+            foreach ($recordTrunks as $rt) {
+                $ep = 'trunk-' . strtolower(preg_replace('/[^a-zA-Z0-9]/', '-', $rt->name));
+                $lines[] = " same => n,ExecIf(\$[\"\${TRUNK_EP}\" = \"{$ep}\"]?Set(REC=1))";
+            }
+            $lines[] = " same => n,ExecIf(\$[\"\${REC}\" = \"1\"]?MixMonitor(\${UNIQUEID}.wav,b))";
+        } elseif ($this->record_calls) {
             $lines[] = " same => n,MixMonitor(\${UNIQUEID}.wav,b)";
         }
 
