@@ -122,6 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('outbound/{outbound_route}', [OutboundRouteController::class, 'update'])->name('outbound.update');
         Route::delete('outbound/{outbound_route}', [OutboundRouteController::class, 'destroy'])->name('outbound.destroy');
         Route::post('outbound/{outbound_route}/toggle', [OutboundRouteController::class, 'toggle'])->name('outbound.toggle');
+        Route::post('outbound/{outbound_route}/toggle-record', [OutboundRouteController::class, 'toggleRecord'])->name('outbound.toggle-record');
         Route::post('outbound/reorder', [OutboundRouteController::class, 'reorder'])->name('outbound.reorder');
 
         // Files d'attente

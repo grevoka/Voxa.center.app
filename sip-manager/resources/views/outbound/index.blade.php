@@ -123,11 +123,16 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            @if($route->record_calls)
-                                <i class="bi bi-record-circle" style="color:#ef4444;" title="{{ __('ui.recording_active') }}"></i>
-                            @else
-                                <span style="color:var(--text-secondary);">—</span>
-                            @endif
+                            <form action="{{ route('outbound.toggle-record', $route) }}" method="POST" class="d-inline" title="{{ $route->record_calls ? 'Desactiver l\'enregistrement' : 'Activer l\'enregistrement' }}">
+                                @csrf
+                                <button type="submit" class="btn-icon" style="padding:0;border:none;background:none;cursor:pointer;">
+                                    @if($route->record_calls)
+                                        <i class="bi bi-record-circle-fill" style="color:#ef4444;font-size:1rem;"></i>
+                                    @else
+                                        <i class="bi bi-record-circle" style="color:var(--text-secondary);font-size:1rem;opacity:0.5;"></i>
+                                    @endif
+                                </button>
+                            </form>
                         </td>
                         <td>
                             <span class="status-dot {{ $route->enabled ? 'online' : 'offline' }}"></span>

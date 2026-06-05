@@ -107,6 +107,22 @@ class OutboundRouteController extends Controller
         return back()->with('success', "Route « {$outbound_route->name} » " . ($outbound_route->enabled ? 'activee' : 'desactivee') . ' — dialplan recharge.');
     }
 
+    public function toggleRecord(CallContext $outbound_route)
+    {
+        $outbound_route->update(['record_calls' => !$outbound_route->record_calls]);
+
+        ActivityLog::log(
+            'Enregistrement ' . ($outbound_route->record_calls ? 'active' : 'desactive') . ' sur route sortante',
+            $outbound_route->name,
+            'info',
+            $outbound_route,
+        );
+
+        $this->dialplan->writeExtensions();
+
+        return back()->with('success', "Enregistrement " . ($outbound_route->record_calls ? 'active' : 'desactive') . " pour « {$outbound_route->name} » — dialplan recharge.");
+    }
+
     public function reorder(Request $request)
     {
         $request->validate(['order' => 'required|array', 'order.*' => 'integer|exists:call_contexts,id']);
