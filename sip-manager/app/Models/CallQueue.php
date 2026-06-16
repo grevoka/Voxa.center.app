@@ -46,6 +46,10 @@ class CallQueue extends Model
         $lines[] = "maxlen = 0";
         $lines[] = "wrapuptime = 0";
         $lines[] = "musicclass = {$this->music_on_hold}";
+        // Don't ring an agent who's already on a call — the caller stays in
+        // queue with MOH + periodic announcements ("vous serez le prochain…")
+        // instead of being silently dropped because the agent rejects with 486.
+        $lines[] = 'ringinuse = no';
 
         if ($this->announce_holdtime) {
             $lines[] = "announce-holdtime = {$this->announce_holdtime}";
