@@ -187,6 +187,7 @@ class OperatorDashboardController extends Controller
                 'number'     => $m->src,
                 'name'       => $name,
                 'time'       => $m->started_at->format('d/m H:i'),
+                'iso'        => $m->started_at->toIso8601String(),
                 'cid_number' => $cid?->number,
             ];
         }

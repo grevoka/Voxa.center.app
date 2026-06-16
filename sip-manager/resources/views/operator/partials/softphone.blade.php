@@ -636,16 +636,38 @@ function phoneMissedDismiss(index) {
 var _missedServer = [];
 var _missedHidden = new Set();   // ids currently being called back (optimistic)
 var _missedLastPick = null;      // the entry the user just clicked
-// Persisted across reloads — once the operator clicks Rappeler, that entry
-// stays gone even if the callback didn't reach (no ANSWERED outbound yet to
-// satisfy the server-side resolver).
-var _missedDismissed = new Set((function() {
-    try { return JSON.parse(localStorage.getItem('voxa.missedDismissed') || '[]'); }
-    catch (e) { return []; }
-})());
+// Persisted across reloads — once the operator clicks Rappeler, that caller's
+// miss stays gone even if the callback didn't generate an ANSWERED outbound
+// the server can detect. Keyed by phone number (last 9 digits, so 0033xx /
+// +33xx / 0xx all match) → ISO timestamp of the dismiss. A *newer* miss from
+// the same caller (iso > dismissedAt) resurfaces as expected.
+var _missedDismissed = (function() {
+    try {
+        var v = JSON.parse(localStorage.getItem('voxa.missedDismissed') || '{}');
+        // Migrate the legacy Set-of-IDs format ([42, 43, …]) by dropping it —
+        // those IDs can no longer be matched against tail9 keys reliably.
+        if (Array.isArray(v)) return {};
+        return (v && typeof v === 'object') ? v : {};
+    } catch (e) { return {}; }
+})();
+
+function tail9(s) {
+    var d = String(s || '').replace(/\D/g, '');
+    return d.length >= 9 ? d.slice(-9) : d;
+}
 
 function persistDismissed() {
-    try { localStorage.setItem('voxa.missedDismissed', JSON.stringify(Array.from(_missedDismissed))); } catch(e) {}
+    try { localStorage.setItem('voxa.missedDismissed', JSON.stringify(_missedDismissed)); } catch(e) {}
+}
+
+function isDismissed(m) {
+    var k = tail9(m.number);
+    var when = _missedDismissed[k];
+    if (!when) return false;
+    // Dismissed unless the miss happened strictly after the dismiss timestamp
+    // — a fresh miss from the same caller after a callback shows up again.
+    if (!m.iso) return true;
+    return new Date(m.iso).getTime() <= new Date(when).getTime();
 }
 
 function loadMissedServer() {
@@ -653,11 +675,14 @@ function loadMissedServer() {
         .then(function(r) { return r.ok ? r.json() : { missed: [] }; })
         .then(function(d) {
             _missedServer = d.missed || [];
-            // Prune dismissed ids that no longer exist server-side (the row was
-            // already resolved by an ANSWERED callback). Keeps localStorage small.
-            var stillThere = new Set(_missedServer.map(function(m) { return m.id; }));
+            // Prune dismissed numbers no longer in any server entry — keeps
+            // localStorage bounded. Resolved missed (via ANSWERED outbound)
+            // simply drop off the server list and out of our map.
+            var seenTails = new Set(_missedServer.map(function(m) { return tail9(m.number); }));
             var pruned = false;
-            _missedDismissed.forEach(function(id) { if (!stillThere.has(id)) { _missedDismissed.delete(id); pruned = true; } });
+            Object.keys(_missedDismissed).forEach(function(k) {
+                if (!seenTails.has(k)) { delete _missedDismissed[k]; pruned = true; }
+            });
             if (pruned) persistDismissed();
             renderMissedModal();
         })
@@ -670,7 +695,7 @@ function renderMissedModal() {
     var list = document.getElementById('missedList');
     var empty = document.getElementById('missedListEmpty');
     if (!nav || !list) return;
-    var visible = _missedServer.filter(function(m) { return !_missedHidden.has(m.id) && !_missedDismissed.has(m.id); });
+    var visible = _missedServer.filter(function(m) { return !_missedHidden.has(m.id) && !isDismissed(m); });
     badge.textContent = visible.length;
     nav.style.display = visible.length > 0 ? '' : 'none';
     list.innerHTML = '';
@@ -693,7 +718,10 @@ function renderMissedModal() {
 
 function triggerMissedCallback(missed) {
     _missedHidden.add(missed.id);
-    _missedDismissed.add(missed.id);
+    // Mark this caller's number as handled-at-now. Any miss from that number
+    // older than this timestamp stays hidden across reloads; a newer miss
+    // (after the callback) will resurface.
+    _missedDismissed[tail9(missed.number)] = new Date().toISOString();
     persistDismissed();
     _missedLastPick = missed;
     renderMissedModal();
