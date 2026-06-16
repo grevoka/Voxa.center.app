@@ -515,6 +515,14 @@ function phoneContactLookup(number) {
 }
 
 function phoneOnIncoming(session) {
+    // If a call is already up (ringing or in conversation), silently reject the
+    // new incoming so the ringtone doesn't bleed over the active audio. The
+    // caller gets a 486 Busy and the line stays free of distracting beeps.
+    if (_session && _session !== session) {
+        try { session.terminate({ status_code: 486, reason_phrase: 'Busy Here' }); } catch (e) {}
+        console.log('[Voxa] concurrent incoming auto-rejected — line already in use');
+        return;
+    }
     _session = session;
     var caller = session.remote_identity.uri.user || 'Inconnu';
     session._voxaCaller = caller;
@@ -628,11 +636,31 @@ function phoneMissedDismiss(index) {
 var _missedServer = [];
 var _missedHidden = new Set();   // ids currently being called back (optimistic)
 var _missedLastPick = null;      // the entry the user just clicked
+// Persisted across reloads — once the operator clicks Rappeler, that entry
+// stays gone even if the callback didn't reach (no ANSWERED outbound yet to
+// satisfy the server-side resolver).
+var _missedDismissed = new Set((function() {
+    try { return JSON.parse(localStorage.getItem('voxa.missedDismissed') || '[]'); }
+    catch (e) { return []; }
+})());
+
+function persistDismissed() {
+    try { localStorage.setItem('voxa.missedDismissed', JSON.stringify(Array.from(_missedDismissed))); } catch(e) {}
+}
 
 function loadMissedServer() {
     fetch('{{ route('operator.missed-calls') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
         .then(function(r) { return r.ok ? r.json() : { missed: [] }; })
-        .then(function(d) { _missedServer = d.missed || []; renderMissedModal(); })
+        .then(function(d) {
+            _missedServer = d.missed || [];
+            // Prune dismissed ids that no longer exist server-side (the row was
+            // already resolved by an ANSWERED callback). Keeps localStorage small.
+            var stillThere = new Set(_missedServer.map(function(m) { return m.id; }));
+            var pruned = false;
+            _missedDismissed.forEach(function(id) { if (!stillThere.has(id)) { _missedDismissed.delete(id); pruned = true; } });
+            if (pruned) persistDismissed();
+            renderMissedModal();
+        })
         .catch(function() {});
 }
 
@@ -642,7 +670,7 @@ function renderMissedModal() {
     var list = document.getElementById('missedList');
     var empty = document.getElementById('missedListEmpty');
     if (!nav || !list) return;
-    var visible = _missedServer.filter(function(m) { return !_missedHidden.has(m.id); });
+    var visible = _missedServer.filter(function(m) { return !_missedHidden.has(m.id) && !_missedDismissed.has(m.id); });
     badge.textContent = visible.length;
     nav.style.display = visible.length > 0 ? '' : 'none';
     list.innerHTML = '';
@@ -665,6 +693,8 @@ function renderMissedModal() {
 
 function triggerMissedCallback(missed) {
     _missedHidden.add(missed.id);
+    _missedDismissed.add(missed.id);
+    persistDismissed();
     _missedLastPick = missed;
     renderMissedModal();
     // Close modal + bring up the softphone with the number pre-filled.
@@ -681,19 +711,15 @@ function triggerMissedCallback(missed) {
     if (missed.cid_number) phoneSelectCidByNumber(missed.cid_number);
     phoneCall();
 
-    // Watch the new session. If it never reaches 'confirmed', put the entry
-    // back into the list — the call didn't succeed, the user should retry.
+    // Once the operator has clicked Rappeler, the entry is considered
+    // handled: even if the callback ends without an answer, we don't put it
+    // back. The server-side resolution (an ANSWERED outbound to the same
+    // number) will eventually confirm it across sessions.
     setTimeout(function() {
-        if (!_session) { _missedHidden.delete(missed.id); renderMissedModal(); return; }
-        var answered = false;
-        _session.on('confirmed', function() { answered = true; setTimeout(loadMissedServer, 4000); });
-        _session.on('ended', function() {
-            if (!answered) { _missedHidden.delete(missed.id); renderMissedModal(); }
-            else { loadMissedServer(); }
-        });
-        _session.on('failed', function() {
-            _missedHidden.delete(missed.id); renderMissedModal();
-        });
+        if (!_session) return;
+        _session.on('confirmed', function() { setTimeout(loadMissedServer, 4000); });
+        _session.on('ended',     function() { loadMissedServer(); });
+        _session.on('failed',    function() { loadMissedServer(); });
     }, 50);
 }
 

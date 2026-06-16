@@ -42,19 +42,29 @@
             </thead>
             <tbody>
                 @forelse($logs as $call)
+                @php
+                    // The dialplan stamps CDR(direction)=inbound|outbound, so trust
+                    // that rather than comparing src to the extension — outbound
+                    // legs carry the operator's caller_id (e.g. 33352745112) in
+                    // src, never "1001", which would mis-classify everything.
+                    $isOutbound = $call->direction === 'outbound';
+                    $correspondent = $isOutbound ? $call->dst : $call->src;
+                    // Hide the internal "->LABEL" DID marker if it leaked into src_name.
+                    $shownName = $call->src_name && !str_starts_with($call->src_name, '->') ? $call->src_name : null;
+                @endphp
                 <tr>
                     <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">{{ $call->started_at?->format('d/m/Y H:i:s') }}</td>
                     <td>
-                        @if($call->src == $line->extension)
+                        @if($isOutbound)
                             <i class="bi bi-telephone-outbound-fill" style="color:var(--warning);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">{{ __("ui.outbound") }}</span>
                         @else
                             <i class="bi bi-telephone-inbound-fill" style="color:var(--info);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">{{ __("ui.inbound") }}</span>
                         @endif
                     </td>
                     <td style="font-size:0.82rem;">
-                        <span style="font-family:'JetBrains Mono',monospace;font-weight:600;">{{ $call->src == $line->extension ? $call->dst : $call->src }}</span>
-                        @if($call->src_name && $call->src != $line->extension)
-                            <span style="color:var(--text-secondary);font-size:0.72rem;margin-left:0.3rem;">{{ $call->src_name }}</span>
+                        <span style="font-family:'JetBrains Mono',monospace;font-weight:600;">{{ $correspondent }}</span>
+                        @if($shownName && !$isOutbound)
+                            <span style="color:var(--text-secondary);font-size:0.72rem;margin-left:0.3rem;">{{ $shownName }}</span>
                         @endif
                     </td>
                     <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;">{{ $call->formatted_duration }}</td>

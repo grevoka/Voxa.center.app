@@ -95,23 +95,47 @@ class OperatorDashboardController extends Controller
               ->orWhere('channel', 'LIKE', "PJSIP/{$ext}-%");
         };
 
-        $missed = CallLog::where('started_at', '>=', $since)
-            ->where('disposition', 'NO ANSWER')
-            ->where('direction', 'inbound')
-            ->where($touched)
-            ->orderByDesc('started_at')
-            ->get(['id', 'src', 'src_name', 'dst', 'started_at']);
+        // The operator's DIDs (REIMS, LILLE, …) — normalised so we can match
+        // against CDR `dst` regardless of which prefix variant OVH delivered.
+        $allowedCidNumbers = auth()->user()->availableCallerIds()->pluck('number');
+        $tail9 = function ($s) {
+            $d = preg_replace('/\D/', '', (string) $s);
+            return strlen($d) >= 9 ? substr($d, -9) : $d;
+        };
+        $operatorDidTails = $allowedCidNumbers->map(fn ($n) => $tail9($n))->filter()->unique()->values();
 
+        // Two sources of "missed":
+        //   (1) the operator's extension was in the dial chain but didn't pick
+        //       up (queue timeout, ring no-answer, busy) — the original case
+        //   (2) the call landed on one of the operator's DIDs but no human
+        //       answered (closed-hour TTS, voicemail-only, hangup) — Asterisk
+        //       answered the channel for the announcement so disposition is
+        //       ANSWERED, but lastapp won't be Queue or Dial in that case
+        $inbound = CallLog::where('started_at', '>=', $since)
+            ->where('direction', 'inbound')
+            ->orderByDesc('started_at')
+            ->get(['id', 'src', 'src_name', 'dst', 'started_at', 'disposition', 'lastapp', 'channel', 'dst_channel']);
+
+        $humanAnswered = ['Queue', 'Dial']; // apps that imply a person picked up when ANSWERED
+        $missed = $inbound->filter(function ($c) use ($ext, $operatorDidTails, $tail9, $humanAnswered) {
+            $touched = $c->src === $ext
+                || $c->dst === $ext
+                || str_starts_with((string) $c->dst_channel, "PJSIP/{$ext}-")
+                || str_starts_with((string) $c->channel,     "PJSIP/{$ext}-");
+            $onOurDid = $operatorDidTails->contains($tail9($c->dst));
+            if (!$touched && !$onOurDid) return false;
+            // A human answered → not missed.
+            if ($c->disposition === 'ANSWERED' && in_array($c->lastapp, $humanAnswered, true)) return false;
+            return true;
+        })->values();
+
+        // Callbacks the operator already placed. An ANSWERED outbound to the
+        // same caller (matched on the last 9 digits) resolves the missed entry.
         $callbacks = CallLog::where('src', $ext)
             ->where('disposition', 'ANSWERED')
             ->where('direction', 'outbound')
             ->where('started_at', '>=', $since)
             ->get(['dst', 'started_at']);
-
-        $tail9 = function ($s) {
-            $d = preg_replace('/\D/', '', (string) $s);
-            return strlen($d) >= 9 ? substr($d, -9) : $d;
-        };
 
         $resolvedAt = [];
         foreach ($callbacks as $cb) {
@@ -134,7 +158,6 @@ class OperatorDashboardController extends Controller
         // the softphone which signature to pick before dialling back. The
         // operator must own this caller_id (group membership) — otherwise we
         // don't surface it; the softphone falls back to its current selection.
-        $allowedCidNumbers = auth()->user()->availableCallerIds()->pluck('number');
         $cidByNorm = CallerId::whereIn('number', $allowedCidNumbers)
             ->where('is_active', true)
             ->get(['number'])
@@ -149,7 +172,11 @@ class OperatorDashboardController extends Controller
             if (isset($resolvedAt[$k]) && $resolvedAt[$k] > $m->started_at) continue;
             $norm = Contact::normalizePhone($m->src);
             $contact = $contactsByNorm->get($norm);
-            $name = $contact ? trim($contact->prenom . ' ' . $contact->nom) : ($m->src_name ?: null);
+            // Avoid surfacing our own internal "->LABEL" prefix from CALLERID(name)
+            // as if it were the caller's identity — it's the dialed DID label,
+            // not the person on the other end.
+            $rawName = $m->src_name && !str_starts_with($m->src_name, '->') ? $m->src_name : null;
+            $name = $contact ? trim($contact->prenom . ' ' . $contact->nom) : $rawName;
             // Find the CallerId that owns the dialled DID — the softphone
             // will pre-select that signature so the callback goes out on the
             // matching trunk (e.g. LILLE call back → OVH-3 not OVH-2).
