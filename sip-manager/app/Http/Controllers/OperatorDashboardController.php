@@ -114,19 +114,23 @@ class OperatorDashboardController extends Controller
         $inbound = CallLog::where('started_at', '>=', $since)
             ->where('direction', 'inbound')
             ->orderByDesc('started_at')
-            ->get(['id', 'src', 'src_name', 'dst', 'started_at', 'disposition', 'lastapp', 'channel', 'dst_channel']);
+            ->get(['id', 'src', 'src_name', 'dst', 'started_at', 'disposition', 'channel', 'dst_channel']);
 
-        $humanAnswered = ['Queue', 'Dial']; // apps that imply a person picked up when ANSWERED
-        $missed = $inbound->filter(function ($c) use ($ext, $operatorDidTails, $tail9, $humanAnswered) {
+        $missed = $inbound->filter(function ($c) use ($ext, $operatorDidTails, $tail9) {
             $touched = $c->src === $ext
                 || $c->dst === $ext
                 || str_starts_with((string) $c->dst_channel, "PJSIP/{$ext}-")
                 || str_starts_with((string) $c->channel,     "PJSIP/{$ext}-");
             $onOurDid = $operatorDidTails->contains($tail9($c->dst));
             if (!$touched && !$onOurDid) return false;
-            // A human answered → not missed.
-            if ($c->disposition === 'ANSWERED' && in_array($c->lastapp, $humanAnswered, true)) return false;
-            return true;
+            // A human (or forwarded mobile) actually picked up iff the Dial /
+            // Queue leg connected to a PJSIP destination and answered. Closed-
+            // hour TTS calls have ANSWERED disposition too but never reach a
+            // PJSIP dst_channel — those stay in the missed list.
+            $humanAnswered = $c->disposition === 'ANSWERED'
+                && !empty($c->dst_channel)
+                && str_starts_with((string) $c->dst_channel, 'PJSIP/');
+            return ! $humanAnswered;
         })->values();
 
         // Callbacks the operator already placed. An ANSWERED outbound to the
