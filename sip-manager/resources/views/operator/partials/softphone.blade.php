@@ -32,18 +32,45 @@
             <i class="bi bi-bell me-1"></i> Volume sonnerie <span id="phoneRingVolPct" style="color:var(--accent);font-weight:700;">50%</span>
         </div>
         <input id="phoneRingVolume" type="range" min="0" max="100" step="5" value="50" style="width:100%;" oninput="phoneSetRingVolume(this.value, true)">
+        <div style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:0.5rem 0 0.3rem;">
+            <i class="bi bi-music-note-beamed me-1"></i> Sonnerie
+        </div>
+        <select id="phoneRingtone" class="form-select form-select-sm" style="font-size:0.72rem;" onchange="phoneSetRingtone(this.value); phonePreviewRing()">
+            <option value="classic">Classique (double tone)</option>
+            <option value="marimba">Marimba (arpege)</option>
+            <option value="digital">Digital (bip aigu)</option>
+            <option value="soft">Doux (une note)</option>
+        </select>
     </div>
 
     {{-- Call info --}}
     <div id="phoneCallInfo" style="display:none;text-align:center;margin-bottom:0.5rem;">
+        <div id="phoneCallLine" style="display:none;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;color:var(--accent);background:var(--accent-dim);padding:0.1rem 0.4rem;border-radius:4px;display:inline-block;margin-bottom:0.25rem;"></div>
         <div id="phoneCallContact" style="display:none;font-size:0.85rem;font-weight:700;color:var(--accent);margin-bottom:0.1rem;"></div>
         <div id="phoneCallNumber" style="font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;"></div>
         <div id="phoneCallTimer" style="font-size:0.72rem;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;">00:00</div>
+        {{-- In-call action row: mute + transfer --}}
+        <div id="phoneCallActions" style="display:none;margin-top:0.45rem;justify-content:center;gap:0.4rem;">
+            <button id="phoneMuteBtn" onclick="phoneToggleMute()" class="btn-icon" title="Couper le micro" style="font-size:0.7rem;padding:0.25rem 0.55rem;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;">
+                <i class="bi bi-mic-fill" id="phoneMuteIcon"></i>
+            </button>
+            <button onclick="phoneToggleTransferPanel()" class="btn-icon" title="Transferer l'appel" style="font-size:0.7rem;padding:0.25rem 0.55rem;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;">
+                <i class="bi bi-arrow-left-right"></i>
+            </button>
+        </div>
+        {{-- Transfer target panel --}}
+        <div id="phoneTransferPanel" style="display:none;margin-top:0.4rem;padding:0.4rem;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;">
+            <div style="font-size:0.62rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.3rem;">Transferer vers</div>
+            <div style="display:flex;gap:0.3rem;">
+                <input id="phoneTransferInput" type="text" placeholder="Poste ou numero" class="form-control form-control-sm" style="font-size:0.75rem;flex:1;">
+                <button onclick="phoneTransferCall()" class="btn btn-accent btn-sm" style="font-size:0.72rem;">Go</button>
+            </div>
+        </div>
     </div>
 
     {{-- Dialpad --}}
     <div id="phoneDialpad">
-        <input type="text" id="phoneInput" placeholder="Numero..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:0.9rem;text-align:center;margin-bottom:0.4rem;outline:none;" autocomplete="off">
+        <input type="text" id="phoneInput" placeholder="Numero..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.4rem 0.6rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:0.9rem;text-align:center;margin-bottom:0.4rem;outline:none;" autocomplete="off" onpaste="setTimeout(function(){ var i=document.getElementById('phoneInput'); i.value = phoneAddLeadingZeroIfFrench(i.value); }, 0)" onblur="this.value = phoneAddLeadingZeroIfFrench(this.value)">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
             <button class="dp-btn" onclick="phoneDial('1')">1</button>
             <button class="dp-btn" onclick="phoneDial('2')"><span>2</span><small>ABC</small></button>
@@ -272,12 +299,93 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ── Ringtone (Web Audio API) ──
+// Presets are synthesised locally so no audio file is needed; a preset is a
+// function that emits one "tone" through the shared _ringGain master node.
 var _ringCtx = null, _ringInterval = null, _ringGain = null;
-// 0..1 multiplier on top of the per-tone envelope. Persisted in localStorage.
 var _ringVolume = (function() {
     var v = parseFloat(localStorage.getItem('voxa.ringVolume'));
     return isFinite(v) && v >= 0 && v <= 1 ? v : 0.5;
 })();
+var _ringtone = localStorage.getItem('voxa.ringtone') || 'classic';
+
+var RINGTONE_PRESETS = {
+    classic: {
+        period: 2000,
+        emit: function(ctx, gain) {
+            var t = ctx.currentTime;
+            [440, 523].forEach(function(f) {
+                var o = ctx.createOscillator(); var g = ctx.createGain();
+                o.type = 'sine'; o.frequency.value = f;
+                g.gain.setValueAtTime(0.6, t);
+                g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+                o.connect(g); g.connect(gain);
+                o.start(t); o.stop(t + 0.8);
+            });
+        }
+    },
+    marimba: {
+        period: 2200,
+        emit: function(ctx, gain) {
+            var t0 = ctx.currentTime;
+            var notes = [659, 784, 988, 1319]; // E5 G5 B5 E6
+            notes.forEach(function(f, i) {
+                var o = ctx.createOscillator(); var g = ctx.createGain();
+                o.type = 'triangle'; o.frequency.value = f;
+                var t = t0 + i * 0.14;
+                g.gain.setValueAtTime(0.5, t);
+                g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                o.connect(g); g.connect(gain);
+                o.start(t); o.stop(t + 0.4);
+            });
+        }
+    },
+    digital: {
+        period: 1400,
+        emit: function(ctx, gain) {
+            var t = ctx.currentTime;
+            for (var i = 0; i < 3; i++) {
+                var o = ctx.createOscillator(); var g = ctx.createGain();
+                o.type = 'square'; o.frequency.value = 1200;
+                var s = t + i * 0.14;
+                g.gain.setValueAtTime(0.4, s);
+                g.gain.exponentialRampToValueAtTime(0.001, s + 0.09);
+                o.connect(g); g.connect(gain);
+                o.start(s); o.stop(s + 0.1);
+            }
+        }
+    },
+    soft: {
+        period: 2500,
+        emit: function(ctx, gain) {
+            var t = ctx.currentTime;
+            var o = ctx.createOscillator(); var g = ctx.createGain();
+            o.type = 'sine'; o.frequency.value = 587; // D5
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.55, t + 0.15);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+            o.connect(g); g.connect(gain);
+            o.start(t); o.stop(t + 1.15);
+        }
+    }
+};
+
+function phoneSetRingtone(name) {
+    if (!RINGTONE_PRESETS[name]) return;
+    _ringtone = name;
+    try { localStorage.setItem('voxa.ringtone', name); } catch(e) {}
+    var sel = document.getElementById('phoneRingtone');
+    if (sel && sel.value !== name) sel.value = name;
+}
+
+function phonePreviewRing() {
+    // Fire one preset shot so the operator can hear their choice.
+    phoneStopRing();
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var g = ctx.createGain(); g.gain.value = _ringVolume; g.connect(ctx.destination);
+    RINGTONE_PRESETS[_ringtone].emit(ctx, g);
+    setTimeout(function(){ try { ctx.close(); } catch(e){} }, 1500);
+}
+
 function phoneStartRing() {
     try {
         if (_ringInterval) return;
@@ -285,28 +393,48 @@ function phoneStartRing() {
         _ringGain = _ringCtx.createGain();
         _ringGain.gain.value = _ringVolume;
         _ringGain.connect(_ringCtx.destination);
-        function playTone() {
-            var o1 = _ringCtx.createOscillator();
-            var o2 = _ringCtx.createOscillator();
-            var g = _ringCtx.createGain();
-            o1.type = 'sine'; o1.frequency.value = 440;
-            o2.type = 'sine'; o2.frequency.value = 523;
-            // Per-tone envelope; the master _ringGain scales the result.
-            g.gain.setValueAtTime(0.6, _ringCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, _ringCtx.currentTime + 0.8);
-            o1.connect(g); o2.connect(g); g.connect(_ringGain);
-            o1.start(_ringCtx.currentTime);
-            o2.start(_ringCtx.currentTime);
-            o1.stop(_ringCtx.currentTime + 0.8);
-            o2.stop(_ringCtx.currentTime + 0.8);
-        }
-        playTone();
-        _ringInterval = setInterval(playTone, 2000);
+        var preset = RINGTONE_PRESETS[_ringtone] || RINGTONE_PRESETS.classic;
+        preset.emit(_ringCtx, _ringGain);
+        _ringInterval = setInterval(function() {
+            preset.emit(_ringCtx, _ringGain);
+        }, preset.period);
     } catch(e) {}
 }
 function phoneStopRing() {
     if (_ringInterval) { clearInterval(_ringInterval); _ringInterval = null; }
     if (_ringCtx) { try { _ringCtx.close(); } catch(e){} _ringCtx = null; }
+}
+
+// ── Ringback tone (heard during OUTBOUND calls while the far end rings) ──
+// French pattern: 1.5 s tone at 440 Hz, 3.5 s silence, loop.
+var _ringbackCtx = null, _ringbackInterval = null;
+function phoneStartRingback() {
+    try {
+        if (_ringbackInterval) return;
+        _ringbackCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var master = _ringbackCtx.createGain();
+        // A bit quieter than the main ringtone — it plays through the speaker
+        // while the operator is on the call.
+        master.gain.value = Math.min(0.4, _ringVolume);
+        master.connect(_ringbackCtx.destination);
+        function tone() {
+            var t = _ringbackCtx.currentTime;
+            var o = _ringbackCtx.createOscillator(); var g = _ringbackCtx.createGain();
+            o.type = 'sine'; o.frequency.value = 440;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.9, t + 0.05);
+            g.gain.setValueAtTime(0.9, t + 1.45);
+            g.gain.linearRampToValueAtTime(0.001, t + 1.5);
+            o.connect(g); g.connect(master);
+            o.start(t); o.stop(t + 1.5);
+        }
+        tone();
+        _ringbackInterval = setInterval(tone, 5000);
+    } catch(e) {}
+}
+function phoneStopRingback() {
+    if (_ringbackInterval) { clearInterval(_ringbackInterval); _ringbackInterval = null; }
+    if (_ringbackCtx) { try { _ringbackCtx.close(); } catch(e){} _ringbackCtx = null; }
 }
 // Slider hook — also live-applies to a ring already in progress.
 function phoneSetRingVolume(pct, persist) {
@@ -320,7 +448,10 @@ function phoneSetRingVolume(pct, persist) {
     if (_ringGain) { try { _ringGain.gain.value = f; } catch(e) {} }
 }
 // Restore stored volume into the slider on load.
-document.addEventListener('DOMContentLoaded', function() { phoneSetRingVolume(Math.round(_ringVolume * 100), false); });
+document.addEventListener('DOMContentLoaded', function() {
+    phoneSetRingVolume(Math.round(_ringVolume * 100), false);
+    phoneSetRingtone(_ringtone);
+});
 
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
@@ -790,7 +921,7 @@ function phoneBindSession(session, number) {
     // answered so we don't show the contact name twice.
     var isOutbound = session.direction !== 'incoming';
     if (isOutbound) document.getElementById('phoneCallInfo').style.display = 'block';
-    document.getElementById('phoneCallNumber').textContent = number;
+    document.getElementById('phoneCallNumber').textContent = phoneTrimFrenchPrefix(number);
     // Contact name on the active-call view — preloaded so it's ready when the
     // panel becomes visible on 'confirmed'.
     var callContactEl = document.getElementById('phoneCallContact');
@@ -803,13 +934,38 @@ function phoneBindSession(session, number) {
             if (isOutbound) callContactEl.style.display = 'block';
         });
     }
+    // Line badge — LILLE / REIMS — stays visible for the whole call so the
+    // operator knows which line they're on even after picking up. For inbound
+    // we captured the DID label at phoneOnIncoming; for outbound we read the
+    // active caller-ID button (SELCID).
+    var lineEl = document.getElementById('phoneCallLine');
+    if (lineEl) {
+        var label = '';
+        if (isOutbound) {
+            var selCid = document.getElementById('phoneCidSelect')?.value;
+            var match = (_callerIds || []).find(function(c) { return c.number === selCid; });
+            label = match?.label || '';
+        } else {
+            label = session._voxaDidLabel || '';
+        }
+        if (label) { lineEl.textContent = label; lineEl.style.display = 'inline-block'; }
+        else       { lineEl.style.display = 'none'; }
+    }
+    // Reset the mute button icon in case the previous call ended muted.
+    _muted = false; phoneSyncMuteIcon();
     phoneSetStatus('busy', isOutbound ? 'En communication...' : 'Appel entrant');
+
+    // For an outbound call, JsSIP emits 'progress' with the 180/183 response as
+    // soon as the far end starts alerting. Play a ringback tone locally.
+    if (isOutbound) phoneStartRingback();
 
     session.on('confirmed', function() {
         document.getElementById('phoneIncoming').style.display = 'none';
         document.getElementById('phoneDialpad').style.display = 'block';
         document.getElementById('phoneCallInfo').style.display = 'block';
+        document.getElementById('phoneCallActions').style.display = 'flex';
         if (callContactEl && callContactEl.textContent) callContactEl.style.display = 'block';
+        phoneStopRingback();
         _seconds = 0;
         _timer = setInterval(function() {
             _seconds++;
@@ -875,8 +1031,63 @@ function phoneBindSession(session, number) {
         console.warn('setRemoteDescription failed (ignored):', e.error?.message);
     });
 
-    session.on('ended', function() { phoneResetUI(); stopVuMeter(); });
-    session.on('failed', function() { phoneResetUI(); stopVuMeter(); });
+    session.on('ended', function() { phoneStopRingback(); phoneResetUI(); stopVuMeter(); });
+    session.on('failed', function() { phoneStopRingback(); phoneResetUI(); stopVuMeter(); });
+}
+
+// ── In-call actions: mute + transfer ──
+var _muted = false;
+function phoneSyncMuteIcon() {
+    var icon = document.getElementById('phoneMuteIcon');
+    var btn  = document.getElementById('phoneMuteBtn');
+    if (!icon || !btn) return;
+    icon.className = _muted ? 'bi bi-mic-mute-fill' : 'bi bi-mic-fill';
+    btn.style.background = _muted ? 'var(--danger)' : 'var(--surface-2)';
+    btn.style.color = _muted ? '#fff' : '';
+    btn.title = _muted ? 'Reactiver le micro' : 'Couper le micro';
+}
+function phoneToggleMute() {
+    if (!_session) return;
+    _muted = !_muted;
+    try {
+        if (_muted) _session.mute({ audio: true });
+        else        _session.unmute({ audio: true });
+    } catch (e) { console.warn('mute toggle', e); }
+    phoneSyncMuteIcon();
+}
+
+function phoneToggleTransferPanel() {
+    var p = document.getElementById('phoneTransferPanel');
+    if (!p) return;
+    var open = p.style.display === 'block';
+    p.style.display = open ? 'none' : 'block';
+    if (!open) setTimeout(function(){ document.getElementById('phoneTransferInput')?.focus(); }, 20);
+}
+function phoneTransferCall() {
+    if (!_session) return;
+    var raw = document.getElementById('phoneTransferInput').value.trim();
+    if (!raw) return;
+    var target = phoneAddLeadingZeroIfFrench(raw);
+    var uri = 'sip:' + target + '@' + '{{ request()->getHost() }}';
+    try {
+        _session.refer(uri);
+        phoneSetStatus('busy', 'Transfert vers ' + target + '...');
+        document.getElementById('phoneTransferPanel').style.display = 'none';
+        document.getElementById('phoneTransferInput').value = '';
+    } catch (e) {
+        console.warn('refer failed:', e);
+        alert('Le transfert a echoue.');
+    }
+}
+
+// Normalise a pasted / typed number: if it's exactly 9 digits starting with
+// a French mobile/landline prefix (1-9), prepend the leading 0 so the user
+// doesn't have to. Non-French formats (with +/00 prefix) are left alone.
+function phoneAddLeadingZeroIfFrench(raw) {
+    var s = String(raw || '').replace(/\s+/g, '');
+    var d = s.replace(/\D/g, '');
+    if (d.length === 9 && /^[1-9]/.test(d) && !/^\+|^00/.test(s)) return '0' + d;
+    return raw;
 }
 
 var _vuIntervals = [];
@@ -909,7 +1120,9 @@ function stopVuMeter() {
 
 function phoneResetUI() {
     phoneStopRing();
+    phoneStopRingback();
     _session = null;
+    _muted = false;
     if (_timer) { clearInterval(_timer); _timer = null; }
     _seconds = 0;
     document.getElementById('phoneCallBtn').style.display = 'block';
@@ -920,6 +1133,10 @@ function phoneResetUI() {
     document.getElementById('phoneCallTimer').textContent = '00:00';
     var pc = document.getElementById('phoneCallContact');     if (pc) { pc.style.display = 'none'; pc.textContent = ''; }
     var ic = document.getElementById('phoneIncomingContact'); if (ic) { ic.style.display = 'none'; ic.textContent = ''; }
+    var lb = document.getElementById('phoneCallLine');        if (lb) { lb.style.display = 'none'; lb.textContent = ''; }
+    var ca = document.getElementById('phoneCallActions');     if (ca) { ca.style.display = 'none'; }
+    var tp = document.getElementById('phoneTransferPanel');   if (tp) { tp.style.display = 'none'; }
+    phoneSyncMuteIcon();
     if (_phone && _phone.isRegistered()) phoneSetStatus('online', 'En ligne');
     else phoneSetStatus('offline', 'Deconnecte');
 }
