@@ -75,6 +75,19 @@ class OperatorDashboardController extends Controller
     }
 
     /**
+     * Strip the French international prefix so a caller "0033647635056" is
+     * shown as "0647635056" — matches how humans read local numbers.
+     */
+    private function trimFrenchPrefix(?string $raw): ?string
+    {
+        if ($raw === null || $raw === '') return $raw;
+        $d = preg_replace('/\D/', '', (string) $raw);
+        if (str_starts_with($d, '0033') && strlen($d) === 13) return '0' . substr($d, 4);
+        if (str_starts_with($d, '33')   && strlen($d) === 11) return '0' . substr($d, 2);
+        return $raw;
+    }
+
+    /**
      * Missed inbound calls that this operator hasn't called back yet.
      * Resolved as soon as an ANSWERED outbound from this operator to the same
      * number (matched on the last 9 digits to absorb 0/+33/0033 variants)
@@ -133,11 +146,13 @@ class OperatorDashboardController extends Controller
             return ! $humanAnswered;
         })->values();
 
-        // Callbacks the operator already placed. An ANSWERED outbound to the
-        // same caller (matched on the last 9 digits) resolves the missed entry.
-        $callbacks = CallLog::where('src', $ext)
+        // Callbacks — ANY operator's ANSWERED outbound to the same caller
+        // resolves the missed entry. Filtering by src=ext missed most of them
+        // because the outbound CDR carries the caller_id (33352745112, …) in
+        // src, never the extension; and when Post 1 picks up + calls back the
+        // caller, Post 2 still saw the entry as unresolved.
+        $callbacks = CallLog::where('direction', 'outbound')
             ->where('disposition', 'ANSWERED')
-            ->where('direction', 'outbound')
             ->where('started_at', '>=', $since)
             ->get(['dst', 'started_at']);
 
@@ -164,7 +179,7 @@ class OperatorDashboardController extends Controller
         // don't surface it; the softphone falls back to its current selection.
         $cidByNorm = CallerId::whereIn('number', $allowedCidNumbers)
             ->where('is_active', true)
-            ->get(['number'])
+            ->get(['number', 'label'])
             ->keyBy(fn ($c) => Contact::normalizePhone($c->number));
 
         $seen = [];
@@ -186,13 +201,18 @@ class OperatorDashboardController extends Controller
             // matching trunk (e.g. LILLE call back → OVH-3 not OVH-2).
             $dstNorm = Contact::normalizePhone($m->dst);
             $cid = $cidByNorm->get($dstNorm);
+            // App-wide timezone is UTC, but the operator lives in Europe/Paris.
+            // Convert to the local zone before formatting; iso stays UTC-anchored
+            // (has offset) so client-side comparisons still work.
+            $local = $m->started_at->copy()->setTimezone('Europe/Paris');
             $result[] = [
                 'id'         => $m->id,
-                'number'     => $m->src,
+                'number'     => $this->trimFrenchPrefix($m->src),
                 'name'       => $name,
-                'time'       => $m->started_at->format('d/m H:i'),
+                'time'       => $local->format('d/m H:i'),
                 'iso'        => $m->started_at->toIso8601String(),
                 'cid_number' => $cid?->number,
+                'cid_label'  => $cid?->label,
             ];
         }
 
@@ -232,7 +252,18 @@ class OperatorDashboardController extends Controller
 
         $logs = $query->latest('started_at')->paginate(50)->withQueryString();
 
-        return view('operator.calls', compact('logs', 'line'));
+        // Line label lookup (dst → REIMS / LILLE …) — keyed on the last 9
+        // digits so 0033xx / +33xx / 0xx all match. The view uses this to
+        // slap a small badge on every inbound row.
+        $tail9 = fn ($s) => (function ($x) {
+            $d = preg_replace('/\D/', '', (string) $x);
+            return strlen($d) >= 9 ? substr($d, -9) : $d;
+        })($s);
+        $lineBadges = CallerId::where('is_active', true)->get(['number', 'label'])
+            ->mapWithKeys(fn ($c) => [$tail9($c->number) => $c->label])
+            ->toArray();
+
+        return view('operator.calls', compact('logs', 'line', 'lineBadges'));
     }
 
     public function voicemail()

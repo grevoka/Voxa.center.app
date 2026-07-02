@@ -112,7 +112,7 @@
                 @forelse($logs as $log)
                     <tr>
                         <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text-secondary);">
-                            {{ $log->started_at ? $log->started_at->format('d/m/Y H:i:s') : '—' }}
+                            {{ $log->started_at ? $log->started_at->copy()->setTimezone('Europe/Paris')->format('d/m/Y H:i:s') : '—' }}
                         </td>
                         <td>
                             <i class="bi {{ $log->direction_icon }}" style="color:{{ $log->direction_color }};"></i>

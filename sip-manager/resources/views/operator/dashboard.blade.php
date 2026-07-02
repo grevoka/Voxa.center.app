@@ -85,7 +85,7 @@
                     <tbody>
                         @forelse($recentCalls as $call)
                         <tr>
-                            <td style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);white-space:nowrap;">{{ $call->started_at?->format('d/m H:i') }}</td>
+                            <td style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-secondary);white-space:nowrap;">{{ $call->started_at?->copy()->setTimezone('Europe/Paris')->format('d/m H:i') }}</td>
                             <td>
                                 @if($call->src == $line->extension)
                                     <i class="bi bi-arrow-up-right" style="color:var(--warning);font-size:0.8rem;"></i>

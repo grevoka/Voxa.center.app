@@ -514,6 +514,15 @@ function phoneContactLookup(number) {
     .catch(function() { return ''; });
 }
 
+// Strip the French international prefix from a raw SIP user-part so the
+// operator reads "0647635056" instead of "0033647635056".
+function phoneTrimFrenchPrefix(s) {
+    var d = String(s || '').replace(/\D/g, '');
+    if (d.startsWith('0033') && d.length === 13) return '0' + d.slice(4);
+    if (d.startsWith('33')   && d.length === 11) return '0' + d.slice(2);
+    return s;
+}
+
 function phoneOnIncoming(session) {
     // If a call is already up (ringing or in conversation), silently reject the
     // new incoming so the ringtone doesn't bleed over the active audio. The
@@ -524,7 +533,8 @@ function phoneOnIncoming(session) {
         return;
     }
     _session = session;
-    var caller = session.remote_identity.uri.user || 'Inconnu';
+    var rawCaller = session.remote_identity.uri.user || 'Inconnu';
+    var caller = phoneTrimFrenchPrefix(rawCaller);
     session._voxaCaller = caller;
     session._voxaAnswered = false;
     document.getElementById('phoneIncomingNumber').textContent = caller;
@@ -705,10 +715,13 @@ function renderMissedModal() {
         var li = document.createElement('li');
         li.className = 'list-group-item d-flex justify-content-between align-items-center';
         li.style.cssText = 'background:var(--surface-2);color:var(--text-primary);border-color:var(--border);cursor:pointer;padding:0.6rem 1rem;';
+        var badge = m.cid_label
+            ? '<span style="display:inline-block;padding:0.05rem 0.35rem;margin-right:0.3rem;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-size:0.6rem;font-weight:700;letter-spacing:0.5px;">' + m.cid_label + '</span>'
+            : '';
         var top = m.name
-            ? '<div style="font-weight:700;color:var(--accent);">' + m.name + '</div>'
+            ? '<div style="font-weight:700;color:var(--accent);">' + badge + m.name + '</div>'
               + '<div style="font-family:JetBrains Mono,monospace;font-size:0.78rem;color:var(--text-secondary);">' + m.number + '</div>'
-            : '<div style="font-family:JetBrains Mono,monospace;font-weight:700;">' + m.number + '</div>';
+            : '<div style="font-family:JetBrains Mono,monospace;font-weight:700;">' + badge + m.number + '</div>';
         li.innerHTML = '<div>' + top + '<div style="font-size:0.7rem;color:var(--text-secondary);">' + m.time + '</div></div>'
                      + '<button class="btn btn-sm btn-success"><i class="bi bi-telephone-fill me-1"></i>Rappeler</button>';
         li.onclick = function() { triggerMissedCallback(m); };

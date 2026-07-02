@@ -49,16 +49,31 @@
                     // src, never "1001", which would mis-classify everything.
                     $isOutbound = $call->direction === 'outbound';
                     $correspondent = $isOutbound ? $call->dst : $call->src;
+                    // Strip French international prefix for human readability
+                    // (0033647635056 → 0647635056). Storage is untouched.
+                    $digits = preg_replace('/\D/', '', (string) $correspondent);
+                    if (str_starts_with($digits, '0033') && strlen($digits) === 13) {
+                        $correspondent = '0' . substr($digits, 4);
+                    } elseif (str_starts_with($digits, '33') && strlen($digits) === 11) {
+                        $correspondent = '0' . substr($digits, 2);
+                    }
                     // Hide the internal "->LABEL" DID marker if it leaked into src_name.
                     $shownName = $call->src_name && !str_starts_with($call->src_name, '->') ? $call->src_name : null;
+                    // Which line was called? Look the DST up in the CallerId map.
+                    $dstDigits = preg_replace('/\D/', '', (string) $call->dst);
+                    $dstTail = strlen($dstDigits) >= 9 ? substr($dstDigits, -9) : $dstDigits;
+                    $lineLabel = ($lineBadges ?? [])[$dstTail] ?? null;
                 @endphp
                 <tr>
-                    <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">{{ $call->started_at?->format('d/m/Y H:i:s') }}</td>
+                    <td style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">{{ $call->started_at?->copy()->setTimezone('Europe/Paris')->format('d/m/Y H:i:s') }}</td>
                     <td>
                         @if($isOutbound)
                             <i class="bi bi-telephone-outbound-fill" style="color:var(--warning);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">{{ __("ui.outbound") }}</span>
                         @else
                             <i class="bi bi-telephone-inbound-fill" style="color:var(--info);font-size:0.75rem;"></i> <span style="font-size:0.72rem;">{{ __("ui.inbound") }}</span>
+                        @endif
+                        @if($lineLabel)
+                            <span style="display:inline-block;padding:0.05rem 0.35rem;margin-left:0.35rem;border-radius:4px;background:var(--accent-dim);color:var(--accent);font-size:0.62rem;font-weight:700;letter-spacing:0.5px;">{{ $lineLabel }}</span>
                         @endif
                     </td>
                     <td style="font-size:0.82rem;">
