@@ -480,6 +480,24 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(loadColleagues, 5000);
 });
 
+// ── Voicemail unread badge (sidebar) ──
+function loadVoicemailCount() {
+    var badge = document.getElementById('voicemailBadge');
+    if (!badge) return;
+    fetch('{{ route('operator.voicemail-count') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.ok ? r.json() : { count: 0 }; })
+        .then(function(d) {
+            var n = d.count || 0;
+            badge.textContent = n;
+            badge.style.display = n > 0 ? '' : 'none';
+        })
+        .catch(function() {});
+}
+document.addEventListener('DOMContentLoaded', function() {
+    loadVoicemailCount();
+    setInterval(loadVoicemailCount, 30000);
+});
+
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
     var txt = document.getElementById('phoneStatusText');

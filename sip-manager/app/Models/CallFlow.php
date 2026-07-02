@@ -161,6 +161,18 @@ class CallFlow extends Model
                     $queueName = $step['queue_name'] ?? 'default';
                     $timeout = $step['timeout'] ?? 60;
                     $lines[] = " same => n,Queue({$queueName},tT,,,{$timeout})";
+                    // On timeout, either continue the flow (default), drop the
+                    // caller into a voicemail box, or hang up outright.
+                    $onTimeout = $step['on_timeout'] ?? 'continue';
+                    if ($onTimeout === 'voicemail') {
+                        $mbox = preg_replace('/\D/', '', (string) ($step['voicemail_mailbox'] ?? ''));
+                        if ($mbox !== '') {
+                            $lines[] = " same => n,VoiceMail({$mbox}@default,u)";
+                            $lines[] = " same => n,Hangup()";
+                        }
+                    } elseif ($onTimeout === 'hangup') {
+                        $lines[] = " same => n,Hangup()";
+                    }
                     break;
 
                 case 'ring':

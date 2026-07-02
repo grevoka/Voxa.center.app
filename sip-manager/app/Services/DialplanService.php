@@ -349,7 +349,65 @@ class DialplanService
      */
     public function writeAll(): bool
     {
-        return $this->writeExtensions() && $this->writeQueues() && $this->writeFeatures() && $this->writeConferences();
+        return $this->writeExtensions()
+            && $this->writeQueues()
+            && $this->writeFeatures()
+            && $this->writeConferences()
+            && $this->writeVoicemail();
+    }
+
+    /**
+     * Regenerate the [default] context of voicemail.conf with one box per
+     * SipLine that has voicemail_enabled=1. Keeps everything outside the
+     * marker (globals, general) untouched. Password defaults to the
+     * extension itself if none is stored; operator can change it via the
+     * voicemail menu (*98).
+     */
+    public function writeVoicemail(): bool
+    {
+        try {
+            $path = '/etc/asterisk/voicemail.conf';
+            $marker = '; === AUTO-GENERATED VOICEMAIL BOXES BY Voxa Center ===';
+            $base = '';
+            if (file_exists($path)) {
+                $content = file_get_contents($path);
+                $pos = strpos($content, $marker);
+                $base = $pos !== false ? rtrim(substr($content, 0, $pos)) : rtrim($content);
+            }
+
+            $lines = ["{$marker}", '; Ne pas editer — gere par SipLine', '[default]'];
+
+            $ok = 0;
+            $boxes = \App\Models\SipLine::where('voicemail_enabled', true)->get(['extension', 'name', 'voicemail_email']);
+            foreach ($boxes as $box) {
+                $mbox = preg_replace('/\D/', '', (string) $box->extension);
+                if ($mbox === '') continue;
+                $name = $this->stripBoxToken($box->name ?: 'Poste ' . $mbox);
+                $email = $this->stripBoxToken((string) ($box->voicemail_email ?? ''));
+                // Password = mailbox itself as a sane default. Users change via *98.
+                $lines[] = "{$mbox} => {$mbox},{$name},{$email}";
+                $ok++;
+            }
+
+            $output = $base . "\n" . implode("\n", $lines) . "\n";
+            $this->writeAsteriskFile($path, $output);
+            exec('sudo /usr/sbin/asterisk -rx "voicemail reload" 2>&1');
+
+            Log::info('Voicemail config written', ['boxes' => $ok]);
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Failed to write voicemail config', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
+    /**
+     * voicemail.conf uses ',' as its field separator, so anything that ends up
+     * in a box definition must have commas / newlines scrubbed.
+     */
+    private function stripBoxToken(string $s): string
+    {
+        return trim(preg_replace('/[,\r\n]+/', ' ', $s));
     }
 
     /**

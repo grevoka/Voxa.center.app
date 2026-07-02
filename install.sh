@@ -440,7 +440,7 @@ chmod -R o+r /var/log/asterisk
 
 # ── Sudoers for www-data ──
 cat > /etc/sudoers.d/asterisk-cli << 'SUDOEOF'
-www-data ALL=(root) NOPASSWD: /usr/sbin/asterisk, /usr/bin/tee /etc/asterisk/extensions.conf, /usr/bin/tee /etc/asterisk/queues.conf, /usr/bin/tee /etc/asterisk/pjsip.conf, /usr/bin/tee /etc/asterisk/musiconhold.conf
+www-data ALL=(root) NOPASSWD: /usr/sbin/asterisk, /usr/bin/tee /etc/asterisk/extensions.conf, /usr/bin/tee /etc/asterisk/queues.conf, /usr/bin/tee /etc/asterisk/pjsip.conf, /usr/bin/tee /etc/asterisk/musiconhold.conf, /usr/bin/tee /etc/asterisk/voicemail.conf
 SUDOEOF
 chmod 0440 /etc/sudoers.d/asterisk-cli
 chown www-data:www-data /etc/asterisk/extensions.conf /etc/asterisk/queues.conf /etc/asterisk/pjsip.conf 2>/dev/null || true

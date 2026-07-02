@@ -59,6 +59,21 @@ class OperatorDashboardController extends Controller
     }
 
     /**
+     * Cheap unread-voicemail count for the sidebar badge. Reads the
+     * INBOX directly from the Asterisk spool.
+     */
+    public function voicemailCount(Request $request)
+    {
+        $ext = auth()->user()?->sipLine?->extension;
+        if (!$ext) return response()->json(['count' => 0]);
+        $safe = preg_replace('/\D/', '', (string) $ext);
+        if ($safe === '') return response()->json(['count' => 0]);
+        $dir = "/var/spool/asterisk/voicemail/default/{$safe}/INBOX";
+        $count = is_dir($dir) ? count(glob("{$dir}/msg*.txt")) : 0;
+        return response()->json(['count' => $count]);
+    }
+
+    /**
      * Presence panel data for the other operators — extension, name, and
      * the current state (busy / idle / offline). Detected by two Asterisk
      * calls: `core show channels concise` for busy legs, and

@@ -2463,6 +2463,18 @@ function renderProps(){
                 ${QUEUES.map(q => `<option value="${q.name}" ${n.data.queue_name===q.name?'selected':''}>${q.display_name||q.name}</option>`).join('')}
             </select>`);
             h += cfgF(T.wait + ' (sec)', `<input type="number" class="form-control form-control-sm" value="${n.data.timeout||60}" min="10" max="300" onchange="setProp(${n.id},'timeout',+this.value)">`);
+            var onTimeout = n.data.on_timeout || 'continue';
+            h += cfgF('Sur timeout', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'on_timeout',this.value)">
+                <option value="continue" ${onTimeout==='continue'?'selected':''}>Continuer le scenario</option>
+                <option value="voicemail" ${onTimeout==='voicemail'?'selected':''}>Envoyer vers la messagerie</option>
+                <option value="hangup"    ${onTimeout==='hangup'?'selected':''}>Raccrocher</option>
+            </select>`);
+            if (onTimeout === 'voicemail') {
+                h += cfgF('Boite (poste)', `<select class="form-select form-select-sm" onchange="setProp(${n.id},'voicemail_mailbox',this.value)">
+                    <option value="">— {{ __('ui.choose') }} —</option>
+                    ${(LINES||[]).filter(l=>l.voicemail_enabled).map(l => `<option value="${l.extension}" ${n.data.voicemail_mailbox===l.extension?'selected':''}>${l.extension} — ${l.name||''}</option>`).join('')}
+                </select>`);
+            }
             break;
         case 'voicemail':
             h += cfgF(T.box, `<input type="text" class="form-control form-control-sm" value="${n.data.mailbox||'1000'}" onchange="setProp(${n.id},'mailbox',this.value)">`);

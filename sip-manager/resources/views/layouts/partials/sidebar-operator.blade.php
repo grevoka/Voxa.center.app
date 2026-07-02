@@ -31,6 +31,7 @@
         @endif
         <a class="nav-item-custom {{ request()->routeIs('operator.voicemail*') ? 'active' : '' }}" href="{{ route('operator.voicemail') }}">
             <i class="bi bi-voicemail"></i> Messagerie vocale
+            <span id="voicemailBadge" class="nav-badge" style="display:none;background:var(--danger);color:#fff;">0</span>
         </a>
         <a class="nav-item-custom {{ request()->routeIs('operator.recordings') ? 'active' : '' }}" href="{{ route('operator.recordings') }}">
             <i class="bi bi-mic-fill"></i> Enregistrements

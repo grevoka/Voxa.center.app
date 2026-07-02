@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/missed-calls', [OperatorDashboardController::class, 'missedCalls'])->name('missed-calls');
         Route::get('/contact-lookup', [OperatorDashboardController::class, 'contactLookup'])->name('contact-lookup');
         Route::get('/presence', [OperatorDashboardController::class, 'presence'])->name('presence');
+        Route::get('/voicemail-count', [OperatorDashboardController::class, 'voicemailCount'])->name('voicemail-count');
         Route::get('/voicemail', [OperatorDashboardController::class, 'voicemail'])->name('voicemail');
         Route::get('/voicemail/{folder}/{file}/play', [OperatorDashboardController::class, 'playVoicemail'])->name('voicemail.play');
         Route::delete('/voicemail/{folder}/{file}', [OperatorDashboardController::class, 'destroyVoicemail'])->name('voicemail.destroy');
