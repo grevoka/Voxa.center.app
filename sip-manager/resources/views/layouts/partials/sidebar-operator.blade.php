@@ -43,6 +43,18 @@
         </a>
     </div>
 
+    {{-- Colleagues presence --}}
+    @if(auth()->user()->sipLine)
+    <div style="padding:0.5rem 0.75rem 0.25rem;">
+        <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:0.35rem;">
+            <i class="bi bi-people-fill me-1"></i> Coll&egrave;gues
+        </div>
+        <div id="colleaguesList" style="display:flex;flex-direction:column;gap:0.2rem;font-size:0.72rem;">
+            <div style="color:var(--text-secondary);font-size:0.65rem;">Chargement…</div>
+        </div>
+    </div>
+    @endif
+
     {{-- Softphone toggle button --}}
     @if(auth()->user()->sipLine)
     <div style="padding:0.5rem 0.75rem;">

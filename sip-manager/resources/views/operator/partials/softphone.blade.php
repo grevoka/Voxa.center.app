@@ -453,6 +453,33 @@ document.addEventListener('DOMContentLoaded', function() {
     phoneSetRingtone(_ringtone);
 });
 
+// ── Colleagues presence panel (sidebar) ──
+function loadColleagues() {
+    var list = document.getElementById('colleaguesList');
+    if (!list) return;
+    fetch('{{ route('operator.presence') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.ok ? r.json() : { colleagues: [] }; })
+        .then(function(d) {
+            var cs = d.colleagues || [];
+            if (cs.length === 0) { list.innerHTML = '<div style="color:var(--text-secondary);font-size:0.65rem;">Aucun collegue</div>'; return; }
+            var stateColor = { busy: 'var(--danger)', idle: 'var(--success)', offline: 'var(--text-secondary)' };
+            var stateLabel = { busy: 'En com', idle: 'Dispo', offline: 'Hors ligne' };
+            list.innerHTML = cs.map(function(c) {
+                var col = stateColor[c.state] || stateColor.offline;
+                return '<div style="display:flex;align-items:center;gap:0.4rem;padding:0.2rem 0.3rem;border-radius:6px;">'
+                     + '<span style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0;"></span>'
+                     + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (c.name || '') + '</span>'
+                     + '<span style="color:var(--text-secondary);font-size:0.6rem;">' + (stateLabel[c.state] || '') + '</span>'
+                     + '</div>';
+            }).join('');
+        })
+        .catch(function() {});
+}
+document.addEventListener('DOMContentLoaded', function() {
+    loadColleagues();
+    setInterval(loadColleagues, 5000);
+});
+
 function phoneSetStatus(status, text) {
     var dot = document.getElementById('phoneStatus');
     var txt = document.getElementById('phoneStatusText');

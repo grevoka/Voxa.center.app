@@ -6,6 +6,7 @@ use App\Models\CallLog;
 use App\Models\CallQueue;
 use App\Models\CallerId;
 use App\Models\Contact;
+use App\Models\SipLine;
 use Illuminate\Http\Request;
 
 class OperatorDashboardController extends Controller
@@ -55,6 +56,37 @@ class OperatorDashboardController extends Controller
         $vmCount = is_dir($vmPath) ? count(glob("{$vmPath}/msg*.txt")) : 0;
 
         return view('operator.dashboard', compact('line', 'todayStats', 'recentCalls', 'queues', 'vmCount'));
+    }
+
+    /**
+     * Presence panel data for the other operators — extension, name, and
+     * the current state (busy / idle / offline). Detected by two Asterisk
+     * calls: `core show channels concise` for busy legs, and
+     * `pjsip show contacts` for reachable AoRs.
+     */
+    public function presence(Request $request)
+    {
+        $selfExt = auth()->user()?->sipLine?->extension;
+        $lines = SipLine::with('operator:id,name,sip_line_id')
+            ->when($selfExt, fn ($q) => $q->where('extension', '!=', $selfExt))
+            ->orderBy('extension')
+            ->get(['id', 'extension', 'name']);
+
+        $channels = shell_exec('sudo /usr/sbin/asterisk -rx "core show channels concise" 2>/dev/null') ?: '';
+        $contacts = shell_exec('sudo /usr/sbin/asterisk -rx "pjsip show contacts" 2>/dev/null') ?: '';
+
+        $colleagues = $lines->map(function (SipLine $line) use ($channels, $contacts) {
+            $ext = preg_quote($line->extension, '/');
+            $isBusy = (bool) preg_match('/^PJSIP\/' . $ext . '-[^|]+\|.*?\|.*?\|.*?\|(Up|Ring|Ringing)\|/mi', $channels);
+            $isReg  = (bool) preg_match('/' . $ext . '\/[^\s]+.*?Avail/', $contacts);
+            return [
+                'extension' => $line->extension,
+                'name'      => $line->name ?: ($line->operator?->name ?? 'Poste ' . $line->extension),
+                'state'     => $isBusy ? 'busy' : ($isReg ? 'idle' : 'offline'),
+            ];
+        })->values();
+
+        return response()->json(['colleagues' => $colleagues]);
     }
 
     /**
